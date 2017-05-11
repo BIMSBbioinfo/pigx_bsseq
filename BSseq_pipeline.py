@@ -1,13 +1,7 @@
 #!/usr/bin/env python3.5
-# ---last updated on  Wed Mar 29 16:05:58 CEST 2017  by  blosberg  at location  , Bren-Osbergs-MacBook.local
+# ---last updated on  Thu May 11 15:07:17 CEST 2017  by  blosberg  at location  , BrensMB.local
 
-#  changes from  Wed Mar 29 16:05:58 CEST 2017 : mapping alignment rule can now be directional or non-directional
-
-#  changes from  Thu Mar 23 15:44:48 CET 2017 : Eliminated race condition (from file latency) in dedupe rule by no-longer moving output to separate subfolder. decremented folder names accordingly.
-
-#  changes from  Mon Mar 13 12:25:28 CET 2017 : manually set the bismark_se_ output to .bam with the "--bam" option and removed commented-out sections of the total [OUTPUT_FILE] list to make it cleaner
-
-#  changes from  Mon Mar 6 19:20:15 CET 2017 : made the folder assignments per rule more systematic
+#  changes from  Thu May 11 15:07:17 CEST 2017 : Added final step of deconvolution to the script that takes sorted bam files as input (using methylkit to import to methylraw object)
 
 #============================================================================================================
 # SNAKEMAKE FILE WRITTEN BY THE AKALIN GROUP AT MDC, BERLIN, 2017
@@ -101,9 +95,6 @@ OUTPUT_FILES = [
                 
                 #               ====rule 07 deconvolution ======           
                 [ expand   ( list_files_deconv( PATHOUT+"07_deconv/", config["SAMPLES"][sampleID]["files"] )  ) for sampleID in config["SAMPLES"]  ]  
-                                            
-                
-                
                 
                 # ==================  FINAL REPORT =========================
                 # [ expand (PATHOUT+config["SAMPLES"][sampleID]["files"][0]+SEPEstr(config["SAMPLES"][sampleID]["files"] )+"_report.html"  ) for sampleID in config["SAMPLES"]  ],
