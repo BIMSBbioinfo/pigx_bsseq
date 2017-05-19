@@ -3,42 +3,22 @@
     "RCODE"        : ".read",
     "directional"  : true,
     "NUMTHREADS"   : "2",
-    "INEXT"  : ".fq.gz",
+    "INEXT"  : ".fastq.gz",
     "SAMPLES": {
-	 "Cond01":{
-         	"name":"Cond1",
-         	"files": ["Cond1.read1", "Cond1.read2"]
+	 "lung":{
+         	"name":"lung",
+         	"files": ["lung_SRX388734"]
 	  }, 
- 	 "Cond02":{
-         	"name":"Cond2",
-         	"files": ["Cond2.read1", "Cond2.read2"]
-	  }, 
- 	 "Cond03":{
-         	"name":"Cond3",
-         	"files": ["Cond3.read1", "Cond3.read2"]
-	  }, 
- 	 "Cond04":{
-        	"name":"Cond4",
-         	"files": ["Cond4.read1", "Cond4.read2"]
-	  }, 
- 	 "Cond05":{
-         	"name":"Cond5",
-         	"files": ["Cond5.read1", "Cond5.read2"]
-	  }, 
- 	 "Cond06":{
-         	"name":"Cond6",
-         	"files": ["Cond6.read1", "Cond6.read2"]
-	  } 
+         "aorta":{
+                "name":"aorta",
+                "files": ["aorta_SRX263882"]
+          },	
+         "placenta":{
+                "name":"placenta",
+                "files": ["placenta_SRX323156.read1", "placenta_SRX323156.read2"]
+          }	
     },
-    "paths": {
-       "GTOOLBOX"   : "~/.guix-profile/bin/",
-       "PATHIN"     : "/data/akalin/bosberg/Sun_PNAS_RAW/Mixture/",
-       "PATHOUT"    : "/data/akalin/bosberg/Sun_PNAS_processed_MIX/",
-       "GENOMEPATH" : "/data/akalin/Base/Genomes/hg19/",
-       "LOGS"       : "Final_report_logs/"
-             },
-    "genomedat":  {
-       "CHROM_INFO" : "/home/bosberg/Bisulfide/ref/hg19.chrom.sizes.ucsc_hapdel.txt",
+   "genomedat":  {
        "VERSION"    : "hg19"
              },
     "progs": {

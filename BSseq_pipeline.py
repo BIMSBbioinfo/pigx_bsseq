@@ -1,7 +1,4 @@
 #!/usr/bin/env python3.5
-# ---last updated on  Thu May 11 15:07:17 CEST 2017  by  blosberg  at location  , BrensMB.local
-
-#  changes from  Thu May 11 15:07:17 CEST 2017 : Added final step of deconvolution to the script that takes sorted bam files as input (using methylkit to import to methylraw object)
 
 #============================================================================================================
 # SNAKEMAKE FILE WRITTEN BY THE AKALIN GROUP AT MDC, BERLIN, 2017
@@ -20,36 +17,38 @@
 
 #------ set config file, include function definitions, and set os:
 import os
-configfile: "./config.json"
-include   : "./func_defs.py"
+configfile: "config.json"
+include   : "scripts/func_defs.py"
+# include   : "rules/post_mapping.rules"
+# include   : "rules/samtools.rules"
+
+#-------------------------------  READ IN SETTINGS FROM CONFIG FILE:  ----------------------------------
 
 NICE=config["NICE"]
-#--- NICE is an option to gauge the burden on computational resources, ranges from -19 to +19. 
-#--- The more "nice" you are, the more you allow other processes to jump ahead of you 
-#--- (like in traffic). Generally set to maximally nice=19 to avoid interference with system processes.
+    #--- NICE is an option to gauge the burden on computational resources, ranges from -19 to +19. 
+    #--- The more "nice" you are, the more you allow other processes to jump ahead of you 
+    #--- (like in traffic). Generally set to maximally nice=19 to avoid interference with system processes.
 
-
-#---------------------------------     DEFINE PATHS AND FILE NAMES:  ----------------------------------
-
-RCODE           = config["RCODE"]                   #--- the string that denotes which read the file corresponds to (only relevent for paired-end experiments.)
-PATHIN          = config["paths"]["PATHIN"]         #--- location of the data files to be imported
-PATHOUT         = config["paths"]["PATHOUT"]        #--- where to send the output
-GTOOLBOX        = config["paths"]["GTOOLBOX"]       #--- where the programs are stored to carry out the necessary operations
-GENOMEPATH      = config["paths"]["GENOMEPATH"]     #--- where the reference genome being mapped to is stored
-LOGS            = config["paths"]["LOGS"]           #--- subfolder name for the logs of some programs
-
+RCODE           = config["RCODE"]                   #--- String denoting which read the file corresponds to (for paired-end.)
 INEXT           = config["INEXT"]                   #--- input file extension; usually .fq.gz, but can also be .bz2 among other possibilities.
-VERSION         = config["genomedat"]["VERSION"]        #--- version of the genome being mapped to.
+VERSION         = config["genomedat"]["VERSION"]    #--- version of the genome being mapped to.
 
-CHROM_INFO      = config["genomedat"]["CHROM_INFO"]     #--- details of the reference genome (length, etc.) haploid chroms have been removed.
-NUMTHREADS      = config["NUMTHREADS"]
+NUMTHREADS      = config["NUMTHREADS"]              #--- (max) number of threads to run at a time for a given process.
 
-if ( config["directional"] ):
+
+# paths are hard-coded using symbolic links established by the shell script that calls this SM script. 
+PATHIN="path_links/in/"                             #--- location of the data files to be imported
+PATHOUT="path_links/out/"                           #--- output
+GTOOLBOX="path_links/dependencies/"                 #--- path to dependency programs.
+GENOMEPATH="path_links/genome_ref/"                 #--- reference genome.
+# Thus, all paths are relative within SM.
+
+if ( config["directional"] ):                       # --- Directional adapters/reads are assumed by default:
     NON_DIR_FLAG=""
 else:
     NON_DIR_FLAG=" --non_directional "
 
-#-------------------------------      DEFINE PROGRAMS TO BE EXECUTED: ---------------------------------
+#-------------------------      DEFINE PROGRAMS TO BE EXECUTED:      ---------------------------------
 
 FASTQC                         =  GTOOLBOX+config["progs"]["FASTQC"]            #--- self-explanatory program names.
 TRIMGALORE                     =  GTOOLBOX+config["progs"]["TRIMGALORE"]
@@ -63,14 +62,15 @@ BISMARK2REPORT                 =  GTOOLBOX+config["progs"]["BISMARK2REPORT"]
 
 SAMTOOLS                       =  GTOOLBOX+config["progs"]["SAMTOOLS"] 
 
-
 #---------------------------     LIST THE OUTPUT FILES TO BE PRODUCED     ------------------------------
 
-OUTPUT_FILES = [
+# --- Below is the list of expected output files. They are enumerated by their sequence in the rules of the processing pipeline
+# --- the process can be terminated earlier by expressing (i.e. uncommenting) only the [expand] commands corresponding to the 
+# --- last rule that you wish to have executed.
 
+OUTPUT_FILES = [
                 #               ======  rule 01 raw QC    =========
                 [ expand (list_files(PATHOUT+"01_rawqc/", config["SAMPLES"][sampleID]["files"], "_fastqc.html")  ) for sampleID in config["SAMPLES"]  ],
-                # [ expand (list_files(PATHOUT+"01_rawqc/", config["SAMPLES"][sampleID]["files"], "_fastqc.zip" )  ) for sampleID in config["SAMPLES"]  ],
 
                 #----RULE 2 IS ALWAYS EXECUTED, TRIMMING IS A PREREQUISITE FOR SUBSEQUENT RULES ----
                 
@@ -85,21 +85,20 @@ OUTPUT_FILES = [
                 #               [ expand ( list_files_TG( PATHOUT+"02_trimmed/", config["SAMPLES"][sampleID]["files"] )  ) for sampleID in config["SAMPLES"]  ],                
                 #               ====rule 04 Mapping ======
                 [ expand ( list_files_bismark(PATHOUT+"04_mapped/", config["SAMPLES"][sampleID]["files"] )  ) for sampleID in config["SAMPLES"]  ],
-              
+ 
                 #               ====formerly rule 05 Deduplication ======
                 [ expand ( list_files_dedupe(PATHOUT+"05_deduped/", config["SAMPLES"][sampleID]["files"] )  ) for sampleID in config["SAMPLES"]  ],                                
-
+              
                 #               ====rule 06 sorting ======
                 [ expand ( list_files_sortbam(PATHOUT+"06_sorted/", config["SAMPLES"][sampleID]["files"] )  ) for sampleID in config["SAMPLES"]  ],
+ 
+                #               ====rule 07 deconvolution ======
+                [ expand ( list_files_deconv(PATHOUT+"07_deconv/", config["SAMPLES"][sampleID]["files"] )  ) for sampleID in config["SAMPLES"]  ],
 
-                
-                #               ====rule 07 deconvolution ======           
-                [ expand   ( list_files_deconv( PATHOUT+"07_deconv/", config["SAMPLES"][sampleID]["files"] )  ) for sampleID in config["SAMPLES"]  ]  
-                
                 # ==================  FINAL REPORT =========================
-                # [ expand (PATHOUT+config["SAMPLES"][sampleID]["files"][0]+SEPEstr(config["SAMPLES"][sampleID]["files"] )+"_report.html"  ) for sampleID in config["SAMPLES"]  ],
-                
-]
+                # @@@! This needs to be editted once we determine what final reports we want to export!
+                # [ expand (PATHOUT+config["SAMPLES"][sampleID]["files"][0]+SEPEstr(config["SAMPLES"][sampleID]["files"] )+"_report.html"  ) for sampleID in config["SAMPLES"]  ], 
+		]
 
 #--- In case you want to debug the code with interactive commands:
 # import IPython;
@@ -108,11 +107,11 @@ OUTPUT_FILES = [
 # for x in OUTPUT_FILES: print( x)
 #--- 
 
-# =======================================================================================================
+# ===========================================================================================
 #
-#                                         BEGIN RULES    
+#                             BEGIN RULES    
 #
-# =======================================================================================================
+# ===========================================================================================
 
 rule all:
     input:
@@ -122,12 +121,11 @@ rule all:
 
 # rule clean:
 #    shell: "if [ -d {PATHOUT} ]; then rm -r {PATHOUT}; fi"
-
 # ==========================================================================================
 
 rule deconvolve_se:
     input:
-        PATHOUT+"06_sorted/{sample}_se.deduplicated.sorted.bam"
+        PATHOUT+"06_sorted/{sample}_se_bt2.deduped.sorted.bam"
     output:
         PATHOUT+"07_deconv/{sample}_se.deconv_out.RData"
     shell:
@@ -136,38 +134,41 @@ rule deconvolve_se:
 #------
 rule deconvolve_pe:
     input:
-        PATHOUT+"06_sorted/{sample}"+RCODE+"1_val_1.deduplicated.sorted.bam"
+        PATHOUT+"06_sorted/{sample}"+RCODE+"1_val_1_bt2.deduped.sorted.bam"
     output:
         PATHOUT+"07_deconv/{sample}"+RCODE+"1_val_1.deconv_out.RData"
     shell:
         "nice -"+str(NICE)+" Rscript BSseq_deconv.R {input} {{sample}}"+RCODE+"1_val_1"
 
+
 # ==========================================================================================
+# sort:
 
 rule sortbam_se:
     input:
-        PATHOUT+"05_deduped/{sample}_se.deduplicated.bam"
+        PATHOUT+"05_deduped/{sample}_se_bt2.deduped.bam"
     output:
-        PATHOUT+"06_sorted/{sample}_se.deduplicated.sorted.bam"
+        PATHOUT+"06_sorted/{sample}_se_bt2.deduped.sorted.bam"
     shell:
         "nice -"+str(NICE)+" samtools sort {input} -o {output}"
 
-#-------- TWO SORTING STEPS ARE REQUIRED IN PAIRED END (see bismark deduplication doc) -----
+#-----
 rule sortbam_pe:
     input:
-        PATHOUT+"05_deduped/{sample}"+RCODE+"1_val_1.deduplicated.bam"
+        PATHOUT+"05_deduped/{sample}"+RCODE+"1_val_1_bt2.deduped.bam"
     output:
-        PATHOUT+"06_sorted/{sample}"+RCODE+"1_val_1.deduplicated.sorted.bam"
+        PATHOUT+"06_sorted/{sample}"+RCODE+"1_val_1_bt2.deduped.sorted.bam"
     shell:
         "nice -"+str(NICE)+" samtools sort {input} -o {output}"
 
 # ==========================================================================================
+# deduplicate:
 
-rule bismark_se_deduplication:
+rule deduplication_se:
     input:
         PATHOUT+"04_mapped/{sample}_trimmed_bismark_bt2.bam"
     output:
-        PATHOUT+"05_deduped/{sample}_se.deduplicated.bam"
+        PATHOUT+"05_deduped/{sample}_se_bt2.deduped.bam"
     params:
         bam="--bam ",
         sampath="--samtools_path "+SAMTOOLS
@@ -177,16 +178,20 @@ rule bismark_se_deduplication:
     shell:
         "nice -"+str(NICE)+" samtools rmdup {input}  {output} 2> {log}"
 
-rule bismark_pe_deduplication:
+#-----
+rule deduplication_pe:
     input:
         PATHOUT+"04_mapped/{sample}"+RCODE+"1_val_1_bismark_bt2_pe.bam"
     output:
-        PATHOUT+"05_deduped/{sample}"+RCODE+"1_val_1.deduplicated.bam"
+        PATHOUT+"05_deduped/{sample}"+RCODE+"1_val_1_bt2.deduped.bam"
     log:
         PATHOUT+"05_deduped/{sample}_deduplication.log"
     message: """-----------   Deduplicating paired-end read alignments ---------------------- """
     shell:
-        "nice -"+str(NICE)+" samtools rmdup {input}  {output} 2> {log}"
+        "nice -"+str(NICE)+" samtools fixmate {input}  {output} 2> {log}"
+
+# ==========================================================================================
+#  N.B. MIGHT NEED TO ADD A "SORT BY NAME" RULE HERE IN CASE THE MAPPING DOESN'T KEEP PAIRED READS ORGANIZED.
 # ==========================================================================================
 # Align and map:
 
@@ -263,6 +268,7 @@ rule bismark_genome_preparation:
         "nice -"+str(NICE)+" {BISMARK_GENOME_PREPARATION} {params} {input} 2> {log}"
 
 # ==========================================================================================
+# post-trimming quality control
 
 rule fastqc_after_trimming_se:
     input:
@@ -296,6 +302,7 @@ rule fastqc_after_trimming_pe:
         "nice -"+str(NICE)+" {FASTQC} {params.outdir} {input} 2> {log}"
 #
 # ==========================================================================================
+# trim the reads
 
 rule trimgalore_se:
    input:
@@ -344,6 +351,7 @@ rule trimgalore_pe:
         "nice -"+str(NICE)+" {TRIMGALORE} {params} {input} 2> {log}"
 
 # ==========================================================================================
+# raw quality control
 
 rule fastqc_raw: #----only need one: covers BOTH PE and SE cases.
     input:
