@@ -93,6 +93,9 @@ OUTPUT_FILES = [
                 #               ==== rule Bam processing ======
                 [ expand ( bam_processing(METHCALLDIR, config["SAMPLES"][sample]["files"] )  ) for sampleID in config["SAMPLES"]  ], #had to add it to call bam_methCall for diff meth rule
                 
+                #               ==== rule Bam processing ======
+                [ expand ( bam_processing(METHCALLDIR, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ] #had to add it to call bam_methCall for diff meth rule
+                
                 # ==================  FINAL REPORT =========================
                 # TODO: This needs to be editted once we determine what final reports we want to export!
 		            [ expand ( Final(DIR_final, config["SAMPLES"][sample]["files"], VERSION , config["SAMPLES"][sample]["SampleID"]  )) for sample in config["SAMPLES"]  ]

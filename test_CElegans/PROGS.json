@@ -1,6 +1,5 @@
 {
     "GTOOLBOX":"/home/kwreczy/programs/bin/",
-
     "PROGS": {
         "FASTQC"          : "fastqc",
         "TRIMGALORE"      : "trim_galore",
