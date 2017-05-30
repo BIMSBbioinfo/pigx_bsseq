@@ -154,7 +154,7 @@ def parseDiffMeth(lines, sample_params):
                             for s in sample_params['SAMPLES'].keys()])
   # treatments values from the [[ DIFFERENTIAL METHYLATION ]] part
   treatments_diffmeth = set(sum(list_of_list, []))
-  
+
   if treatments_diffmeth.issubset(treatments_samples)==False:
     invalid_treatments = list(set(treatments_diffmeth) - set(treatments_samples))
     raise Exception("Invalid treatment value(s) " + ", ".join(invalid_treatments))

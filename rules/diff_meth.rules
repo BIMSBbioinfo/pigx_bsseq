@@ -101,7 +101,6 @@ ANNODIR     = "annotation/"
 DIFFMETHDIR = 'differential_methylation/'
 
 
-<<<<<<< 66119698ef58cd9492b63b977b3bcc47e0e54d93
 SAMPLE_IDS = list(config["SAMPLES"].keys())
 SAMPLE_TREATMENTS = [config["SAMPLES"][s]["Treatment"] for s in SAMPLE_IDS]
 
@@ -128,14 +127,6 @@ def diffmeth_input_function(wc):
   inputfiles = list(sum(inputfiles, []))
   return(inputfiles)
 
-=======
-#DIFFMETHDIR+"_".join(x)+".sorted_diffmeth.nb.html"
-
-def diffmeth_input_function(wildcards):
-  wc = list(wildcards)
-  print(wc)
-  print('wc')
->>>>>>> Rule diffmeth doesnt see outputfiles..
 
 
 ## Differential methylation
