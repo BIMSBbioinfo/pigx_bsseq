@@ -126,8 +126,8 @@ def parseTable2dict(lines):
   outputdict1['SAMPLES'] =  outputdict 
   return( outputdict1 )
   
-# -------------------------------------------------------------------------------
-def parse_diffmeth_samples(lines, sample_params):
+  
+def parseDiffMeth(lines, sample_params):
   """
   Parse lines with information pairs samples
   which should be considered for differential
@@ -151,13 +151,12 @@ def parse_diffmeth_samples(lines, sample_params):
   # check if treatment values are in the the column samples from
   # the second part of the input file
   # treatments values from the [[ SAMPLES ]] part
-  treatments_2ndpart = set([sample_params['SAMPLES'][s]['Treatment'] 
+  treatments_samples = set([sample_params['SAMPLES'][s]['Treatment'] 
                             for s in sample_params['SAMPLES'].keys()])
   # treatments values from the [[ DIFFERENTIAL METHYLATION ]] part
-  treatments_3rdpart = set(sum(list_of_list, []))
-
-  if treatments_3rdpart != treatments_2ndpart:
-    invalid_treatments = list(set(treatments_3rdpart) - set(treatments_2ndpart))
+  treatments_diffmeth = set(sum(list_of_list, []))
+  if (treatments_diffmeth & treatments_samples) != treatments_diffmeth:
+    invalid_treatments = list(set(treatments_diffmeth) - set(treatments_samples))
     raise Exception("Invalid treatment value(s) " + ", ".join(invalid_treatments))
 
   d = {}
@@ -190,8 +189,8 @@ def createConfigfile(tablesheet, outfile, *args):
   
   # Load pairs of treatments for differential methylation
   diff_meth = sections['differential methylation']
-  diff_meth_params = parse_diffmeth_samples(diff_meth, sample_params)
-  
+  diff_meth_params = parseDiffMeth(diffmeth, sample_params)
+
   # Create a config file  
   config=gen_params
   config.update(sample_params)
