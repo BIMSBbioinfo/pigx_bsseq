@@ -127,6 +127,42 @@ def parseTable2dict(lines):
   return( outputdict1 )
   
 # -------------------------------------------------------------------------------
+def parse_diffmeth_samples(lines, sample_params):
+  """
+  Parse lines with information pairs samples
+  which should be considered for differential
+  methylation. E.g. for treatments A,B,C and D
+  it could like:
+  
+  A, B
+  C, D
+  D, A, B
+  
+  It returns a dictionary required for the config file.
+  """ 
+  # remove \n characters after arguments
+  text = [x.rstrip() for x in lines]
+  # remove empty lines
+  text = list(filter(None, text))
+  # list of lists (variable, value)
+  list_of_list =[[y.strip().lstrip() for y in x.split(",")] for x in text]
+  # check if treatment values are in the the column samples from
+  # the second part of the input file
+  # treatments values from the [[ SAMPLES ]] part
+  treatments_2ndpart = set([sample_params['SAMPLES'][s]['Treatment'] 
+                            for s in sample_params['SAMPLES'].keys()])
+  # treatments values from the [[ DIFFERENTIAL METHYLATION ]] part
+  treatments_3rdpart = set(sum(list_of_list, []))
+
+  if treatments_3rdpart != treatments_2ndpart:
+    invalid_treatments = list(set(treatments_3rdpart) - set(treatments_2ndpart))
+    raise Exception("Invalid treatment value(s) " + ", ".join(invalid_treatments))
+
+  d = {}
+  d["DIFF_METH"] = list_of_list
+  return(d)
+
+
 def createConfigfile(tablesheet, outfile, *args):
   """------------------------
   Create a config file in the JSON format. Arguments:
@@ -142,8 +178,6 @@ def createConfigfile(tablesheet, outfile, *args):
   args=args[0] # only 1 additional argument
   
   sections = parseTableSheet(tablesheet)
-  # TODO: this section is completely ignored
-  sample_params = sections['differential methylation']
   
   # Load general parameters
   gen_params = parseGeneralParams2dict(sections['general parameters'])
@@ -152,9 +186,14 @@ def createConfigfile(tablesheet, outfile, *args):
   sample_params = parseTable2dict(sections['samples'])
   sample_params = dict(sample_params)
   
+  # Load pairs of treatments for differential methylation
+  diff_meth = sections['differential methylation']
+  diff_meth_params = parse_diffmeth_samples(diff_meth, sample_params)
+  
   # Create a config file  
   config=gen_params
   config.update(sample_params)
+  config.update(diff_meth_params)
 
   # Add additional args to the config file
   if isinstance(args,dict):
