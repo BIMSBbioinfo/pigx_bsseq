@@ -92,18 +92,17 @@ OUTPUT_FILES = [
                 # [ expand ( list_files_xmeth( DIR_xmethed, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
 
                 #               ==== rule Bam processing ======
-                [ expand ( bam_processing(METHCALLDIR, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ] #had to add it to call bam_methCall for diff meth rule
-
+                [ expand ( bam_processing(METHCALLDIR, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ], #had to add it to call bam_methCall for diff meth rule
+                
                 # ==================  FINAL REPORT =========================
                 # TODO: This needs to be editted once we determine what final reports we want to export!
 		            [ expand ( Final(DIR_final, config["SAMPLES"][sample]["files"], VERSION , config["SAMPLES"][sample]["SampleID"]  )) for sample in config["SAMPLES"]  ]
                 
 		            # diff meth
 		            # TODO: integrate it to the final report above somehow
-		            #[ DIFFMETHDIR+"".join(x)+".sorted_diffmeth.nb.html" for x in config["DIFF_METH"]  ]
+		            [ DIFFMETHDIR+"-".join(x)+".sorted_diffmeth.nb.html" for x in config["DIFF_METH"]  ]
                ]
                 
-
 
 
 #--- NICE gauges the computational burden, ranging from -19 to +19.

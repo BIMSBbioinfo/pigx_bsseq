@@ -139,7 +139,7 @@ rule diffmeth:
         #rdatafile   = METHCALLDIR + "{prefix}.sorted_methylRaw.RData"
         rdatafile = diffmeth_input_function
     output: 
-        report      = DIFFMETH + "{prefix}.sorted_diffmeth.nb.html"
+        report      = DIFFMETH + "{prefix1}-{prefix2}.sorted_diffmeth.nb.html"
         #grfile      = DIFFMETH + "{prefix}.sorted_diffmeth_gr.RData",
         #bedfile     = DIFFMETH + "{prefix}.sorted_diffmeth.bed"
     params:
