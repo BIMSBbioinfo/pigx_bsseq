@@ -25,7 +25,18 @@ DIR_mapped='04_mapped/'
 DIR_posttrim_QC='03_posttrim_QC/'
 DIR_trimmed='02_trimmed/'
 DIR_rawqc='01_rawqc/'
-DIR_annot = 'annotation/'
+DIR_annot     = "annotation/"
+METHCALLDIR = "methylation_calls/"
+SEGDIR      = "segmentation/"
+DIFFMETHDIR = 'differential_methylation/'
+
+# a way to pass it to diff_meth.rules (and post_mapping.rules as well ??) #TODO: ask guys about it 
+config["DIR_sorted"] = DIR_sorted
+config["METHCALLDIR"] = METHCALLDIR
+config["SEGDIR"] = SEGDIR
+config["ANNODIR"] = DIR_annot
+config["DIFFMETHDIR"] = DIFFMETHDIR
+
 
 
 #---------------------------------     DEFINE PATHS AND FILE NAMES:  ----------------------------------
