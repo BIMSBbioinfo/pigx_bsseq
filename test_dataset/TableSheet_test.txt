@@ -18,8 +18,10 @@ NICE="19"
 [[ SAMPLES ]]
 Read1,Read2,SampleID,ReadType,Treatment
 output2K_1.fq.gz,output2K_2.fq.gz,sampleA,WGBS,A
-output2K_1.fq.gz,,sampleB,WGBS,B
-
+output2K_1.fq.gz,,sampleB1,WGBS,B
+output2K_2.fq.gz,,sampleB2,WGBS,C
 
 [[ DIFFERENTIAL METHYLATION ]]
 A, B
+B, A
+A, B, C
