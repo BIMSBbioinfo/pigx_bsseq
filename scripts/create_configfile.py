@@ -138,7 +138,9 @@ def parse_diffmeth_samples(lines, sample_params):
   C, D
   D, A, B
   
-  It returns a dictionary required for the config file.
+  It returns a dictionary required for the config file
+  with a list of treatment values, e.g:
+  [[A,B], [C,D], [D,A,B]]
   """ 
   # remove \n characters after arguments
   text = [x.rstrip() for x in lines]
