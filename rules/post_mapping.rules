@@ -52,6 +52,7 @@ This is how the minimal config file should look like, in order to inlcude this s
 }
 """
 
+
 ## show base dir
 # print(workflow.basedir)
 
@@ -88,7 +89,7 @@ TEMPLATEDIR = BASEDIR + "report_templates/"         #--- template dir (relative 
 
 #--- the in/output directories can be renamed easily
 #--- path to bam files is absolute, such that I can run workflow in any other directory
-BAMDIR      = '06_sorted/'  # BASEDIR + "test_dataset/sample_bam_files/" 
+BAMDIR      = '06_sorted/'
 
 
 #--- output paths have to be relative to working directory, 
@@ -98,7 +99,7 @@ METHCALLDIR = "methylation_calls/"
 SEGDIR      = "segmentation/"
 ANNODIR     = "annotation/"
 FINALDIR    = "final_Report/"
-
+DIFFMETHDIR = 'differential_methylation/'
 
 
 

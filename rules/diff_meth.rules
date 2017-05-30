@@ -1,0 +1,201 @@
+####################################################################
+#
+# Rules to be applied after mapping reads with Bismark - diff. methylation part
+
+#(#TODO: propably will merged with post_mapping.rules??)
+
+# ====================================================
+
+# These rules generate a report, such that the user can 
+# see wich commands generated the output and 
+# can recreate data with modified parameters if not happy with the results.
+# 
+# 
+
+#
+#
+# Dependencies:
+# - python-rp2, pandoc, methylKit(r), DT(r), genomation(r),
+#   annotationhub(r), rtracklayer(r)
+# 
+
+
+    # TODO: 
+    # - we need to define a fixed location of TEMPLATEDIR and 
+    #   SCRIPTDIR in the config file
+####################################################################
+
+
+"""
+This is how the minimal config file should look like, in order to inlcude this snakefile
+
+
+{
+    "reference": {
+        "ce10": ["/home/agosdsc/Base/Genomes/ce10/"]
+    },
+    "samples": {
+        "A":["A"],
+        "B":["B"]
+    },
+    "units": {
+        "A":
+            ["path/to/A_R1.fastq.gz", "path/to/A_R2.fastq.gz"],
+        "B":
+            ["path/to/B.fastq.gz"]
+    },
+    "treatment": {
+        "A": "1",
+        "B": "0"
+    },
+    "params_bam_methCall": {
+        "mincov": 10,
+        "minqual": 20
+    } 
+    "diff_meth_pairs":{
+        "1" : "0"
+    }
+}
+"""
+
+## we have to define default parameters to be included in the config
+
+min_config = { 
+    "params": { 
+        "params_bam_methCall": {
+            "mincov": 10,
+            "minqual": 20
+        }     
+    }
+}
+
+
+## we can update the config recursively using the update_config() function
+import json
+from snakemake.utils import update_config
+
+
+## show base dir
+# print(workflow.basedir)
+
+import os
+## show working dir
+# print(os.getcwd())
+
+
+
+## show current dir
+# print(srcdir(""))
+
+#---------------------------------     DEFINE PATHS AND FILE NAMES:  ----------------------------------
+
+#--- we need to define some directory variables to use rmarkdown from snakemake
+#---                !!!! IMPORTANT !!!!
+#--- ! paths inside input and output should be relative
+#--- ! if params are passed to Rmarkdown document, paths to files or folders should be absolute   
+
+
+BASEDIR = workflow.basedir + "/"                    #--- the base dir (where Snakefile is) 
+WORKDIR = os.getcwd() + "/"                         #--- current work dir (important for rmarkdown)
+
+SCRIPTDIR   = BASEDIR + "scripts/"                  #--- scripts dir (relative to snakefile)
+TEMPLATEDIR = BASEDIR + "report_templates/"         #--- template dir (relative to snakefile)
+
+#--- pathout is ignored, since all paths are relative from either base or workdir
+## notes:
+## maybe set pathout by setting working dir in snakemake call
+# PATHOUT      = config["PATHOUT"]
+LOGS        = config["LOG"] 
+
+
+
+#--- the in/output directories can be renamed easily
+#--- path to bam files is absolute, such that I can run workflow in any other directory
+BAMDIR      = config["DIR_sorted"]  # BASEDIR + "test_dataset/sample_bam_files/" 
+
+
+#--- output paths have to be relative to working directory, 
+#--- such that I can run workflow in any other directory and
+#--- it always sets up the same structure
+METHCALLDIR = "methylation_calls/"
+SEGDIR      = "segmentation/"
+ANNODIR     = "annotation/"
+DIFFMETHDIR = 'differential_methylation/'
+
+
+#DIFFMETHDIR+"_".join(x)+".sorted_diffmeth.nb.html"
+
+def diffmeth_input_function(wildcards):
+  wc = list(wildcards)
+  print(wc)
+  print('wc')
+
+
+## Differential methylation
+rule diffmeth:
+    ## paths inside input and output should be relative
+    input:  
+        #template    = TEMPLATEDIR + "diffmeth.report.Rmd",
+        #rdatafile   = METHCALLDIR + "{prefix}.sorted_methylRaw.RData"
+        rdatafile = diffmeth_input_function
+    output: 
+        report      = DIFFMETH + "{prefix}.sorted_diffmeth.nb.html"
+        #grfile      = DIFFMETH + "{prefix}.sorted_diffmeth_gr.RData",
+        #bedfile     = DIFFMETH + "{prefix}.sorted_diffmeth.bed"
+    params:
+        rdata       = WORKDIR + METHCALLDIR + "{prefix}.sorted_methylRaw.RData",
+        grdata      = WORKDIR + DIFFMETH + "{prefix}.sorted_diffmeth_gr.RData",
+        outBed      = WORKDIR + DIFFMETH + "{prefix}.sorted_diffmeth.bed"
+    log:
+        LOGS+"{prefix}.sorted_meth_segments.log"
+    message:
+        "Segmentation of sample file:\n"
+        "   input     : {input.rdatafile}" + "\n" 
+        "Generating:"+ "\n"
+        "   report    : {output.report}" + "\n"  
+        "   grfile    : {output.grfile} " +"\n" 
+        "   bedfile   : {output.bedfile}" +"\n"
+
+    script:
+        SCRIPTDIR + "report_functions.R" 
+
+
+
+## Aquisition of gene features
+rule fetch_refGene:
+    output: refgenes = ANNODIR + "refseq.genes.{assembly}.bed"
+    params: 
+        assembly = "{assembly}"
+    log:
+        LOGS+"fetch_refseq.genes.{assembly}.log"
+    message:
+        "Fetching RefSeq genes for Genome assembly: {wildcards.assembly}"
+    script:  
+        SCRIPTDIR + "fetch_refGene.R" 
+
+
+
+## Annotation with gene features
+rule annotation_diff_meth:
+    input:  
+        template    = TEMPLATEDIR + "annotation.report.Rmd",
+        #bedfile     = DIFFMETH + "{prefix}.sorted_diffmeth.bed",
+        refgenes    = ANNODIR + "refseq.genes.{assembly}.bed"
+    output: 
+        report      = ANNODIR + "{prefix}.sorted_{assembly}_annotation.nb.html"
+    params:
+        inBed       = WORKDIR + DIFFMETH + "{prefix}.sorted_meth_segments.bed",
+        assembly    = "{assembly}",# expand(config["reference"]),
+        refseqfile  = WORKDIR + ANNODIR + "refseq.genes.{assembly}.bed"
+    log:
+        LOGS+"{prefix}.sorted_{assembly}_annotation_diffmeth.log"
+    message:
+        "Annotation of differentially methylated regions:\n"
+        "   input     : {input.bedfile}" + "\n"
+        "Generating:" + "\n"
+        "   report    : {output.report}"
+    script:
+        SCRIPTDIR + "report_functions.R"   
+
+
+
