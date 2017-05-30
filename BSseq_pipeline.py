@@ -26,6 +26,7 @@ DIR_posttrim_QC='03_posttrim_QC/'
 DIR_trimmed='02_trimmed/'
 DIR_rawqc='01_rawqc/'
 DIR_annot = 'annotation/'
+DIFFMETHDIR = 'differential_methylation/'
 DIR_final    = "final_Report/"
 
 
