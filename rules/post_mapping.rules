@@ -52,6 +52,25 @@ This is how the minimal config file should look like, in order to inlcude this s
 }
 """
 
+<<<<<<< HEAD
+=======
+## we have to define default parameters to be included in the config
+
+min_config = { 
+    "params": { 
+        "params_bam_methCall": {
+            "mincov": 10,
+            "minqual": 20
+        }     
+    }
+}
+
+
+## we can update the config recursively using the update_config() function
+import json
+from snakemake.utils import update_config
+
+>>>>>>> First working diff.meth. example with html report
 
 ## show base dir
 # print(workflow.basedir)
@@ -89,7 +108,7 @@ TEMPLATEDIR = BASEDIR + "report_templates/"         #--- template dir (relative 
 
 #--- the in/output directories can be renamed easily
 #--- path to bam files is absolute, such that I can run workflow in any other directory
-BAMDIR      = '06_sorted/'
+BAMDIR      = '06_sorted/'  # BASEDIR + "test_dataset/sample_bam_files/" 
 
 
 #--- output paths have to be relative to working directory, 
@@ -205,6 +224,7 @@ rule methseg_annotation:
         SCRIPTDIR + "report_functions.R"   
 
 
+<<<<<<< HEAD
 
 ### note that Final report can only be generated 
 ### if one of the intermediate has been genereted,
@@ -254,3 +274,5 @@ rule final_report:
 
 
 
+=======
+>>>>>>> First working diff.meth. example with html report

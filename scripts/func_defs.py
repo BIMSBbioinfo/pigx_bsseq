@@ -102,7 +102,6 @@ def bam_processing(PATH, files):
 def DiffMeth(PATH, treatments, samples):
     return [PATH+"_".join(treatments)+".sorted_diffmeth.nb.html"] 
 
-        
 def Final(PATH, files, assembly, sampleID):
     if len(files) == 1:
       return  PATH+sampleID+"_se_bt2.deduped.sorted_"+assembly+"_final.nb.html" #---- single end

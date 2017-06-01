@@ -1,37 +1,49 @@
 ---
-  title: "PiGx: BS-seq"
+title: "PiGx: BS-seq"
 output: 
   html_notebook:
-  toc:        TRUE
-toc_float:  TRUE
-theme:      "lumen"
-number_sections: FALSE
-code_folding: "hide"
-self_contained: TRUE
-includes:
-  in_header: pigx_bsseq_logo.html
-# output_dir: "/Users/agosdsc/Development/Snakemake/pigx_bsseq/methseg_rule/"
-# output_file: "sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted.bam_meth_segments.html"
+    toc:        TRUE
+    toc_float:  TRUE
+    theme:      "lumen"
+    number_sections: FALSE
+    code_folding: "hide"
+    self_contained: TRUE
+    includes:
+      in_header: pigx_bsseq_logo.html
 date: "`r Sys.Date()`"
 bibliography: reports.bib
 params:
-  rdata: "methylation_calls/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted_methylRaw.RData"
-grdata: "segmentation/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted_meth_segments_gr.RData"
-outBed:   "segmentation/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted_meth_segments.bed"
+  inputfiles: ["methylation_calls/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted_methylRaw.RData","methylation_calls/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted_methylRaw.RData"]
+  grdata: "segmentation/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted_meth_windows_gr.RData"
+  outBed:   "segmentation/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted_meth_windows.bed"
+  sampleids: ["sampleA", "sampleB"]
+  assembly: "ce10"
+  treatment: [0,1]
+  mincov: 0
+  context: "CpG"
+  workdir: "~/outputdir/"
+  cores: 2
 ---
   
-  ```{r eval_params, echo=FALSE}
+  
+```{r eval_params, echo=FALSE}
 
-input     <- params$rdata
+input     <- params$inputfiles
+sampleids <- params$sampleids
 output    <- params$outBed
-grFile    <- params$grdata    
+grFile    <- params$grdata
+assembly  <- params$assembly
+treatment <- params$treatment
+mincov    <- params$mincov
+context   <- params$context
+workdir   <- params$workdir
+cores     <- params$cores
+
 ```
 
-## Segmentation Report
+## Differential methylation report
 
-<!-- this is the local dir: `r  getwd()` -->
-  
-  The segmentation based on methylation provides a way to compress the information from base-pair into regional resolution, allowing the detection of regions with similar methylation values, that might be interesting for further investigations.
+  TODO: add few sentences about diff meth.
 
 ```{r, include=FALSE,warning=FALSE}
 
@@ -48,78 +60,199 @@ suppressPackageStartupMessages(expr = {
 
 ## load methylKit
 library("methylKit")
-## load DT 
-library("DT")
 
 ```
 
 ### Parameters
-```{r print_params, echo=TRUE, results="asis"}
+```{r print_params, echo=TRUE}
 
-paramsDesc <- c("Input Data",
-                "Output file")
 
-paramsValues <- c( input,
-                   output)
+print("PARAMS")
+print(params)
 
-inputParams <- data.frame(Parameters = paramsDesc,
-                          Values = paramsValues,
-                          stringsAsFactors = FALSE)
+# convert treatment values to integers
+
+
+# paramsDesc <- c("Input Data",
+#                 "Output file")
+# 
+# paramsValues <- c( input,
+#                    output)
+# 
+# print("paramsValues")
+# print(paramsValues)
+# 
+# inputParams <- data.frame(Parameters = paramsDesc,
+#                           Values = paramsValues,
+#                           stringsAsFactors = FALSE)
+
+#inputList <- list(InputData=input, Outputfile=output)
+
 #params
 #datatable(inputParams,options = list(dom = 't'),rownames = FALSE)
-knitr::kable(inputParams)
+#knitr::kable(inputList)
 ```
 
-### Segmentation of methylation profile
+### Differential methylation
 
-The segmentation of the methylation profile is done using the methSeg() function, where change-points in the genome wide  signal are recorded and the genome is partitioned into regions between consecutive change points. This approach is typically used in the context of copy number variation detection [@klambauer2012] but can be applied to methylome segmentation as well [@Wreczycka2017]. Here the identified segments are further clustered based on their average methylation signal using a mixture modeling approach allowing the detection of distinct regions inside the genome  [@Wreczycka2017].
+#TODO
 
-```{r load and segment}
+```{r differential methylation, echo=TRUE}
 
-load(input)
+inputfiles = paste0(workdir, input)
 
-## Segmentation
-res.gr = methSeg(methRaw,diagnostic.plot=TRUE)
+###################################### TODO: this is ugly, improvee it
+# becauses not treatment in the input file can be only numbers...
+treatment = as.numeric(treatment)
+###################################### 
 
-## convert to data.frame
-res.df <- as.data.frame(res.gr)
-res.df$seg.mean <- round(res.df$seg.mean,digits = 3)
+methRawList.obj = methRead(as.list(inputfiles),
+                                sample.id = as.list(sampleids),
+                                assembly = assembly,
+                                treatment=treatment,
+                                context = context,
+                                mincov = mincov
+)
+print(methRawList.obj)
 
-## show the regions
-datatable(res.df,
-          extensions = 'Buttons', 
-          options = list(
-            dom = 'Bfrtip',
-            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-            scrollX = TRUE),
-          caption = "Resulting Segments",
-          rownames = FALSE)
+# Take bases with coverage from all samples are retained
+meth.unite=unite(methRawList.obj, destrand=FALSE)
+
+
+
+################ TODO:
+# onyl CpG context now
+#covariates
+# how many cores for diff meth
+cores=2
+# which test to use
+################
+
+
+if(nrow(meth.unite)!=0){
+  
+  meth.diffmeth <- calculateDiffMeth(meth.unite, 
+                                   overdispersion="MN",
+                                   adjust = "qvalue",
+                                   test="Chisq",
+                                   mc.cores=cores)
+}
+
+
 ```
-
-The GRanges object is saved to enable fast loading for further analysis.
-```{r}
-## Saving object
-save(res.gr,file=grFile) 
-```
-
 
 
 ### Export
 
 Finally we export the regions to a *BED* file, which can be loaded into any genome browser like [IGV](http://software.broadinstitute.org/software/igv/) or [UCSC](https://genome.ucsc.edu/) to allow for further analysis, annotation and visualisation. 
 ```{r export to bed}
-## export segments to bed file
-methSeg2bed(segments = res.gr,
-            trackLine = paste0("track name='meth segments ' ",
-                               "description='meth segments of ",
-                               methRaw@sample.id,
+
+#' Export windows to a BED file
+#' 
+#' The windows are color coded based on their score (methylation or differential
+#' methylation value).
+#' 
+#' @param windows \code{\link[GenomicRanges]{GRanges}} object with information about
+#' differentially methylated regions
+#' @param filename name of the output data
+#' @param trackLine UCSC browser trackline
+#' @param colramp color scale to be used in the BED display
+#' defaults to gray,green, darkgreen scale.
+#' 
+#' @return A BED files with the differentially methylated regions
+#' which can be visualized in the UCSC browser 
+#' 
+#' @seealso \code{\link{methylKit::methSeg2bed}}
+#' 
+#' @export
+#' @docType methods
+#' @rdname meth2bed
+meth2bed<-function(windows,filename,
+    trackLine="track name='meth windows' description='meth windows' itemRgb=On",
+    colramp=colorRamp(c("gray","green", "darkgreen"))
+                        ){
+  if(class(windows)!="GRanges"){
+    stop("windows object has to be of class GRanges")
+  }
+  
+  ## case if only one line is exported
+  if(is.null(colramp) | length(windows)==1){
+    trackLine <- gsub(pattern = "itemRgb=On",replacement = "",x = trackLine)
+  } else {
+    require(rtracklayer)
+    ramp <- colramp
+    scores=windows$meth.diff
+    mcols(windows)$itemRgb= rgb(ramp(scores), maxColorValue = 255)     
+  }
+  
+  strand(windows)="*"
+  score(windows)=windows$meth.diff
+  
+  if(is.null(trackLine)){
+    
+    export.bed(windows,filename)
+  }else{
+    export.bed(windows,filename,
+               trackLine=as(trackLine, "BasicTrackLine"))
+  }
+}
+
+
+if(nrow(meth.unite)!=0){
+  
+  # Convert a methylDiff object to a GRanges object
+  meth.diffmeth.gr = as(meth.diffmeth, "GRanges")
+
+  # Export differentially methylated regions to a bed file
+  meth2bed(windows = meth.diffmeth.gr,
+            trackLine = paste0("track name='differentially methylated regions ' ",
+                               "description='diff. meth. between ",
+                               paste(meth.diffmeth@sample.ids,collapse=","),
                                " mapped to ",
-                               methRaw@assembly,
+                               meth.diffmeth@assembly,
                                "' itemRgb=On"),
             colramp=colorRamp(c("gray","green", "darkgreen")),
             filename = output)
 
+}
+
 ```
+
+The GRanges object is saved to enable fast loading for further analysis.
+```{r}
+if(nrow(meth.unite)!=0){
+
+## Saving object
+saveRDS(meth.diffmeth.gr, grFile)
+  
+}
+```
+
+
+```{r, echo=FALSE}
+
+#a=meth.unite[-(1:674),]
+# If samples
+#touch file to force snakemake to exit in nice way and generate html anyways ??? #TODO
+# create a 
+if(nrow(meth.unite)==0){
+  
+  trackLine = paste0("track name='differentially methylated regions ' ",
+                               "description='diff. meth. between ",
+                               paste(meth.unite@sample.ids,collapse=","),
+                               " mapped to ",
+                               meth.unite@assembly,
+                               "' itemRgb=On")
+  fileConn<-file(output)
+  writeLines(trackLine, fileConn)
+  close(fileConn)
+  
+  saveRDS(as(meth.unite, "GRanges"), grFile)
+}
+
+```
+
+
 
 ## Session Info
 

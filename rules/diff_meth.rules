@@ -123,79 +123,58 @@ ANNODIR     = "annotation/"
 DIFFMETHDIR = 'differential_methylation/'
 
 
-#DIFFMETHDIR+"_".join(x)+".sorted_diffmeth.nb.html"
+SAMPLE_IDS = list(config["SAMPLES"].keys())
+SAMPLE_TREATMENTS = [config["SAMPLES"][s]["Treatment"] for s in SAMPLE_IDS]
 
-def diffmeth_input_function(wildcards):
-  wc = list(wildcards)
-  print(wc)
-  print('wc')
+
+def diffmeth_input_function(wc):
+
+  treatments = wc.treatment
+  treatments = treatments.split("_")
+
+  inputfiles = []
+  for t in treatments:
+    indx = SAMPLE_TREATMENTS.index(t)
+    sampleid = SAMPLE_IDS[indx]
+    
+    fqname = config["SAMPLES"][sampleid]["fastq_name"]
+    if len(fqname)==1:
+      inputfile=[METHCALLDIR + fqname[0]+"_se_bt2.deduped.sorted_CpG.txt"]
+    elif len(fqname)==2:
+      inputfile=[METHCALLDIR + fqname[0]+"_val_1_bt2.deduped.sorted_CpG.txt"]
+
+    inputfiles.append(inputfile)
+  
+  inputfiles = list(sum(inputfiles, []))
+  return(inputfiles)
+
 
 
 ## Differential methylation
 rule diffmeth:
     ## paths inside input and output should be relative
     input:  
-        #template    = TEMPLATEDIR + "diffmeth.report.Rmd",
-        #rdatafile   = METHCALLDIR + "{prefix}.sorted_methylRaw.RData"
-        rdatafile = diffmeth_input_function
+        template    = TEMPLATEDIR + "diffmeth.report.Rmd",
+        inputfiles  = diffmeth_input_function
     output: 
-        report      = DIFFMETH + "{prefix1}-{prefix2}.sorted_diffmeth.nb.html"
-        #grfile      = DIFFMETH + "{prefix}.sorted_diffmeth_gr.RData",
-        #bedfile     = DIFFMETH + "{prefix}.sorted_diffmeth.bed"
+        report      = DIFFMETHDIR + "{treatment}.sorted_diffmeth.nb.html",
+        grfile      = DIFFMETHDIR + "{treatment}.sorted_diffmeth_gr.RData",
+        bedfile     = DIFFMETHDIR + "{treatment}.sorted_diffmeth.bed"
     params:
-        rdata       = WORKDIR + METHCALLDIR + "{prefix}.sorted_methylRaw.RData",
-        grdata      = WORKDIR + DIFFMETH + "{prefix}.sorted_diffmeth_gr.RData",
-        outBed      = WORKDIR + DIFFMETH + "{prefix}.sorted_diffmeth.bed"
+        workdir       = WORKDIR,
+        inputfiles    = diffmeth_input_function,
+        sampleids   = lambda wc: [SAMPLE_IDS[SAMPLE_TREATMENTS.index(t)] for t in wc.treatment.split("_")],
+        grdata      = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmeth_gr.RData",
+        outBed      = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmeth.bed",
+        assembly    = config["GENOME_VERSION"],
+        treatment   = lambda wc: wc.treatment.split("_"),
+        mincov      = int(config["bam_methCall_args_mincov"]), 
+        context     = ["CpG"],
+        cores       = int(config["NUMTHREADS"])
+        
     log:
-        LOGS+"{prefix}.sorted_meth_segments.log"
-    message:
-        "Segmentation of sample file:\n"
-        "   input     : {input.rdatafile}" + "\n" 
-        "Generating:"+ "\n"
-        "   report    : {output.report}" + "\n"  
-        "   grfile    : {output.grfile} " +"\n" 
-        "   bedfile   : {output.bedfile}" +"\n"
-
+        LOGS+"{treatment}.sorted_diffmeth.log"
     script:
         SCRIPTDIR + "report_functions.R" 
-
-
-
-## Aquisition of gene features
-rule fetch_refGene:
-    output: refgenes = ANNODIR + "refseq.genes.{assembly}.bed"
-    params: 
-        assembly = "{assembly}"
-    log:
-        LOGS+"fetch_refseq.genes.{assembly}.log"
-    message:
-        "Fetching RefSeq genes for Genome assembly: {wildcards.assembly}"
-    script:  
-        SCRIPTDIR + "fetch_refGene.R" 
-
-
-
-## Annotation with gene features
-rule annotation_diff_meth:
-    input:  
-        template    = TEMPLATEDIR + "annotation.report.Rmd",
-        #bedfile     = DIFFMETH + "{prefix}.sorted_diffmeth.bed",
-        refgenes    = ANNODIR + "refseq.genes.{assembly}.bed"
-    output: 
-        report      = ANNODIR + "{prefix}.sorted_{assembly}_annotation.nb.html"
-    params:
-        inBed       = WORKDIR + DIFFMETH + "{prefix}.sorted_meth_segments.bed",
-        assembly    = "{assembly}",# expand(config["reference"]),
-        refseqfile  = WORKDIR + ANNODIR + "refseq.genes.{assembly}.bed"
-    log:
-        LOGS+"{prefix}.sorted_{assembly}_annotation_diffmeth.log"
-    message:
-        "Annotation of differentially methylated regions:\n"
-        "   input     : {input.bedfile}" + "\n"
-        "Generating:" + "\n"
-        "   report    : {output.report}"
-    script:
-        SCRIPTDIR + "report_functions.R"   
-
 
 
