@@ -169,7 +169,7 @@ rule diffmeth:
         assembly    = config["GENOME_VERSION"],
         treatment   = lambda wc: wc.treatment.split("_"),
         mincov      = int(config["bam_methCall_args_mincov"]), 
-        context     = ["CpG"],
+        context     = "CpG",
         cores       = int(config["NUMTHREADS"])
         
     log:
