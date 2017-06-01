@@ -128,6 +128,7 @@ def diffmeth_input_function(wc):
   return(inputfiles)
 
 
+def diffmeth_input_function(wc):
 
 ## Differential methylation
 rule diffmeth:
@@ -158,6 +159,10 @@ rule diffmeth:
     script:
         SCRIPTDIR + "report_functions.R" 
 
+    inputfiles.append(inputfile)
+  
+  inputfiles = list(sum(inputfiles, []))
+  return(inputfiles)
 
 ## Annotation with gene features
 rule annotation_diffmeth:

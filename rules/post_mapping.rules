@@ -89,7 +89,7 @@ TEMPLATEDIR = BASEDIR + "report_templates/"         #--- template dir (relative 
 
 #--- the in/output directories can be renamed easily
 #--- path to bam files is absolute, such that I can run workflow in any other directory
-BAMDIR      = '06_sorted/'
+BAMDIR      = '06_sorted/'  # BASEDIR + "test_dataset/sample_bam_files/" 
 
 
 #--- output paths have to be relative to working directory, 
