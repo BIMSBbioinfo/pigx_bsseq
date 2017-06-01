@@ -130,6 +130,8 @@ def nice(cmd):
 # print("OUTPUT_FILES=")
 # for x in OUTPUT_FILES: print( x)
 #-------
+print("OUTPUT_FILES")
+print(OUTPUT_FILES)
 
 # ==============================================================================================================
 #
