@@ -35,6 +35,7 @@ config["DIFFMETHDIR"] = DIFFMETHDIR
 #------ set config file, include function definitions, and set os:
 import os
 include   : "./rules/post_mapping.rules"
+include   : "./rules/diff_meth.rules"
 include   : "./scripts/func_defs.py"
 
 
@@ -110,7 +111,6 @@ OUTPUT_FILES = [
 		            # TODO: integrate it to the final report above somehow
 		            [ DIFFMETHDIR+"-".join(x)+".sorted_diffmeth.nb.html" for x in config["DIFF_METH"]  ]
                ]
-                
 
 
 #--- NICE gauges the computational burden, ranging from -19 to +19.
@@ -228,7 +228,7 @@ rule deduplication_pe:
 
 # ==========================================================================================
 # align and map:
- 
+
 rule bismark_se:
     input:
         refconvert_CT = GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",

@@ -14,16 +14,16 @@ render2Report <- function(reportFile,
   ## write stdout to log file
   # sink(snakemake@log[[1]])
   
- 
+  
   ## the logo is stored in the template directory
   pathToLogo <- paste0(normalizePath(dirname(reportFile)),"/pigx_bsseq_logo.html")
   
   ## we set the knitr root dir to be the base directory,
   ## such that all paths are relative from there
   rootDir <- dirname(dirname(reportFile))
-
+  
   interDir <- paste0(outDir,"/inter")
-
+  
   
   rmarkdown::render(
     input = reportFile,
@@ -76,7 +76,7 @@ cat(paste(
   "Rendering report:",basename(snakemake@output[["report"]]),"\n",
   "from template:",basename(snakemake@input[["template"]]),"\n",
   "into directory:",normalizePath(dirname(snakemake@output[["report"]])),"\n"
-  ))
+))
 
 
 render2Report(reportFile = normalizePath(snakemake@input[["template"]]),
