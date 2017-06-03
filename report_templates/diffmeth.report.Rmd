@@ -28,6 +28,8 @@ params:
   
 ```{r eval_params, echo=FALSE}
 
+saveRDS(params, "~/tmp/params.rds")
+
 input     <- params$inputfiles
 sampleids <- params$sampleids
 output    <- params$outBed
@@ -50,8 +52,6 @@ cores     <- params$cores
 suppressPackageStartupMessages(expr = {
   ## load methylKit
   library("methylKit",warn.conflicts = FALSE,quietly = TRUE)
-  ## load DT 
-  library("DT")
 })
 ```
 
@@ -99,13 +99,15 @@ print(params)
 
 ```{r differential methylation, echo=TRUE}
 
-inputfiles = paste0(workdir, input)
-
 ###################################### TODO: this is ugly, improvee it
 # becauses not treatment in the input file can be only numbers...
 treatment = as.numeric(treatment)
+################ TODO:
+cores=2
+################
 ###################################### 
 
+inputfiles = paste0(workdir, input)
 methRawList.obj = methRead(as.list(inputfiles),
                                 sample.id = as.list(sampleids),
                                 assembly = assembly,
@@ -113,22 +115,11 @@ methRawList.obj = methRead(as.list(inputfiles),
                                 context = context,
                                 mincov = mincov
 )
-print(methRawList.obj)
 
 # Take bases with coverage from all samples are retained
 meth.unite=unite(methRawList.obj, destrand=FALSE)
 
-
-
-################ TODO:
-# onyl CpG context now
-#covariates
-# how many cores for diff meth
-cores=2
-# which test to use
-################
-
-
+# Calculate differential methylation statistics
 if(nrow(meth.unite)!=0){
   
   meth.diffmeth <- calculateDiffMeth(meth.unite, 
@@ -136,8 +127,30 @@ if(nrow(meth.unite)!=0){
                                    adjust = "qvalue",
                                    test="Chisq",
                                    mc.cores=cores)
+  # get differentially methylated regions/bases based on cutoffs  
+  meth.diffmeth.all = getMethylDiff(meth.diffmeth, 
+                                           difference=25,
+                                           type="all",
+                                           qvalue=0.01)
+  # # get hypo-methylated
+  # meth.diffmeth.hypo = getMethylDiff(meth.diffmeth, 
+  #                                          difference=25,
+  #                                          type="hypo",
+  #                                          qvalue=0.01)
+  # # get hyper-methylated
+  # meth.diffmeth.hyper = getMethylDiff(meth.diffmeth, 
+  #                                          difference=25,
+  #                                          type="hyper",
+  #                                          qvalue=0.01)
 }
 
+############### onyl for now, remove it later
+print(head(meth.diffmeth))
+meth.diffmeth@.Data[[7]] = rep(25,length(meth.diffmeth@.Data[[6]]))
+# meth.diffmeth.hypo@.Data[[7]] = rep(25,length(meth.diffmeth@.Data[[6]]))
+# meth.diffmeth.hyper@.Data[[7]] = rep(25,length(meth.diffmeth@.Data[[6]]))
+
+############### 
 
 ```
 
@@ -146,6 +159,8 @@ if(nrow(meth.unite)!=0){
 
 Finally we export the regions to a *BED* file, which can be loaded into any genome browser like [IGV](http://software.broadinstitute.org/software/igv/) or [UCSC](https://genome.ucsc.edu/) to allow for further analysis, annotation and visualisation. 
 ```{r export to bed}
+
+
 
 #' Export windows to a BED file
 #' 
@@ -171,6 +186,10 @@ meth2bed<-function(windows,filename,
     trackLine="track name='meth windows' description='meth windows' itemRgb=On",
     colramp=colorRamp(c("gray","green", "darkgreen"))
                         ){
+  
+  range01 <- function(x){(x-min(x)+1)/(max(x)-min(x)+1)}
+
+    
   if(class(windows)!="GRanges"){
     stop("windows object has to be of class GRanges")
   }
@@ -181,12 +200,12 @@ meth2bed<-function(windows,filename,
   } else {
     require(rtracklayer)
     ramp <- colramp
-    scores=windows$meth.diff
-    mcols(windows)$itemRgb= rgb(ramp(scores), maxColorValue = 255)     
+    score(windows)=range01(windows$meth.diff)
+    mcols(windows)$itemRgb= rgb(ramp(score(windows)), maxColorValue = 255)     
   }
   
   strand(windows)="*"
-  score(windows)=windows$meth.diff
+  score(windows)=range01(windows$meth.diff)
   
   if(is.null(trackLine)){
     
@@ -202,15 +221,16 @@ if(nrow(meth.unite)!=0){
   
   # Convert a methylDiff object to a GRanges object
   meth.diffmeth.gr = as(meth.diffmeth, "GRanges")
-
+  
   # Export differentially methylated regions to a bed file
-  meth2bed(windows = meth.diffmeth.gr,
-            trackLine = paste0("track name='differentially methylated regions ' ",
+  trackLine = paste0("track name='differentially methylated regions ' ",
                                "description='diff. meth. between ",
                                paste(meth.diffmeth@sample.ids,collapse=","),
                                " mapped to ",
                                meth.diffmeth@assembly,
-                               "' itemRgb=On"),
+                               "' itemRgb=On")
+  meth2bed(windows = meth.diffmeth.gr,
+            trackLine=trackLine,
             colramp=colorRamp(c("gray","green", "darkgreen")),
             filename = output)
 

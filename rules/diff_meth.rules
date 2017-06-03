@@ -19,10 +19,6 @@
 #   annotationhub(r), rtracklayer(r)
 # 
 
-
-    # TODO: 
-    # - we need to define a fixed location of TEMPLATEDIR and 
-    #   SCRIPTDIR in the config file
 ####################################################################
 
 
@@ -58,31 +54,13 @@ This is how the minimal config file should look like, in order to inlcude this s
 }
 """
 
-## we have to define default parameters to be included in the config
-
-min_config = { 
-    "params": { 
-        "params_bam_methCall": {
-            "mincov": 10,
-            "minqual": 20
-        }     
-    }
-}
-
-
-## we can update the config recursively using the update_config() function
-import json
-from snakemake.utils import update_config
-
+import json, os
 
 ## show base dir
 # print(workflow.basedir)
 
-import os
 ## show working dir
 # print(os.getcwd())
-
-
 
 ## show current dir
 # print(srcdir(""))
@@ -127,6 +105,7 @@ SAMPLE_IDS = list(config["SAMPLES"].keys())
 SAMPLE_TREATMENTS = [config["SAMPLES"][s]["Treatment"] for s in SAMPLE_IDS]
 
 
+# For only CpG context
 def diffmeth_input_function(wc):
 
   treatments = wc.treatment
@@ -161,8 +140,8 @@ rule diffmeth:
         grfile      = DIFFMETHDIR + "{treatment}.sorted_diffmeth_gr.RData",
         bedfile     = DIFFMETHDIR + "{treatment}.sorted_diffmeth.bed"
     params:
-        workdir       = WORKDIR,
-        inputfiles    = diffmeth_input_function,
+        workdir     = WORKDIR,
+        inputfiles  = diffmeth_input_function,
         sampleids   = lambda wc: [SAMPLE_IDS[SAMPLE_TREATMENTS.index(t)] for t in wc.treatment.split("_")],
         grdata      = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmeth_gr.RData",
         outBed      = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmeth.bed",
@@ -176,5 +155,29 @@ rule diffmeth:
         LOGS+"{treatment}.sorted_diffmeth.log"
     script:
         SCRIPTDIR + "report_functions.R" 
+
+
+## Annotation with gene features
+rule annotation_diffmeth:
+    input:  
+        template    = TEMPLATEDIR + "annotation.report.diff.meth.Rmd",
+        bedfile     = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmeth.bed",
+        refgenes    = ANNODIR + "refseq.genes.{assembly}.bed"
+    output: 
+        report      = ANNODIR + "{treatment}.sorted_{assembly}_annotation.diff.meth.nb.html"
+    params:
+        inBed       = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmeth.bed",
+        assembly    = config["GENOME_VERSION"],
+        refseqfile  = WORKDIR + ANNODIR + "refseq.genes.{assembly}.bed"
+    log:
+        ANNODIR + "{treatment}.sorted_{assembly}_annotation.diff.meth.log"
+    script:
+        SCRIPTDIR + "report_functions.R"   
+        
+
+
+
+
+
 
 

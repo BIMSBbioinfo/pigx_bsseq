@@ -174,7 +174,7 @@ $(document).ready(function () {
 </style>
 <script>
 $(document).ready(function () {
-  window.initializeSourceEmbed("methseg.report.Rmd");
+  window.initializeSourceEmbed("annotation.report.diff.meth.Rmd");
   window.initializeCodeFolding("hide" === "show");
 });
 </script>
@@ -304,21 +304,19 @@ div.tocify {
 <!-- rnb-chunk-begin -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<div id="segmentation-report" class="section level2">
-<h2>Segmentation Report</h2>
-<!-- this is the local dir: /home/kwreczy/repositories/pigx_bsseq/report_templates -->
-<p>The segmentation based on methylation provides a way to compress the information from base-pair into regional resolution, allowing the detection of regions with similar methylation values, that might be interesting for further investigations.</p>
+<div id="annotation-report" class="section level2">
+<h2>Annotation Report</h2>
+<p>The annotation with</p>
 <!-- rnb-text-end -->
 <!-- rnb-text-begin -->
 <div id="libraries" class="section level3">
 <h3>Libraries</h3>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjpbIiAgIyMgbG9hZCBtZXRoeWxLaXQiLCIgICAgbGlicmFyeShcIm1ldGh5bEtpdFwiKSIsIiAgIyMgbG9hZCBEVCAiLCIgICAgbGlicmFyeShcIkRUXCIpIl19 -->
-<pre class="r"><code>  ## load methylKit
-    library(&quot;methylKit&quot;)
-  ## load DT 
-    library(&quot;DT&quot;)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjpbIiAgICBsaWJyYXJ5KFwiZ2Vub21hdGlvblwiKSIsIiAgICBsaWJyYXJ5KFwiQW5ub3RhdGlvbkh1YlwiKSIsIiAgICBsaWJyYXJ5KFwicnRyYWNrbGF5ZXJcIikiXX0= -->
+<pre class="r"><code>    library(&quot;genomation&quot;)
+    library(&quot;AnnotationHub&quot;)
+    library(&quot;rtracklayer&quot;)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -327,81 +325,116 @@ div.tocify {
 <h3>Parameters</h3>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5wYXJhbXNEZXNjIDwtIGMoXCJJbnB1dCBEYXRhXCIsXG4gICAgICAgICAgICBcIk91dHB1dCBmaWxlXCIpXG5cbnBhcmFtc1ZhbHVlcyA8LSBjKCBpbnB1dCxcbiAgICAgICAgICAgICBvdXRwdXQpXG5cbmlucHV0UGFyYW1zIDwtIGRhdGEuZnJhbWUoUGFyYW1ldGVycyA9IHBhcmFtc0Rlc2MsXG4gICAgICAgICAgICAgICAgICAgICAgICAgIFZhbHVlcyA9IHBhcmFtc1ZhbHVlcyxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgc3RyaW5nc0FzRmFjdG9ycyA9IEZBTFNFKVxuI3BhcmFtc1xuI2RhdGF0YWJsZShpbnB1dFBhcmFtcyxvcHRpb25zID0gbGlzdChkb20gPSAndCcpLHJvd25hbWVzID0gRkFMU0UpXG5rbml0cjo6a2FibGUoaW5wdXRQYXJhbXMpXG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5cbnByaW50KFwiUEFSQU1TXCIpXG5wcmludChwYXJhbXMpXG5cblxuXG5gYGAifQ== -->
 <pre class="r"><code>
-paramsDesc &lt;- c(&quot;Input Data&quot;,
-            &quot;Output file&quot;)
 
-paramsValues &lt;- c( input,
-             output)
-
-inputParams &lt;- data.frame(Parameters = paramsDesc,
-                          Values = paramsValues,
-                          stringsAsFactors = FALSE)
-#params
-#datatable(inputParams,options = list(dom = 't'),rownames = FALSE)
-knitr::kable(inputParams)</code></pre>
+print(&quot;PARAMS&quot;)
+print(params)
+</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
-<div id="segmentation-of-methylation-profile" class="section level3">
-<h3>Segmentation of methylation profile</h3>
-<p>The segmentation of the methylation profile is done using the methSeg() function, where change-points in the genome wide signal are recorded and the genome is partitioned into regions between consecutive change points. This approach is typically used in the context of copy number variation detection <span class="citation">(Klambauer et al. 2012)</span> but can be applied to methylome segmentation as well <span class="citation">(Wreczycka et al. 2017)</span>. Here the identified segments are further clustered based on their average methylation signal using a mixture modeling approach allowing the detection of distinct regions inside the genome <span class="citation">(Wreczycka et al. 2017)</span>.</p>
+<div id="preprocessing" class="section level3">
+<h3>Preprocessing</h3>
+<p>We first need to fetch the reference gene set for the given genome assembly. To do this we check the data from the <a href="http://bioconductor.org/packages/release/bioc/html/AnnotationHub.html">AnnotationHub</a> Package <span class="citation">(Morgan et al. 2017)</span> wich provides fast access to tracks and datasets available at BroadInstitute, UCSC, Ensembl and others. Whilst this package allows us to query a current snapshot of those databases, there is the possibility that a certain track might be newer than the current snapshot. This is why we query the UCSC table browser directly using the <a href="http://bioconductor.org/packages/release/bioc/html/rtracklayer.html">rtracklayer</a> Package <span class="citation">(Lawrence, Gentleman, and Carey 2009)</span>.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG4gICAgbG9hZChpbnB1dClcblxuICAgIHByaW50KG1ldGhSYXcpXG4gICAgc2F2ZVJEUyhtZXRoUmF3LFwifi90bXAvbWV0aFJhdy5yZHNcIilcblxuICAgICMjIFNlZ21lbnRhdGlvblxuICAgIHJlcy5nciA9IG1ldGhTZWcoYXMobWV0aFJhdywgXCJHUmFuZ2VzXCIpLGRpYWdub3N0aWMucGxvdD1UUlVFKVxuXG4gICAgIyMgY29udmVydCB0byBkYXRhLmZyYW1lXG4gICAgcmVzLmRmIDwtIGFzLmRhdGEuZnJhbWUocmVzLmdyKVxuICAgIHJlcy5kZiRzZWcubWVhbiA8LSByb3VuZChyZXMuZGYkc2VnLm1lYW4sZGlnaXRzID0gMylcblxuICAgICMjIHNob3cgdGhlIHJlZ2lvbnNcbiAgICBkYXRhdGFibGUocmVzLmRmLFxuICAgICAgICAgICAgICBleHRlbnNpb25zID0gJ0J1dHRvbnMnLCBcbiAgICAgICAgICAgICAgb3B0aW9ucyA9IGxpc3QoXG4gICAgICAgICAgICAgICAgZG9tID0gJ0JmcnRpcCcsXG4gICAgICAgICAgICAgICAgYnV0dG9ucyA9IGMoJ2NvcHknLCAnY3N2JywgJ2V4Y2VsJywgJ3BkZicsICdwcmludCcpLFxuICAgICAgICAgICAgICAgIHNjcm9sbFggPSBUUlVFKSxcbiAgICAgICAgICAgICAgY2FwdGlvbiA9IFwiUmVzdWx0aW5nIFNlZ21lbnRzXCIsXG4gICAgICAgICAgICAgIHJvd25hbWVzID0gRkFMU0UpXG5gYGAifQ== -->
-<pre class="r"><code>
-    load(input)
-
-    print(methRaw)
-    saveRDS(methRaw,&quot;~/tmp/methRaw.rds&quot;)
-
-    ## Segmentation
-    res.gr = methSeg(as(methRaw, &quot;GRanges&quot;),diagnostic.plot=TRUE)
-
-    ## convert to data.frame
-    res.df &lt;- as.data.frame(res.gr)
-    res.df$seg.mean &lt;- round(res.df$seg.mean,digits = 3)
-
-    ## show the regions
-    datatable(res.df,
-              extensions = 'Buttons', 
-              options = list(
-                dom = 'Bfrtip',
-                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                scrollX = TRUE),
-              caption = &quot;Resulting Segments&quot;,
-              rownames = FALSE)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjpbIiMjIHRoaXMgZnVuY3Rpb24gdHJpZXMgdG8gZmV0Y2ggdGhlIHJlZmVyZW5jZSBnZW5lcyBmb3IgdGhlIGdpdmVuIGFzc2VtYmx5IiwiZmV0Y2hSZWZHZW5lIDwtIGZ1bmN0aW9uKHJlZmdlbmVzLmxvYyA9IE5VTEwsIiwiICAgICAgICAgICAgICAgICAgICAgICAgIHJlZmdlbmVzLmFzc2VtYmx5KSB7IiwiICAiLCIgIGlmKGlzLm51bGwocmVmZ2VuZXMubG9jKSkgcmVmZ2VuZXMubG9jIDwtIHBhc3RlMChcInJlZnNlcS5nZW5lcy5cIixyZWZnZW5lcy5hc3NlbWJseSxcIi5iZWRcIikiLCIgICIsIiAgIyMgaW1wb3J0IGxvY2FsIGJlZCBmaWxlIGlmIGF2YWlsYWJsZSIsIiAgaWYoIGZpbGUuZXhpc3RzKHJlZmdlbmVzLmxvYykgKSB7IiwiICAgICMjIHBhcnNlIGl0ICIsIiAgICBtZXNzYWdlKFwiRm91bmQgUmVmU2VxIHRyYWNrIGF0OlwiKSIsIiAgICByZXR1cm4ocmVmZ2VuZXMubG9jKSIsIiAgICAiLCIgIH0gZWxzZSB7IiwiICAgIG1lc3NhZ2UoXCJUcnlpbmcgdG8gZmV0Y2ggZnJvbSBBbm5vdGF0aW9uSHViLlxcblwiKSIsIiAgICAjIyBlbHNlIHF1ZXJ5IGl0IGZyb20gQW5ub3RhdGlvbkh1YiAiLCIgICAgYWggPSBBbm5vdGF0aW9uSHViKCkiLCIgICAgIyMgcXVlcnkgcmVmc2VxIGdlbmVzIGZvciBhc3NlbWJseSIsIiAgICByZWZzZXEucSA8LSBxdWVyeShhaCxjKFwicmVmc2VxXCIsXCJnZW5lc1wiLGFzc2VtYmx5KSkiLCIgICAgIyMgZWl0aGVyIHRoZXJlIGlzIGV4YWN0bHkgb25lIHJlY29yZCwgc28gZmV0Y2ggaXQiLCIgICAgaWYobGVuZ3RoKHJlZnNlcS5xKSA9PSAxKSB7IiwiICAgICAgbWVzc2FnZShcIkZvdW5kIHNpbmdsZSBSZWZTZXEgdHJhY2ssIGRvd25sb2FkaW5nLi4uXFxuXCIpIiwiICAgICAgcmVmR2VuZXMgPC0gYWhbW25hbWVzKHJlZnNlcS5xKV1dIiwiICAgICAgIyMgYW5kIHdyaXRlIGl0IHRvIEJFRCBmaWxlIiwiICAgICAgZXhwb3J0LmJlZChvYmplY3QgPSByZWZHZW5lcywiLCIgICAgICAgICAgICAgICAgIGNvbiA9IHJlZmdlbmVzLmxvYywiLCIgICAgICAgICAgICAgICAgIHRyYWNrTGluZT1GQUxTRSkiLCIgICAgICBtZXNzYWdlKFwiV3JpdHRlbiB0aGUgUmVmU2VxIHRyYWNrIHRvOlwiKSIsIiAgICAgIHJldHVybihyZWZnZW5lcy5sb2MpIiwiICAgICAgIiwiICAgIH0gZWxzZSBpZiAoIGxlbmd0aChyZWZzZXEucSkgPT0gMCApIHsgIiwiICAgICAgbWVzc2FnZShcIlRyeWluZyB0byBmZXRjaCBmcm9tIFVDU0MgdGFibGUgYnJvd3Nlci5cXG5cIikiLCIgICAgICAjIyBvciB0aGVyZSBpcyBub25lLCAiLCIgICAgICAjIyBzbyB3ZSBjaGVjayB3aXRoIHJ0cmFja2xheWVyIGZvciB0aGUgbGF0ZXN0IHVjc2MgZGF0YSIsIiAgICAgIG15U2Vzc2lvbiA9IGJyb3dzZXJTZXNzaW9uKFwiVUNTQ1wiKSIsIiAgICAgIGdlbm9tZShteVNlc3Npb24pIDwtIGFzc2VtYmx5IiwiICAgICAgdHJhY2submFtZXMgPC0gdHJhY2tOYW1lcyh1Y3NjVGFibGVRdWVyeShteVNlc3Npb24pKSIsIiAgICAgICMgSSBhbSBpbnRlcmVzdGVkIGluIHRoZSByZWZHZW5lIHRyYWNrICIsIiAgICAgIGlmKFwicmVmR2VuZVwiICVpbiUgdHJhY2submFtZXMpIHsiLCIgICAgICAgIG1lc3NhZ2UoXCJGb3VuZCBzaW5nbGUgUmVmU2VxIHRyYWNrLCBkb3dubG9hZGluZy4uLlxcblwiKSIsIiAgICAgICAgIyBmZXRjaCBpdCBhcyBhIEdSYW5nZXMgb2JqZWN0ICIsIiAgICAgICAgdGFyZ2V0VHJhY2sgPC0gdHJhY2sobXlTZXNzaW9uLFwicmVmR2VuZVwiKSIsIiAgICAgICAgIyMgYW5kIHdyaXRlIGl0IHRvIEJFRCBmaWxlIiwiICAgICAgICBleHBvcnQuYmVkKG9iamVjdCA9IHRhcmdldFRyYWNrLCIsIiAgICAgICAgICAgICAgICAgICBjb24gPSByZWZnZW5lcy5sb2MsIiwiICAgICAgICAgICAgICAgICAgIHRyYWNrTGluZT1GQUxTRSkiLCIgICAgICAgICIsIiAgICAgICAgbWVzc2FnZShcIldyaXR0ZW4gdGhlIFJlZlNlcSB0cmFjayB0bzpcIikiLCIgICAgICAgIHJldHVybihyZWZnZW5lcy5sb2MpIiwiICAgICAgfSAiLCIgICAgfSBlbHNlIHsiLCIgICAgICBzdG9wKHBhc3RlKFwiQ291bGQgbm90IGZpbmQgcmVmZXJlbmNlIGdlbmUgc2V0IGZvciB0aGUgZ2l2ZW4gYXNzZW1ibHkgPCdcIixhc3NlbWJseSxcIic+LlwiICkpIiwiICAgIH0iLCIgICAgIiwiICB9IiwifSJdfQ== -->
+<pre class="r"><code>## this function tries to fetch the reference genes for the given assembly
+fetchRefGene &lt;- function(refgenes.loc = NULL,
+                         refgenes.assembly) {
+  
+  if(is.null(refgenes.loc)) refgenes.loc &lt;- paste0(&quot;refseq.genes.&quot;,refgenes.assembly,&quot;.bed&quot;)
+  
+  ## import local bed file if available
+  if( file.exists(refgenes.loc) ) {
+    ## parse it 
+    message(&quot;Found RefSeq track at:&quot;)
+    return(refgenes.loc)
+    
+  } else {
+    message(&quot;Trying to fetch from AnnotationHub.\n&quot;)
+    ## else query it from AnnotationHub 
+    ah = AnnotationHub()
+    ## query refseq genes for assembly
+    refseq.q &lt;- query(ah,c(&quot;refseq&quot;,&quot;genes&quot;,assembly))
+    ## either there is exactly one record, so fetch it
+    if(length(refseq.q) == 1) {
+      message(&quot;Found single RefSeq track, downloading...\n&quot;)
+      refGenes &lt;- ah[[names(refseq.q)]]
+      ## and write it to BED file
+      export.bed(object = refGenes,
+                 con = refgenes.loc,
+                 trackLine=FALSE)
+      message(&quot;Written the RefSeq track to:&quot;)
+      return(refgenes.loc)
+      
+    } else if ( length(refseq.q) == 0 ) { 
+      message(&quot;Trying to fetch from UCSC table browser.\n&quot;)
+      ## or there is none, 
+      ## so we check with rtracklayer for the latest ucsc data
+      mySession = browserSession(&quot;UCSC&quot;)
+      genome(mySession) &lt;- assembly
+      track.names &lt;- trackNames(ucscTableQuery(mySession))
+      # I am interested in the refGene track 
+      if(&quot;refGene&quot; %in% track.names) {
+        message(&quot;Found single RefSeq track, downloading...\n&quot;)
+        # fetch it as a GRanges object 
+        targetTrack &lt;- track(mySession,&quot;refGene&quot;)
+        ## and write it to BED file
+        export.bed(object = targetTrack,
+                   con = refgenes.loc,
+                   trackLine=FALSE)
+        
+        message(&quot;Written the RefSeq track to:&quot;)
+        return(refgenes.loc)
+      } 
+    } else {
+      stop(paste(&quot;Could not find reference gene set for the given assembly &lt;'&quot;,assembly,&quot;'&gt;.&quot; ))
+    }
+    
+  }
+}</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
-<p>The GRanges object is saved to enable fast loading for further analysis.</p>
+<p>After we have aquired the reference genes, we can determine different features intrinsic to each gene, such as promoter, exon or intron using the <code>readTranscriptFeatures()</code> function from <a href="http://bioinformatics.mdc-berlin.de/genomation/">genomation</a> <span class="citation">(Akalin et al. 2014)</span>.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuICAgICMjIFNhdmluZyBvYmplY3RcbiAgICBzYXZlKHJlcy5ncixmaWxlPWdyRmlsZSkgXG5gYGAifQ== -->
-<pre class="r"><code>    ## Saving object
-    save(res.gr,file=grFile) </code></pre>
+<!-- rnb-source-begin eyJkYXRhIjpbIiMjIGZpbGVuYW1lIGNhbiBlaXRoZXIgYmUgcGFzc2VkIGFzIGFyZ3VtZW50IG9yIGJlIHRoaXMgZ2VuZXJpYyBwYXN0ZWQgb25lIiwicmVmZ2VuZXMuZmlsZSA8LSBwYXN0ZTAoXCJyZWZzZXEuZ2VuZXMuXCIsYXNzZW1ibHksXCIuYmVkXCIpIiwiI3JlZmdlbmVzLmZpbGU9XCIvaG9tZS9rd3JlY3p5L3RtcC9teV9vdXRwdXQvYW5ub3RhdGlvbi9yZWZzZXEuZ2VuZXMuY2UxMC5iZWRcIiIsImZldGNoUmVmR2VuZShyZWZnZW5lcy5sb2MgPSByZWZnZW5lcy5maWxlLHJlZmdlbmVzLmFzc2VtYmx5ID0gYXNzZW1ibHkpIiwiIiwiIyMgbm93IHdlIHBhcnNlIHRoZSBnZW5lIGZlYXR1cmVzIiwicmVmZ2VuZXMuZ3JsIDwtIHJlYWRUcmFuc2NyaXB0RmVhdHVyZXMocmVmZ2VuZXMuZmlsZSkiXX0= -->
+<pre class="r"><code>## filename can either be passed as argument or be this generic pasted one
+refgenes.file &lt;- paste0(&quot;refseq.genes.&quot;,assembly,&quot;.bed&quot;)
+#refgenes.file=&quot;/home/kwreczy/tmp/my_output/annotation/refseq.genes.ce10.bed&quot;
+fetchRefGene(refgenes.loc = refgenes.file,refgenes.assembly = assembly)
+
+## now we parse the gene features
+refgenes.grl &lt;- readTranscriptFeatures(refgenes.file)</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
-<div id="export" class="section level3">
-<h3>Export</h3>
-<p>Finally we export the regions to a <em>BED</em> file, which can be loaded into any genome browser like <a href="http://software.broadinstitute.org/software/igv/">IGV</a> or <a href="https://genome.ucsc.edu/">UCSC</a> to allow for further analysis, annotation and visualisation.</p>
+<div id="annotation" class="section level3">
+<h3>Annotation</h3>
+<p>Now we can load differentially methylated regions to detect overlap percentage with gene features.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuICAgICMjIGV4cG9ydCBzZWdtZW50cyB0byBiZWQgZmlsZVxuICAgIG1ldGhTZWcyYmVkKHNlZ21lbnRzID0gcmVzLmdyLFxuICAgICAgICAgICAgICAgIHRyYWNrTGluZSA9IHBhc3RlMChcInRyYWNrIG5hbWU9J21ldGggc2VnbWVudHMgJyBcIixcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXCJkZXNjcmlwdGlvbj0nbWV0aCBzZWdtZW50cyBvZiBcIixcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG1ldGhSYXdAc2FtcGxlLmlkLFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcIiBtYXBwZWQgdG8gXCIsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG1ldGhSYXdAYXNzZW1ibHksXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwiJyBpdGVtUmdiPU9uXCIpLFxuICAgICAgICAgICAgICAgIGNvbHJhbXA9Y29sb3JSYW1wKGMoXCJncmF5XCIsXCJncmVlblwiLCBcImRhcmtncmVlblwiKSksXG4gICAgICAgICAgICAgICAgZmlsZW5hbWUgPSBvdXRwdXQpXG5cbmBgYCJ9 -->
-<pre class="r"><code>    ## export segments to bed file
-    methSeg2bed(segments = res.gr,
-                trackLine = paste0(&quot;track name='meth segments ' &quot;,
-                                   &quot;description='meth segments of &quot;,
-                                    methRaw@sample.id,
-                                   &quot; mapped to &quot;,
-                                   methRaw@assembly,
-                                   &quot;' itemRgb=On&quot;),
-                colramp=colorRamp(c(&quot;gray&quot;,&quot;green&quot;, &quot;darkgreen&quot;)),
-                filename = output)
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuXG5cbmRpZmZtZXRoLmdyIDwtIHJlYWRCZWQoZmlsZSA9IGluQmVkLFxuICAgICAgICAgICAgICAgICAgICAgIHRyYWNrLmxpbmUgPSBcImF1dG9cIilcblxuYW5ub3QuZ2VuZSA8LSBhbm5vdGF0ZVdpdGhHZW5lUGFydHModGFyZ2V0ID0gZGlmZm1ldGguZ3IsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGZlYXR1cmUgPSByZWZnZW5lcy5ncmwsXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGludGVyc2VjdC5jaHIgPSBUUlVFKVxuXG4jIHBsb3QgdGhlIHRhcmdldCBvdmVybGFwIGZvciBlYWNoIHNlZ2VtbnQgdHlwZVxucGxvdFRhcmdldEFubm90YXRpb24oYW5ub3QuZ2VuZSlcblxuXG5gYGAifQ== -->
+<pre class="r"><code>
+
+diffmeth.gr &lt;- readBed(file = inBed,
+                      track.line = &quot;auto&quot;)
+
+annot.gene &lt;- annotateWithGeneParts(target = diffmeth.gr,
+                                         feature = refgenes.grl,
+                                         intersect.chr = TRUE)
+
+# plot the target overlap for each segemnt type
+plotTargetAnnotation(annot.gene)
 </code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
@@ -422,16 +455,19 @@ knitr::kable(inputParams)</code></pre>
 <h2>References</h2>
 <!-- rnb-text-end -->
 <div id="refs" class="references">
-<div id="ref-klambauer2012">
-<p>Klambauer, Günter, Karin Schwarzbauer, Andreas Mayr, Djork-Arné Clevert, Andreas Mitterecker, Ulrich Bodenhofer, and Sepp Hochreiter. 2012. “Cn.MOPS: Mixture of Poissons for Discovering Copy Number Variations in Next-Generation Sequencing Data with a Low False Discovery Rate.” <em>Nucleic Acids Research</em> 40 (9): e69. doi:<a href="https://doi.org/10.1093/nar/gks003">10.1093/nar/gks003</a>.</p>
+<div id="ref-genomation2014">
+<p>Akalin, Altuna, Vedran Franke, Kristian Vlahovicek, Christopher Mason, and Dirk Schubeler. 2014. “Genomation: A Toolkit to Summarize, Annotate and Visualize Genomic Intervals.” <em>Bioinformatics</em>. doi:<a href="https://doi.org/10.1093/bioinformatics/btu775">10.1093/bioinformatics/btu775</a>.</p>
 </div>
-<div id="ref-Wreczycka2017">
-<p>Wreczycka, Katarzyna, Alexander Gosdschan, Dilmurat Yusuf, Bjoern Gruening, Yassen Assenov, and Altuna Akalin. 2017. “Strategies for Analyzing Bisulfite Sequencing Data.” <em>BioRxiv</em>. Cold Spring Harbor Labs Journals. doi:<a href="https://doi.org/10.1101/109512">10.1101/109512</a>.</p>
+<div id="ref-rtracklayer2009">
+<p>Lawrence, Michael, Robert Gentleman, and Vincent Carey. 2009. “Rtracklayer: An R Package for Interfacing with Genome Browsers.” <em>Bioinformatics</em> 25: 1841–2. doi:<a href="https://doi.org/10.1093/bioinformatics/btp328">10.1093/bioinformatics/btp328</a>.</p>
+</div>
+<div id="ref-ah2017">
+<p>Morgan, Martin, Marc Carlson, Dan Tenenbaum, and Sonali Arora. 2017. <em>AnnotationHub: Client to Access Annotationhub Resources</em>.</p>
 </div>
 </div>
 </div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiUGlHeDogQlMtc2VxIgpvdXRwdXQ6IAogIGh0bWxfbm90ZWJvb2s6CiAgICB0b2M6ICAgICAgICBUUlVFCiAgICB0b2NfZmxvYXQ6ICBUUlVFCiAgICB0aGVtZTogICAgICAibHVtZW4iCiAgICBudW1iZXJfc2VjdGlvbnM6IEZBTFNFCiAgICBjb2RlX2ZvbGRpbmc6ICJoaWRlIgogICAgc2VsZl9jb250YWluZWQ6IFRSVUUKICAgIGluY2x1ZGVzOgogICAgICBpbl9oZWFkZXI6IHBpZ3hfYnNzZXFfbG9nby5odG1sCiMgb3V0cHV0X2RpcjogIi9Vc2Vycy9hZ29zZHNjL0RldmVsb3BtZW50L1NuYWtlbWFrZS9waWd4X2Jzc2VxL21ldGhzZWdfcnVsZS8iCiMgb3V0cHV0X2ZpbGU6ICJzYW1wbGVBLnBlMV90cmltbWVkX2Jpc21hcmtfYnQyLmRlZHVwbGljYXRlZC5zb3J0ZWQuYmFtX21ldGhfc2VnbWVudHMuaHRtbCIKZGF0ZTogImByIFN5cy5EYXRlKClgIgpiaWJsaW9ncmFwaHk6IHJlcG9ydHMuYmliCnBhcmFtczoKICByZGF0YTogIm1ldGh5bGF0aW9uX2NhbGxzL3NhbXBsZUEucGUxX3RyaW1tZWRfYmlzbWFya19idDIuZGVkdXBsaWNhdGVkLnNvcnRlZF9tZXRoeWxSYXcuUkRhdGEiCiAgZ3JkYXRhOiAic2VnbWVudGF0aW9uL3NhbXBsZUEucGUxX3RyaW1tZWRfYmlzbWFya19idDIuZGVkdXBsaWNhdGVkLnNvcnRlZF9tZXRoX3NlZ21lbnRzX2dyLlJEYXRhIgogIG91dEJlZDogICAic2VnbWVudGF0aW9uL3NhbXBsZUEucGUxX3RyaW1tZWRfYmlzbWFya19idDIuZGVkdXBsaWNhdGVkLnNvcnRlZF9tZXRoX3NlZ21lbnRzLmJlZCIKLS0tCgpgYGB7ciBldmFsX3BhcmFtcywgZWNobz1GQUxTRX0KCmlucHV0ICAgICA8LSBwYXJhbXMkcmRhdGEKb3V0cHV0ICAgIDwtIHBhcmFtcyRvdXRCZWQKZ3JGaWxlICAgIDwtIHBhcmFtcyRncmRhdGEgICAgCmBgYAoKIyMgU2VnbWVudGF0aW9uIFJlcG9ydAoKPCEtLSB0aGlzIGlzIHRoZSBsb2NhbCBkaXI6IGByICBnZXR3ZCgpYCAtLT4KClRoZSBzZWdtZW50YXRpb24gYmFzZWQgb24gbWV0aHlsYXRpb24gcHJvdmlkZXMgYSB3YXkgdG8gY29tcHJlc3MgdGhlIGluZm9ybWF0aW9uIGZyb20gYmFzZS1wYWlyIGludG8gcmVnaW9uYWwgcmVzb2x1dGlvbiwgYWxsb3dpbmcgdGhlIGRldGVjdGlvbiBvZiByZWdpb25zIHdpdGggc2ltaWxhciBtZXRoeWxhdGlvbiB2YWx1ZXMsIHRoYXQgbWlnaHQgYmUgaW50ZXJlc3RpbmcgZm9yIGZ1cnRoZXIgaW52ZXN0aWdhdGlvbnMuCgpgYGB7ciwgaW5jbHVkZT1GQUxTRSx3YXJuaW5nPUZBTFNFfQoKICBzdXBwcmVzc1BhY2thZ2VTdGFydHVwTWVzc2FnZXMoZXhwciA9IHsKICAjIyBsb2FkIG1ldGh5bEtpdAogICAgbGlicmFyeSgibWV0aHlsS2l0Iix3YXJuLmNvbmZsaWN0cyA9IEZBTFNFLHF1aWV0bHkgPSBUUlVFKQogICMjIGxvYWQgRFQgCiAgICBsaWJyYXJ5KCJEVCIpCiAgfSkKYGBgCgojIyMgTGlicmFyaWVzCmBgYHtyIGxvYWQgbGlicmFyaWVzLCBldmFsPUZBTFNFLCBpbmNsdWRlPVRSVUV9CgogICMjIGxvYWQgbWV0aHlsS2l0CiAgICBsaWJyYXJ5KCJtZXRoeWxLaXQiKQogICMjIGxvYWQgRFQgCiAgICBsaWJyYXJ5KCJEVCIpCgpgYGAKCiMjIyBQYXJhbWV0ZXJzCmBgYHtyIHByaW50X3BhcmFtcywgZWNobz1UUlVFLCByZXN1bHRzPSJhc2lzIn0KCnBhcmFtc0Rlc2MgPC0gYygiSW5wdXQgRGF0YSIsCiAgICAgICAgICAgICJPdXRwdXQgZmlsZSIpCgpwYXJhbXNWYWx1ZXMgPC0gYyggaW5wdXQsCiAgICAgICAgICAgICBvdXRwdXQpCgppbnB1dFBhcmFtcyA8LSBkYXRhLmZyYW1lKFBhcmFtZXRlcnMgPSBwYXJhbXNEZXNjLAogICAgICAgICAgICAgICAgICAgICAgICAgIFZhbHVlcyA9IHBhcmFtc1ZhbHVlcywKICAgICAgICAgICAgICAgICAgICAgICAgICBzdHJpbmdzQXNGYWN0b3JzID0gRkFMU0UpCiNwYXJhbXMKI2RhdGF0YWJsZShpbnB1dFBhcmFtcyxvcHRpb25zID0gbGlzdChkb20gPSAndCcpLHJvd25hbWVzID0gRkFMU0UpCmtuaXRyOjprYWJsZShpbnB1dFBhcmFtcykKYGBgCgojIyMgU2VnbWVudGF0aW9uIG9mIG1ldGh5bGF0aW9uIHByb2ZpbGUKClRoZSBzZWdtZW50YXRpb24gb2YgdGhlIG1ldGh5bGF0aW9uIHByb2ZpbGUgaXMgZG9uZSB1c2luZyB0aGUgbWV0aFNlZygpIGZ1bmN0aW9uLCB3aGVyZSBjaGFuZ2UtcG9pbnRzIGluIHRoZSBnZW5vbWUgd2lkZSAgc2lnbmFsIGFyZSByZWNvcmRlZCBhbmQgdGhlIGdlbm9tZSBpcyBwYXJ0aXRpb25lZCBpbnRvIHJlZ2lvbnMgYmV0d2VlbiBjb25zZWN1dGl2ZSBjaGFuZ2UgcG9pbnRzLiBUaGlzIGFwcHJvYWNoIGlzIHR5cGljYWxseSB1c2VkIGluIHRoZSBjb250ZXh0IG9mIGNvcHkgbnVtYmVyIHZhcmlhdGlvbiBkZXRlY3Rpb24gW0BrbGFtYmF1ZXIyMDEyXSBidXQgY2FuIGJlIGFwcGxpZWQgdG8gbWV0aHlsb21lIHNlZ21lbnRhdGlvbiBhcyB3ZWxsIFtAV3JlY3p5Y2thMjAxN10uIEhlcmUgdGhlIGlkZW50aWZpZWQgc2VnbWVudHMgYXJlIGZ1cnRoZXIgY2x1c3RlcmVkIGJhc2VkIG9uIHRoZWlyIGF2ZXJhZ2UgbWV0aHlsYXRpb24gc2lnbmFsIHVzaW5nIGEgbWl4dHVyZSBtb2RlbGluZyBhcHByb2FjaCBhbGxvd2luZyB0aGUgZGV0ZWN0aW9uIG9mIGRpc3RpbmN0IHJlZ2lvbnMgaW5zaWRlIHRoZSBnZW5vbWUgIFtAV3JlY3p5Y2thMjAxN10uCgpgYGB7ciBsb2FkIGFuZCBzZWdtZW50fQoKICAgIGxvYWQoaW5wdXQpCgogICAgcHJpbnQobWV0aFJhdykKICAgIHNhdmVSRFMobWV0aFJhdywifi90bXAvbWV0aFJhdy5yZHMiKQoKICAgICMjIFNlZ21lbnRhdGlvbgogICAgcmVzLmdyID0gbWV0aFNlZyhhcyhtZXRoUmF3LCAiR1JhbmdlcyIpLGRpYWdub3N0aWMucGxvdD1UUlVFKQoKICAgICMjIGNvbnZlcnQgdG8gZGF0YS5mcmFtZQogICAgcmVzLmRmIDwtIGFzLmRhdGEuZnJhbWUocmVzLmdyKQogICAgcmVzLmRmJHNlZy5tZWFuIDwtIHJvdW5kKHJlcy5kZiRzZWcubWVhbixkaWdpdHMgPSAzKQoKICAgICMjIHNob3cgdGhlIHJlZ2lvbnMKICAgIGRhdGF0YWJsZShyZXMuZGYsCiAgICAgICAgICAgICAgZXh0ZW5zaW9ucyA9ICdCdXR0b25zJywgCiAgICAgICAgICAgICAgb3B0aW9ucyA9IGxpc3QoCiAgICAgICAgICAgICAgICBkb20gPSAnQmZydGlwJywKICAgICAgICAgICAgICAgIGJ1dHRvbnMgPSBjKCdjb3B5JywgJ2NzdicsICdleGNlbCcsICdwZGYnLCAncHJpbnQnKSwKICAgICAgICAgICAgICAgIHNjcm9sbFggPSBUUlVFKSwKICAgICAgICAgICAgICBjYXB0aW9uID0gIlJlc3VsdGluZyBTZWdtZW50cyIsCiAgICAgICAgICAgICAgcm93bmFtZXMgPSBGQUxTRSkKYGBgCgpUaGUgR1JhbmdlcyBvYmplY3QgaXMgc2F2ZWQgdG8gZW5hYmxlIGZhc3QgbG9hZGluZyBmb3IgZnVydGhlciBhbmFseXNpcy4KYGBge3J9CiAgICAjIyBTYXZpbmcgb2JqZWN0CiAgICBzYXZlKHJlcy5ncixmaWxlPWdyRmlsZSkgCmBgYAoKCgojIyMgRXhwb3J0CgpGaW5hbGx5IHdlIGV4cG9ydCB0aGUgcmVnaW9ucyB0byBhICpCRUQqIGZpbGUsIHdoaWNoIGNhbiBiZSBsb2FkZWQgaW50byBhbnkgZ2Vub21lIGJyb3dzZXIgbGlrZSBbSUdWXShodHRwOi8vc29mdHdhcmUuYnJvYWRpbnN0aXR1dGUub3JnL3NvZnR3YXJlL2lndi8pIG9yIFtVQ1NDXShodHRwczovL2dlbm9tZS51Y3NjLmVkdS8pIHRvIGFsbG93IGZvciBmdXJ0aGVyIGFuYWx5c2lzLCBhbm5vdGF0aW9uIGFuZCB2aXN1YWxpc2F0aW9uLiAKYGBge3IgZXhwb3J0IHRvIGJlZH0KICAgICMjIGV4cG9ydCBzZWdtZW50cyB0byBiZWQgZmlsZQogICAgbWV0aFNlZzJiZWQoc2VnbWVudHMgPSByZXMuZ3IsCiAgICAgICAgICAgICAgICB0cmFja0xpbmUgPSBwYXN0ZTAoInRyYWNrIG5hbWU9J21ldGggc2VnbWVudHMgJyAiLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJkZXNjcmlwdGlvbj0nbWV0aCBzZWdtZW50cyBvZiAiLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBtZXRoUmF3QHNhbXBsZS5pZCwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiIG1hcHBlZCB0byAiLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG1ldGhSYXdAYXNzZW1ibHksCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIicgaXRlbVJnYj1PbiIpLAogICAgICAgICAgICAgICAgY29scmFtcD1jb2xvclJhbXAoYygiZ3JheSIsImdyZWVuIiwgImRhcmtncmVlbiIpKSwKICAgICAgICAgICAgICAgIGZpbGVuYW1lID0gb3V0cHV0KQoKYGBgCgojIyBTZXNzaW9uIEluZm8KCmBgYHtyIHNlc3Npb25pbmZvfQpzZXNzaW9uSW5mbygpCmBgYAoKCgojIyBSZWZlcmVuY2Vz</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiUGlHeDogQlMtc2VxIgpvdXRwdXQ6IAogIGh0bWxfbm90ZWJvb2s6CiAgICB0b2M6ICAgICAgICBUUlVFCiAgICB0b2NfZmxvYXQ6ICBUUlVFCiAgICB0aGVtZTogICAgICAibHVtZW4iCiAgICBudW1iZXJfc2VjdGlvbnM6IEZBTFNFCiAgICBjb2RlX2ZvbGRpbmc6ICJoaWRlIgogICAgc2VsZl9jb250YWluZWQ6IFRSVUUKICAgIGluY2x1ZGVzOgogICAgICBpbl9oZWFkZXI6IHBpZ3hfYnNzZXFfbG9nby5odG1sCm91dHB1dF9kaXI6ICIvVXNlcnMvYWdvc2RzYy9EZXZlbG9wbWVudC9TbmFrZW1ha2UvcGlneF9ic3NlcS9hbm5vdGF0aW9uX3J1bGUvIgpvdXRwdXRfZmlsZTogInNhbXBsZUEucGUxX3RyaW1tZWRfYmlzbWFya19idDIuZGVkdXBsaWNhdGVkLnNvcnRlZC5hbm5vdGF0aW9uLm5iLmh0bWwiCmRhdGU6ICJgciBTeXMuRGF0ZSgpYCIKYmlibGlvZ3JhcGh5OiByZXBvcnRzLmJpYgpwYXJhbXM6CiAgaW5CZWQ6ICAgICIvVXNlcnMvYWdvc2RzYy9EZXZlbG9wbWVudC9TbmFrZW1ha2UvcGlneF9ic3NlcS9tZXRoc2VnX3J1bGUvdGVzdDFfdHJpbW1lZF9iaXNtYXJrX2J0Mi5kZWR1cGxpY2F0ZWQuc29ydGVkLmJhbV9tZXRoX3NlZ21lbnRzLmJlZCIKICBhc3NlbWJseTogImNlMTAiCiAgcmVmc2VxZmlsZTogIi9Vc2Vycy9hZ29zZHNjL0RldmVsb3BtZW50L1NuYWtlbWFrZS9waWd4X2Jzc2VxL2Fubm90YXRpb24vcmVmc2VxLmdlbmVzLmNlMTAuYmVkIgotLS0KCmBgYHtyIGV2YWxfcGFyYW1zLCBlY2hvPUZBTFNFfQoKaW5CZWQgICAgIDwtIHBhcmFtcyRpbkJlZAphc3NlbWJseSAgPC0gcGFyYW1zJGFzc2VtYmx5CnJlZmdlbmVzLmZpbGUgPC0gcGFyYW1zJHJlZnNlcWZpbGUKYGBgCgojIyBBbm5vdGF0aW9uIFJlcG9ydAoKVGhlIGFubm90YXRpb24gd2l0aCAKCmBgYHtyLCBpbmNsdWRlPUZBTFNFLHdhcm5pbmc9RkFMU0V9CgogIHN1cHByZXNzUGFja2FnZVN0YXJ0dXBNZXNzYWdlcyhleHByID0gewogICAgbGlicmFyeSgiZ2Vub21hdGlvbiIpCgogIH0pCmBgYAoKIyMjIExpYnJhcmllcwpgYGB7ciwgZXZhbD1GQUxTRSwgaW5jbHVkZT1UUlVFfQoKICAgIGxpYnJhcnkoImdlbm9tYXRpb24iKQogICAgbGlicmFyeSgiQW5ub3RhdGlvbkh1YiIpCiAgICBsaWJyYXJ5KCJydHJhY2tsYXllciIpCgpgYGAKCiMjIyBQYXJhbWV0ZXJzCmBgYHtyIHByaW50X3BhcmFtcywgZWNobz1UUlVFLCByZXN1bHRzPSJhc2lzIn0KCgpwcmludCgiUEFSQU1TIikKcHJpbnQocGFyYW1zKQoKCgpgYGAKCgoKCiMjIyBQcmVwcm9jZXNzaW5nCgpXZSBmaXJzdCBuZWVkIHRvIGZldGNoIHRoZSByZWZlcmVuY2UgZ2VuZSBzZXQgZm9yIHRoZSBnaXZlbiBnZW5vbWUgYXNzZW1ibHkuIFRvIGRvIHRoaXMgd2UgY2hlY2sgdGhlIGRhdGEgZnJvbSB0aGUgW0Fubm90YXRpb25IdWJdKGh0dHA6Ly9iaW9jb25kdWN0b3Iub3JnL3BhY2thZ2VzL3JlbGVhc2UvYmlvYy9odG1sL0Fubm90YXRpb25IdWIuaHRtbCkgUGFja2FnZSBbQGFoMjAxN10gd2ljaCBwcm92aWRlcyBmYXN0IGFjY2VzcyB0byB0cmFja3MgYW5kIGRhdGFzZXRzIGF2YWlsYWJsZSBhdCBCcm9hZEluc3RpdHV0ZSwgVUNTQywgRW5zZW1ibCBhbmQgb3RoZXJzLiBXaGlsc3QgdGhpcyBwYWNrYWdlIGFsbG93cyB1cyB0byBxdWVyeSBhIGN1cnJlbnQgc25hcHNob3Qgb2YgdGhvc2UgZGF0YWJhc2VzLCB0aGVyZSBpcyB0aGUgcG9zc2liaWxpdHkgdGhhdCBhIGNlcnRhaW4gdHJhY2sgbWlnaHQgYmUgbmV3ZXIgdGhhbiB0aGUgY3VycmVudCBzbmFwc2hvdC4gVGhpcyBpcyB3aHkgd2UgcXVlcnkgdGhlIFVDU0MgdGFibGUgYnJvd3NlciBkaXJlY3RseSB1c2luZyB0aGUgW3J0cmFja2xheWVyXShodHRwOi8vYmlvY29uZHVjdG9yLm9yZy9wYWNrYWdlcy9yZWxlYXNlL2Jpb2MvaHRtbC9ydHJhY2tsYXllci5odG1sKSBQYWNrYWdlIFtAcnRyYWNrbGF5ZXIyMDA5XS4KCgoKCmBgYHtyLCBldmFsPUZBTFNFLCBpbmNsdWRlPVRSVUV9CiMjIHRoaXMgZnVuY3Rpb24gdHJpZXMgdG8gZmV0Y2ggdGhlIHJlZmVyZW5jZSBnZW5lcyBmb3IgdGhlIGdpdmVuIGFzc2VtYmx5CmZldGNoUmVmR2VuZSA8LSBmdW5jdGlvbihyZWZnZW5lcy5sb2MgPSBOVUxMLAogICAgICAgICAgICAgICAgICAgICAgICAgcmVmZ2VuZXMuYXNzZW1ibHkpIHsKICAKICBpZihpcy5udWxsKHJlZmdlbmVzLmxvYykpIHJlZmdlbmVzLmxvYyA8LSBwYXN0ZTAoInJlZnNlcS5nZW5lcy4iLHJlZmdlbmVzLmFzc2VtYmx5LCIuYmVkIikKICAKICAjIyBpbXBvcnQgbG9jYWwgYmVkIGZpbGUgaWYgYXZhaWxhYmxlCiAgaWYoIGZpbGUuZXhpc3RzKHJlZmdlbmVzLmxvYykgKSB7CiAgICAjIyBwYXJzZSBpdCAKICAgIG1lc3NhZ2UoIkZvdW5kIFJlZlNlcSB0cmFjayBhdDoiKQogICAgcmV0dXJuKHJlZmdlbmVzLmxvYykKICAgIAogIH0gZWxzZSB7CiAgICBtZXNzYWdlKCJUcnlpbmcgdG8gZmV0Y2ggZnJvbSBBbm5vdGF0aW9uSHViLlxuIikKICAgICMjIGVsc2UgcXVlcnkgaXQgZnJvbSBBbm5vdGF0aW9uSHViIAogICAgYWggPSBBbm5vdGF0aW9uSHViKCkKICAgICMjIHF1ZXJ5IHJlZnNlcSBnZW5lcyBmb3IgYXNzZW1ibHkKICAgIHJlZnNlcS5xIDwtIHF1ZXJ5KGFoLGMoInJlZnNlcSIsImdlbmVzIixhc3NlbWJseSkpCiAgICAjIyBlaXRoZXIgdGhlcmUgaXMgZXhhY3RseSBvbmUgcmVjb3JkLCBzbyBmZXRjaCBpdAogICAgaWYobGVuZ3RoKHJlZnNlcS5xKSA9PSAxKSB7CiAgICAgIG1lc3NhZ2UoIkZvdW5kIHNpbmdsZSBSZWZTZXEgdHJhY2ssIGRvd25sb2FkaW5nLi4uXG4iKQogICAgICByZWZHZW5lcyA8LSBhaFtbbmFtZXMocmVmc2VxLnEpXV0KICAgICAgIyMgYW5kIHdyaXRlIGl0IHRvIEJFRCBmaWxlCiAgICAgIGV4cG9ydC5iZWQob2JqZWN0ID0gcmVmR2VuZXMsCiAgICAgICAgICAgICAgICAgY29uID0gcmVmZ2VuZXMubG9jLAogICAgICAgICAgICAgICAgIHRyYWNrTGluZT1GQUxTRSkKICAgICAgbWVzc2FnZSgiV3JpdHRlbiB0aGUgUmVmU2VxIHRyYWNrIHRvOiIpCiAgICAgIHJldHVybihyZWZnZW5lcy5sb2MpCiAgICAgIAogICAgfSBlbHNlIGlmICggbGVuZ3RoKHJlZnNlcS5xKSA9PSAwICkgeyAKICAgICAgbWVzc2FnZSgiVHJ5aW5nIHRvIGZldGNoIGZyb20gVUNTQyB0YWJsZSBicm93c2VyLlxuIikKICAgICAgIyMgb3IgdGhlcmUgaXMgbm9uZSwgCiAgICAgICMjIHNvIHdlIGNoZWNrIHdpdGggcnRyYWNrbGF5ZXIgZm9yIHRoZSBsYXRlc3QgdWNzYyBkYXRhCiAgICAgIG15U2Vzc2lvbiA9IGJyb3dzZXJTZXNzaW9uKCJVQ1NDIikKICAgICAgZ2Vub21lKG15U2Vzc2lvbikgPC0gYXNzZW1ibHkKICAgICAgdHJhY2submFtZXMgPC0gdHJhY2tOYW1lcyh1Y3NjVGFibGVRdWVyeShteVNlc3Npb24pKQogICAgICAjIEkgYW0gaW50ZXJlc3RlZCBpbiB0aGUgcmVmR2VuZSB0cmFjayAKICAgICAgaWYoInJlZkdlbmUiICVpbiUgdHJhY2submFtZXMpIHsKICAgICAgICBtZXNzYWdlKCJGb3VuZCBzaW5nbGUgUmVmU2VxIHRyYWNrLCBkb3dubG9hZGluZy4uLlxuIikKICAgICAgICAjIGZldGNoIGl0IGFzIGEgR1JhbmdlcyBvYmplY3QgCiAgICAgICAgdGFyZ2V0VHJhY2sgPC0gdHJhY2sobXlTZXNzaW9uLCJyZWZHZW5lIikKICAgICAgICAjIyBhbmQgd3JpdGUgaXQgdG8gQkVEIGZpbGUKICAgICAgICBleHBvcnQuYmVkKG9iamVjdCA9IHRhcmdldFRyYWNrLAogICAgICAgICAgICAgICAgICAgY29uID0gcmVmZ2VuZXMubG9jLAogICAgICAgICAgICAgICAgICAgdHJhY2tMaW5lPUZBTFNFKQogICAgICAgIAogICAgICAgIG1lc3NhZ2UoIldyaXR0ZW4gdGhlIFJlZlNlcSB0cmFjayB0bzoiKQogICAgICAgIHJldHVybihyZWZnZW5lcy5sb2MpCiAgICAgIH0gCiAgICB9IGVsc2UgewogICAgICBzdG9wKHBhc3RlKCJDb3VsZCBub3QgZmluZCByZWZlcmVuY2UgZ2VuZSBzZXQgZm9yIHRoZSBnaXZlbiBhc3NlbWJseSA8JyIsYXNzZW1ibHksIic+LiIgKSkKICAgIH0KICAgIAogIH0KfQpgYGAKCgpBZnRlciB3ZSBoYXZlIGFxdWlyZWQgdGhlIHJlZmVyZW5jZSBnZW5lcywgd2UgY2FuIGRldGVybWluZSBkaWZmZXJlbnQgZmVhdHVyZXMgaW50cmluc2ljIHRvIGVhY2ggZ2VuZSwgc3VjaCBhcyBwcm9tb3RlciwgZXhvbiBvciBpbnRyb24gdXNpbmcgdGhlIGByZWFkVHJhbnNjcmlwdEZlYXR1cmVzKClgIGZ1bmN0aW9uIGZyb20gW2dlbm9tYXRpb25dKGh0dHA6Ly9iaW9pbmZvcm1hdGljcy5tZGMtYmVybGluLmRlL2dlbm9tYXRpb24vKSBbQGdlbm9tYXRpb24yMDE0XS4gCgoKYGBge3IsIG1lc3NhZ2U9RkFMU0UsIGluY2x1ZGU9VFJVRSwgZXZhbD1GQUxTRX0KCiMjIGZpbGVuYW1lIGNhbiBlaXRoZXIgYmUgcGFzc2VkIGFzIGFyZ3VtZW50IG9yIGJlIHRoaXMgZ2VuZXJpYyBwYXN0ZWQgb25lCnJlZmdlbmVzLmZpbGUgPC0gcGFzdGUwKCJyZWZzZXEuZ2VuZXMuIixhc3NlbWJseSwiLmJlZCIpCiNyZWZnZW5lcy5maWxlPSIvaG9tZS9rd3JlY3p5L3RtcC9teV9vdXRwdXQvYW5ub3RhdGlvbi9yZWZzZXEuZ2VuZXMuY2UxMC5iZWQiCmZldGNoUmVmR2VuZShyZWZnZW5lcy5sb2MgPSByZWZnZW5lcy5maWxlLHJlZmdlbmVzLmFzc2VtYmx5ID0gYXNzZW1ibHkpCgojIyBub3cgd2UgcGFyc2UgdGhlIGdlbmUgZmVhdHVyZXMKcmVmZ2VuZXMuZ3JsIDwtIHJlYWRUcmFuc2NyaXB0RmVhdHVyZXMocmVmZ2VuZXMuZmlsZSkKYGBgCgpgYGB7ciwgZWNobz1GQUxTRSwgbWVzc2FnZT1GQUxTRX0KCiMjIG5vdyB3ZSBwYXJzZSB0aGUgZ2VuZSBmZWF0dXJlcwpyZWZnZW5lcy5ncmwgPC0gcmVhZFRyYW5zY3JpcHRGZWF0dXJlcyhyZWZnZW5lcy5maWxlKQpgYGAKCiMjIyBBbm5vdGF0aW9uCgpOb3cgd2UgY2FuIGxvYWQgZGlmZmVyZW50aWFsbHkgbWV0aHlsYXRlZCByZWdpb25zIHRvIGRldGVjdCBvdmVybGFwIHBlcmNlbnRhZ2Ugd2l0aCBnZW5lIGZlYXR1cmVzLgoKYGBge3IsIG1lc3NhZ2U9RkFMU0UsZmlnLnNob3c9ImhvbGQifQoKCmRpZmZtZXRoLmdyIDwtIHJlYWRCZWQoZmlsZSA9IGluQmVkLAogICAgICAgICAgICAgICAgICAgICAgdHJhY2subGluZSA9ICJhdXRvIikKCmFubm90LmdlbmUgPC0gYW5ub3RhdGVXaXRoR2VuZVBhcnRzKHRhcmdldCA9IGRpZmZtZXRoLmdyLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGZlYXR1cmUgPSByZWZnZW5lcy5ncmwsCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaW50ZXJzZWN0LmNociA9IFRSVUUpCgojIHBsb3QgdGhlIHRhcmdldCBvdmVybGFwIGZvciBlYWNoIHNlZ2VtbnQgdHlwZQpwbG90VGFyZ2V0QW5ub3RhdGlvbihhbm5vdC5nZW5lKQoKCmBgYAoKCiMjIFNlc3Npb24gSW5mbwoKYGBge3IgfQpzZXNzaW9uSW5mbygpCmBgYAoKCgojIyBSZWZlcmVuY2Vz</div>
 
 
 </div>
