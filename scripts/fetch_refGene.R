@@ -40,7 +40,6 @@ fetchRefGene <- function(refgenes.loc = NULL,
       message("Trying to fetch from UCSC table browser.\n")
       ## or there is none, 
       ## so we check with rtracklayer for the latest ucsc data
-      assembly="ce10"
       mySession = browserSession("UCSC")
       genome(mySession) <- assembly
       track.names <- trackNames(ucscTableQuery(mySession))
@@ -69,7 +68,6 @@ fetchRefGene <- function(refgenes.loc = NULL,
 # save.image(file = "snakemakeObj.RData")
 
 ## catch output and messages into log file
-
 out <- file(snakemake@log[[1]], open = "wt")
 sink(out,type = "output")
 sink(out, type = "message")
