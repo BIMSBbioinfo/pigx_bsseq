@@ -192,3 +192,27 @@ rule annotation_diffmeth:
 
 
 
+## Annotation with gene features
+rule annotation_diffmeth:
+    input:  
+        template    = TEMPLATEDIR + "annotation.report.diff.meth.Rmd",
+        bedfile     = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmeth.bed",
+        refgenes    = ANNODIR + "refseq.genes.{assembly}.bed"
+    output: 
+        report      = ANNODIR + "{treatment}.sorted_{assembly}_annotation.diff.meth.nb.html"
+    params:
+        inBed       = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmeth.bed",
+        assembly    = config["GENOME_VERSION"],
+        refseqfile  = WORKDIR + ANNODIR + "refseq.genes.{assembly}.bed"
+    log:
+        ANNODIR + "{treatment}.sorted_{assembly}_annotation.diff.meth.log"
+    script:
+        SCRIPTDIR + "report_functions.R"   
+        
+
+
+
+
+
+
+

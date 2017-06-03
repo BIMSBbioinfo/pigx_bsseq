@@ -30,6 +30,8 @@ params:
   
 ```{r eval_params, echo=FALSE}
 
+saveRDS(params, "~/tmp/params.rds")
+
 input     <- params$inputfiles
 sampleids <- params$sampleids
 output    <- params$outBed
@@ -203,6 +205,13 @@ if(nrow(meth.unite)>1){
   print("There are no bases with coverage in all samples")
 }
 
+############### onyl for now, remove it later
+print(head(meth.diffmeth))
+meth.diffmeth@.Data[[7]] = rep(25,length(meth.diffmeth@.Data[[6]]))
+# meth.diffmeth.hypo@.Data[[7]] = rep(25,length(meth.diffmeth@.Data[[6]]))
+# meth.diffmeth.hyper@.Data[[7]] = rep(25,length(meth.diffmeth@.Data[[6]]))
+
+############### 
 
   
 ```
@@ -212,6 +221,8 @@ if(nrow(meth.unite)>1){
 
 Finally we export the regions to a *BED* file, which can be loaded into any genome browser like [IGV](http://software.broadinstitute.org/software/igv/) or [UCSC](https://genome.ucsc.edu/) to allow for further analysis, annotation and visualisation. 
 ```{r export to bed,warning=FALSE}
+
+
 
 #' Export windows to a BED file
 #' 

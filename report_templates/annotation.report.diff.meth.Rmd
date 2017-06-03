@@ -323,7 +323,6 @@ hist(assoTSS[,2], main="Distance to the nearest TSS", xlab="bp", ylab="Frequency
 ```
 
 
-
 ### Plot overview of hyper and hypo-methylated regions over the genome
 
 ```{r, message=FALSE,fig.show="hold"}
