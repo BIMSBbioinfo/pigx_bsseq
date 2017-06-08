@@ -32,10 +32,11 @@ refgenes.file <- params$refseqfile
 grFile      <- params$grFile
 grFile_hyper      <- params$grFile_hyper
 grFile_hypo      <- params$grFile_hypo
+ideoDMC_script <- params$ideoDMC_script
 
 ```
 
-## Annotation Report
+## Annotation of differentially methylated bases
 
 
 ```{r, include=FALSE,warning=FALSE}
@@ -67,6 +68,8 @@ grFile_hypo      <- params$grFile_hypo
 ```{r print_params, echo=TRUE, results="asis"}
 
 
+saveRDS(params, "~/tmp/params.rds")
+
 paramsDesc <- c("Input Data",
                 "Input RDS Data (diff.-methyl.)",
                 "Input RDS Data (hyper-methyl.)",
@@ -96,15 +99,15 @@ knitr::kable(inputParams)
 
 
 # Load differentially methylated bases from a BED file.
-diffmeth.gr <- readBed(file = inBed,
+GRanges.obj <- readBed(file = inBed,
                       track.line = "auto")
 # Load differentially methylated, hypo- and hyper-methylated
 # bases from RDS files.
-diffmeth <- readRDS(grFile)
-diffmeth_hyper = readRDS(grFile_hyper)
-diffmeth.gr_hyper = as(diffmeth_hyper, "GRanges")
-diffmeth_hypo = readRDS(grFile_hypo)
-diffmeth.gr_hypo = as(diffmeth_hypo, "GRanges")
+methylDiff.obj <- readRDS(grFile)
+methylDiff.obj_hyper = readRDS(grFile_hyper)
+GRanges.obj_hyper = as(methylDiff.obj_hyper, "GRanges")
+methylDiff.obj_hypo = readRDS(grFile_hypo)
+GRanges.obj_hypo = as(methylDiff.obj_hypo, "GRanges")
 
 ```
 
@@ -196,8 +199,8 @@ number.of.elements.per.chr = function(gr.obj){
 }
 
 # Show number of differentially methylated bases per chromosome
-if(length(diffmeth.gr)!=0){
-   stats.df = number.of.elements.per.chr(diffmeth.gr)
+if(nrow(GRanges.obj)!=0){
+   stats.df = number.of.elements.per.chr(GRanges.obj)
    datatable(stats.df,
           extensions = 'Buttons',
           options = list(
@@ -211,8 +214,8 @@ if(length(diffmeth.gr)!=0){
 }
 
 
-if(length(diffmeth.gr_hyper)!=0){
-   stats.df = number.of.elements.per.chr(diffmeth.gr_hyper)
+if(length(GRanges.obj_hyper)!=0){
+   stats.df = number.of.elements.per.chr(GRanges.obj_hyper)
    datatable(stats.df,
           extensions = 'Buttons',
           options = list(
@@ -226,8 +229,8 @@ if(length(diffmeth.gr_hyper)!=0){
 }
 
 
-if(length(diffmeth.gr_hypo)!=0){
-   stats.df = number.of.elements.per.chr(diffmeth.gr_hypo)
+if(length(GRanges.obj_hypo)!=0){
+   stats.df = number.of.elements.per.chr(GRanges.obj_hypo)
    datatable(stats.df,
              extensions = 'Buttons',
           options = list(
@@ -240,15 +243,6 @@ if(length(diffmeth.gr_hypo)!=0){
   print("There are no hypo-methylated bases.")
 }
 
-# stats.df = number.of.elements.per.chr(diffmeth.gr)
-# knitr::kable(stats.df )
-# 
-# stats.df = number.of.elements.per.chr(diffmeth.gr_hyper)
-# knitr::kable(stats.df )
-# 
-# stats.df = number.of.elements.per.chr(diffmeth.gr_hypo)
-# knitr::kable(stats.df )
-
 ```
 
 
@@ -258,11 +252,11 @@ Now we can load differentially methylated bases to detect overlap percentage wit
 
 ```{r, message=FALSE,fig.show="hold"}
 
-if(!is.na(fetched.refgenes)){
+if(!is.na(fetched.refgenes) & nrow(GRanges.obj)!=0){
   ## now we parse the gene features
   refgenes.grl <- readTranscriptFeatures(refgenes.file)
 
-  annot.gene <- annotateWithGeneParts(target = diffmeth.gr,
+  annot.gene <- annotateWithGeneParts(target = GRanges.obj,
                                          feature = refgenes.grl,
                                          intersect.chr = TRUE)
 
@@ -271,7 +265,7 @@ if(!is.na(fetched.refgenes)){
                        main="Differential methylation annotation")
 }
 
-if(!is.na(fetched.cpgi)){
+if(!is.na(fetched.cpgi) & nrow(GRanges.obj)!=0){
   
   # read the shores and flanking regions and name the flanks as shores 
   # and CpG islands as CpGi
@@ -279,7 +273,7 @@ if(!is.na(fetched.cpgi)){
                            feature.flank.name=c("CpGi","shores"))
   #
   # convert methylDiff object to GRanges and annotate
-  diffCpGann=annotateWithFeatureFlank(diffmeth.gr,
+  diffCpGann=annotateWithFeatureFlank(GRanges.obj,
                                       cpg.obj$CpGi, cpg.obj$shores,
                                       feature.name="CpGi",flank.name="shores")
 
@@ -299,7 +293,7 @@ After getting the annotation of differentially methylated regions, we can get th
 
 ```{r, message=FALSE, echo=TRUE}
 
-if(!is.na(fetched.refgenes)){
+if(!is.na(fetched.refgenes) & nrow(GRanges.obj)!=0){
 
 # Get distance to nearest TSS and gene id from AnnotationByGeneParts
 # target.row is the row number in diffmeth.gr
@@ -319,8 +313,6 @@ hist(assoTSS[,2], main="Distance to the nearest TSS", xlab="bp", ylab="Frequency
 
 }
 
-print('getwd()')
-print(getwd())
 
 ```
 
@@ -330,28 +322,20 @@ print(getwd())
 
 ```{r, message=FALSE,fig.show="hold"}
 
-# Plotting overview of differentially methylated bases
-
-if(length(diffmeth.gr_hypo)!=0 & length(diffmeth.gr_hyper)!=0){
+if(length(GRanges.obj_hypo)!=0 & length(GRanges.obj_hyper)!=0){
 
 chr.len.df=fetchExtendedChromInfoFromUCSC(assembly,
         goldenPath_url="http://hgdownload.cse.ucsc.edu/goldenPath",
         quiet=FALSE)
 chr.len=chr.len.df[,2]
 names(chr.len)=chr.len.df[,1]
-# 
 
-methylDiff.hyper = diffmeth
-methylDiff.hyper@.Data[7][[1]]  = rep(80, length(methylDiff.hyper@.Data[6][[1]]))
-methylDiff.hypo = diffmeth
-methylDiff.hypo @.Data[7][[1]]  = rep(-80, length(methylDiff.hyper@.Data[6][[1]]))
 
 source(ideoDMC_script)
-
-plot( ideoDMC1(methylDiff.hyper, methylDiff.hypo, chrom.length = chr.len,
+plot( ideoDMC_hyper_hypo(methylDiff.obj_hyper, methylDiff.hypo, chrom.length = chr.len,
    circos = TRUE, title = "Differential methylation", hyper.col = "magenta", hypo.col = "green") )
 
-plot( ideoDMC1(methylDiff.hyper, methylDiff.hypo, chrom.length = chr.len,
+plot( ideoDMC_hyper_hypo(methylDiff.obj_hyper, methylDiff.hypo, chrom.length = chr.len,
    circos = FALSE, title = "Differential methylation", hyper.col = "magenta", hypo.col = "green") )
 
 }

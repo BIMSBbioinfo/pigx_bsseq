@@ -4,11 +4,12 @@ PATHOUT="/home/kwreczy/tmp/my_output/"
 GENOMEPATH="/home/kwreczy//tmp/ce10/"
 LOG="/home/kwreczy/logs/"
 GENOME_VERSION="ce10"
-bismark_args=" -N 1 -L 2 "
+bismark_args=" -N 1 -L 2 --multicore 2"
 fastqc_args=""
 trim_galore_args=""
 bam_methCall_args_mincov="0"
 bam_methCall_args_minqual="10"
+diffmeth_cores="2"
 NICE="19"
 
 [[ SAMPLES ]]
