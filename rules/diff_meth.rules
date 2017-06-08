@@ -151,10 +151,10 @@ rule diffmeth:
         treatment   = lambda wc: wc.treatment.split("_"),
         mincov      = int(config["bam_methCall_args_mincov"]), 
         context     = "CpG",
-        cores       = int(config["NUMTHREADS"])
+        cores       = int(config["diffmeth_cores"])
         
     log:
-        LOGS+"{treatment}.sorted_diffmeth.log"
+        DIFFMETHDIR+"{treatment}.sorted_diffmeth.log"
     script:
         SCRIPTDIR + "report_functions.R" 
 

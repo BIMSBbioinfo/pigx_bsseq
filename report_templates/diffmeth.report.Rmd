@@ -108,10 +108,6 @@ datatable(inputParams,
 ###################################### TODO: this is ugly, improvee it
 # becauses not treatment in the input file can be only numbers...
 treatment = as.numeric(treatment)
-################ TODO:
-cores=2
-################
-###################################### 
 
 inputfiles = paste0(workdir, input)
 methRawList.obj = methRead(as.list(inputfiles),
@@ -122,30 +118,15 @@ methRawList.obj = methRead(as.list(inputfiles),
                                 mincov = mincov
 )
 
-# Take bases with coverage from all samples are retained
-meth.unite=unite(methRawList.obj, destrand=FALSE)
-
-############### onyl for now, remove it later ################################################
-# saveRDS(methRawList.obj, "~/tmp/methRawList.obj.rds")
-# 
-# #methRawList.obj = readRDS("~/tmp/methRawList.obj.rds")
-# 
-# data(methylKit)
-# 
-# covariates=data.frame(age=c(30,80,30,80))
-# meth.unite<-dataSim(replicates=4,sites=1000,treatment=c(1,1,0,0),
-#                              covariates=covariates,
-#                              sample.ids=c("test1","test2","ctrl1","ctrl2"))
-
-###############  ################################################
-
-
 ```
 
 ### Find differentially methylated bases
 
 
 ```{r, differential methylation, echo=TRUE,warning=FALSE}
+
+# Take bases with coverage from all samples are retained
+meth.unite=unite(methRawList.obj, destrand=FALSE)
 
 # Cutoff for absolute value of methylation percentage change
 # between test and control
@@ -176,6 +157,8 @@ if(nrow(meth.unite)!=0){
                                            difference=difference,
                                            type="hyper",
                                            qvalue=qvalue)
+}else{
+  print("There are no bases with coverage in all samples")
 }
 
 
@@ -184,17 +167,6 @@ methylDiff2df_roundint = function(methylDiff.obj, roundval=4){
   df[,5:7] = round(df[,5:7], roundval)
   return(df)
 }
-
-## show the regions
-datatable(methylDiff2df_roundint(meth.diffmeth),
-          extensions = 'Buttons',
-          options = list(
-            dom = 'Bfrtip',
-            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-            scrollX = TRUE),
-          caption = "All regions",
-          rownames = FALSE)
-
 
 ## show differentially methylated regions
 if(nrow(meth.diffmeth.all)!=0){
@@ -206,6 +178,8 @@ datatable(methylDiff2df_roundint(meth.diffmeth.all),
             scrollX = TRUE),
           caption = "Differentially methylated bases",
           rownames = FALSE)
+}else{
+  print("There are no differentially methylated bases")
 }
 
 ## show hyper-methylated region
@@ -218,6 +192,8 @@ datatable(methylDiff2df_roundint(meth.diffmeth.hyper),
             scrollX = TRUE),
           caption = "Hyper-methylated bases",
           rownames = FALSE)
+}else{
+  print("There are no hyper-methylated bases")
 }
 
 ## show hypo-methylated region
@@ -230,6 +206,8 @@ datatable(methylDiff2df_roundint(meth.diffmeth.hypo),
             scrollX = TRUE),
           caption = "Hypo-methylated bases",
           rownames = FALSE)
+}else{
+  print("There are no hypo-methylated bases")
 }
   
 ```
@@ -299,11 +277,8 @@ meth2bed<-function(windows,filename,
 
 if(nrow(meth.diffmeth)!=0){
   
-
-####################################################### TODO: change it to meth.diffmeth.all!!!!
-  
   # Convert a methylDiff object to a GRanges object
-  meth.diffmeth.gr = as(meth.diffmeth, "GRanges")
+  meth.diffmeth.gr = as(meth.diffmeth.all, "GRanges")
   
   # Export differentially methylated bases to a bed file
   trackLine = paste0("track name='differentially methylated bases ' ",
@@ -325,13 +300,10 @@ if(nrow(meth.diffmeth)!=0){
 The GRanges object is saved to enable fast loading for further analysis.
 ```{r}
 
-
 if(nrow(meth.unite)!=0){
 
-####################################################### TODO: change it to meth.diffmeth.all!!!!
-
   ## Saving object from methylDiff to a RDS file
-  saveRDS(meth.diffmeth, grFile)
+  saveRDS(meth.diffmeth.all, grFile)
   saveRDS(meth.diffmeth.hyper, grFile_hyper)
   saveRDS(meth.diffmeth.hypo, grFile_hypo)
   
@@ -344,7 +316,7 @@ if(nrow(meth.unite)!=0){
 # In case when there are no differentially methylated bases
 # create an empty output
 
-if(nrow(meth.unite)==0){
+if(nrow(meth.unite)==0 | nrow(meth.diffmeth)==0){
   
   trackLine = paste0("track name='differentially methylated bases ' ",
                                "description='diff. meth. between ",
@@ -353,7 +325,7 @@ if(nrow(meth.unite)==0){
                                meth.unite@assembly,
                                "' itemRgb=On")
   fileConn<-file(output)
-  writeLines(trackLine, fileConn)
+  writeLines("trackLine", fileConn)
   close(fileConn)
   
   saveRDS(as(meth.unite, "GRanges"), grFile)
