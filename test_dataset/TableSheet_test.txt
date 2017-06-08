@@ -1,25 +1,25 @@
 [[ GENERAL PARAMETERS ]]
-PATHIN="/home/kwreczy/repositories/pigx_bsseq/test_dataset/in/"
+PATHIN="/home/kwreczy/tmp/"
 PATHOUT="/home/kwreczy/tmp/my_output/"
-GENOMEPATH="/home/kwreczy//tmp/ce10/"
-LOG="/home/kwreczy/logs/"
-CHROM_INFO="/home/kwreczy/repositories/pigx_bsseq/test_dataset/chromInfo.txt"
+GENOMEPATH="/data/akalin/Base/Genomes/ce10/"
+LOG="/home/kwreczy/tmp/logs/"
 GENOME_VERSION="ce10"
-bismark_args=" -N 1 -L 2 --multicore 2"
+bismark_args=" -N 1 -L 2 --multicore 30"
 fastqc_args=""
 trim_galore_args=""
 INEXT=".fq.gz"
-RCODE="2K_"
+RCODE=".pe"
 bam_methCall_args_mincov="0"
 bam_methCall_args_minqual="10"
-diffmeth_cores="2"
+diffmeth_cores="20"
 NICE="19"
 
 [[ SAMPLES ]]
 Read1,Read2,SampleID,ReadType,Treatment
-output2K_1.fq.gz,output2K_2.fq.gz,sampleA,WGBS,0
-output2K_1.fq.gz,output2K_2.fq.gz,sampleB1,WGBS,1
+sampleA.pe1.fq.gz,sampleA.pe2.fq.gz,sampleA,WGBS,0
+sampleB.se.fq.gz,,sampleBse,WGBS,1
+sampleB.pe1.fq.gz,sampleB.pe1.fq.gz,sampleBpe,WGBS,2
+
 
 [[ DIFFERENTIAL METHYLATION ]]
-0, 1
-1, 0
+0, 2
