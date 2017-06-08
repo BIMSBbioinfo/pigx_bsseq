@@ -164,7 +164,7 @@ if(nrow(meth.unite)>1){
                                            difference=difference,
                                            type="hyper",
                                            qvalue=qvalue)
-  
+
   ## show differentially methylated regions
   if(nrow(methylDiff.obj)!=0){
     ## show all differentially methylated regions
@@ -222,6 +222,8 @@ datatable(methylDiff2df_roundint(meth.diffmeth.hyper),
             scrollX = TRUE),
           caption = "Hyper-methylated bases",
           rownames = FALSE)
+}else{
+  print("There are no hyper-methylated bases")
 }
 
 ### Export differentially methylated bases
