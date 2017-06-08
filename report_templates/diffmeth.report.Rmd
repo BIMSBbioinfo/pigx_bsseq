@@ -51,8 +51,6 @@ cores     <- params$cores
 
 The logistic regression is applied to model the log odds ratio which is based on methylation proportion of a CpG using the treatment vector which denotes the sample group membership for the CpGs in the model. 
 
-When covariates (such as e.g. age) are included in the analysist, we will test if full model (model with treatment and covariates) is better than the model with the covariates only. If there is no effect due to the treatment (sample groups), the full model will not explain the data better than the model with covariates only.
-
 After q-value calculation, differentially methylated bases are extracted based on q-value and percent methylation difference cutoffs. Here we select bases that have q-value < 0.01 and percent methylation difference larger than 25%. Futhermore, we calculate hyper-methylated or hypo-methylated bases. 
 
 Overdispersion occurs when there is more variability in the data than assumed by the distribution and is here included in the differentially methylatation calculation.
