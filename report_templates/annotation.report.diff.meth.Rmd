@@ -97,6 +97,7 @@ GRanges.obj <- readBed(file = inBed,
 # bases from RDS files.
 methylDiff.obj <- readRDS(grFile)
 methylDiff.obj_hyper = readRDS(grFile_hyper)
+<<<<<<< 56d57c9210d67f7ecf5610782a0c3ebc45cf5ccb
 methylDiff.obj_hypo = readRDS(grFile_hypo)
 
 if( !is.null(methylDiff.obj_hypo)){
@@ -111,6 +112,11 @@ if( !is.null(methylDiff.obj_hyper)){
   GRanges.obj_hyper = GRanges()
 }
 
+=======
+GRanges.obj_hyper = as(methylDiff.obj_hyper, "GRanges")
+methylDiff.obj_hypo = readRDS(grFile_hypo)
+GRanges.obj_hypo = as(methylDiff.obj_hypo, "GRanges")
+>>>>>>> Works on test data, no diff.meth.there that's why annot. is skipped in if clauses
 
 ```
 
