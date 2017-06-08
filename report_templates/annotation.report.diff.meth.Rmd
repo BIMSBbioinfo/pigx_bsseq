@@ -13,7 +13,7 @@ output:
 output_dir: "/Users/agosdsc/Development/Snakemake/pigx_bsseq/annotation_rule/"
 output_file: "sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted.annotation.nb.html"
 date: "`r Sys.Date()`"
-bibliography: reports.bib
+#bibliography: reports.bib
 params:
   inBed:    "/home/kwreczy/tmp/my_output/differential_methylation/0_1.sorted_diffmeth.bed"
   assembly: "ce10"
@@ -43,7 +43,6 @@ ideoDMC_script <- params$ideoDMC_script
 
   suppressPackageStartupMessages(expr = {
     library("genomation")
-    library("AnnotationHub")
     library("rtracklayer")
     library("DT")
     library("ggplot2")
@@ -56,7 +55,6 @@ ideoDMC_script <- params$ideoDMC_script
 ```{r, eval=FALSE, include=TRUE}
 
     library("genomation")
-    library("AnnotationHub")
     library("rtracklayer")
     library("DT")
     library("ggplot2")
@@ -70,8 +68,8 @@ ideoDMC_script <- params$ideoDMC_script
 
 saveRDS(params, "~/tmp/params.rds")
 
-paramsDesc <- c("Input Data",
-                "Input RDS Data (diff.-methyl.)",
+paramsDesc <- c("Input Data (diff.methyl.)",
+                "Input RDS Data (diff.methyl.)",
                 "Input RDS Data (hyper-methyl.)",
                 "Input RDS Data (hypo-methyl.)",
                 "Assembly",
@@ -105,9 +103,20 @@ GRanges.obj <- readBed(file = inBed,
 # bases from RDS files.
 methylDiff.obj <- readRDS(grFile)
 methylDiff.obj_hyper = readRDS(grFile_hyper)
-GRanges.obj_hyper = as(methylDiff.obj_hyper, "GRanges")
 methylDiff.obj_hypo = readRDS(grFile_hypo)
-GRanges.obj_hypo = as(methylDiff.obj_hypo, "GRanges")
+
+if( !is.null(methylDiff.obj_hypo)){
+  GRanges.obj_hypo = as(methylDiff.obj_hypo, "GRanges")
+}else{
+  GRanges.obj_hypo = GRanges()
+}
+
+if( !is.null(methylDiff.obj_hyper)){
+  GRanges.obj_hyper = as(methylDiff.obj_hyper, "GRanges")
+}else{
+  GRanges.obj_hyper = GRanges()
+}
+
 
 ```
 
@@ -322,7 +331,7 @@ hist(assoTSS[,2], main="Distance to the nearest TSS", xlab="bp", ylab="Frequency
 
 ```{r, message=FALSE,fig.show="hold"}
 
-if(length(GRanges.obj_hypo)!=0 & length(GRanges.obj_hyper)!=0){
+if(length(GRanges.obj_hypo)>1 & length(GRanges.obj_hyper)>1){
 
 chr.len.df=fetchExtendedChromInfoFromUCSC(assembly,
         goldenPath_url="http://hgdownload.cse.ucsc.edu/goldenPath",
@@ -332,10 +341,11 @@ names(chr.len)=chr.len.df[,1]
 
 
 source(ideoDMC_script)
-plot( ideoDMC_hyper_hypo(methylDiff.obj_hyper, methylDiff.hypo, chrom.length = chr.len,
-   circos = TRUE, title = "Differential methylation", hyper.col = "magenta", hypo.col = "green") )
+plot( ideoDMC_hyper_hypo(methylDiff.obj_hyper, methylDiff.obj_hypo, chrom.length = chr.len,
+   circos = TRUE, title = "Differential methylation", hyper.col = "magenta", hypo.col = "green") 
+   )
 
-plot( ideoDMC_hyper_hypo(methylDiff.obj_hyper, methylDiff.hypo, chrom.length = chr.len,
+plot( ideoDMC_hyper_hypo(methylDiff.obj_hyper, methylDiff.obj_hypo, chrom.length = chr.len,
    circos = FALSE, title = "Differential methylation", hyper.col = "magenta", hypo.col = "green") )
 
 }
