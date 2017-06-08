@@ -185,16 +185,16 @@ rule methseg:
 
 
 ## Aquisition of gene features
-rule fetch_refGene:
-    output: refgenes = ANNODIR + "refseq.genes.{assembly}.bed"
-    params: 
-        assembly = "{assembly}"
-    log:
-        ANNODIR + "fetch_refseq.genes.{assembly}.log"
-    message:
-        "Fetching RefSeq genes for Genome assembly: {wildcards.assembly}"
-    script:  
-        SCRIPTDIR + "fetch_refGene.R" 
+#rule fetch_refGene:
+#    output: refgenes = ANNODIR + "refseq.genes.{assembly}.bed"
+#    params: 
+#        assembly = "{assembly}"
+#    log:
+#        ANNODIR + "fetch_refseq.genes.{assembly}.log"
+#    message:
+#        "Fetching RefSeq genes for Genome assembly: {wildcards.assembly}"
+#    script:  
+#        SCRIPTDIR + "fetch_refGene.R" 
 
 
 ## Annotation with gene features
