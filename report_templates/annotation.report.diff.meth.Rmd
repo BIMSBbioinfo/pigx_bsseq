@@ -84,14 +84,11 @@ inputParams <- data.frame(Parameters = paramsDesc,
                           stringsAsFactors = FALSE)
 
 knitr::kable(inputParams)
-
 ```
-
 
 ### Preprocessing
 
-```{r, message=FALSE, echo=TRUE}
-
+```{r}
 
 # Load differentially methylated bases from a BED file.
 GRanges.obj <- readBed(file = inBed,
@@ -289,6 +286,29 @@ if(!is.na(fetched.cpgi) & nrow(GRanges.obj)!=0){
                        main="Differential methylation annotation")
 }
 
+if(length(diffmeth.gr_hypo)!=0 & length(diffmeth.gr_hyper)!=0){
+
+chr.len.df=fetchExtendedChromInfoFromUCSC(assembly,
+        goldenPath_url="http://hgdownload.cse.ucsc.edu/goldenPath",
+        quiet=FALSE)
+chr.len=chr.len.df[,2]
+names(chr.len)=chr.len.df[,1]
+# 
+
+methylDiff.hyper = diffmeth
+methylDiff.hyper@.Data[7][[1]]  = rep(80, length(methylDiff.hyper@.Data[6][[1]]))
+methylDiff.hypo = diffmeth
+methylDiff.hypo @.Data[7][[1]]  = rep(-80, length(methylDiff.hyper@.Data[6][[1]]))
+
+source(ideoDMC_script)
+
+plot( ideoDMC1(methylDiff.hyper, methylDiff.hypo, chrom.length = chr.len,
+   circos = TRUE, title = "Differential methylation", hyper.col = "magenta", hypo.col = "green") )
+
+plot( ideoDMC1(methylDiff.hyper, methylDiff.hypo, chrom.length = chr.len,
+   circos = FALSE, title = "Differential methylation", hyper.col = "magenta", hypo.col = "green") )
+
+}
 
 ```
 

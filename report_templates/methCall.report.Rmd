@@ -106,8 +106,6 @@ The methylation calls are written to the text file "`r paste0(sample_id,"_CpG.tx
 but to enable direct loading of the `methylRaw` object it is saved for further analysis at `r rdatafile`
 ```{r}
     ## Saving object
-    print('methRawmethRaw')
-    print(methRaw)
     save(methRaw,file=normalizePath(rdatafile)) 
 ```
 
