@@ -78,11 +78,8 @@ The segmentation of the methylation profile is done using the methSeg() function
 
     load(input)
 
-    print(methRaw)
-    saveRDS(methRaw,"~/tmp/methRaw.rds")
-
     ## Segmentation
-    res.gr = methSeg(as(methRaw, "GRanges"),diagnostic.plot=TRUE)
+    res.gr = methSeg(methRaw,diagnostic.plot=TRUE)
 
     ## convert to data.frame
     res.df <- as.data.frame(res.gr)

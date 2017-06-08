@@ -15,26 +15,38 @@ output_file: "sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted.annotation.nb.
 date: "`r Sys.Date()`"
 bibliography: reports.bib
 params:
-  inBed:    "/Users/agosdsc/Development/Snakemake/pigx_bsseq/methseg_rule/test1_trimmed_bismark_bt2.deduplicated.sorted.bam_meth_segments.bed"
+  inBed:    "/home/kwreczy/tmp/my_output/differential_methylation/0_1.sorted_diffmeth.bed"
   assembly: "ce10"
-  refseqfile: "/Users/agosdsc/Development/Snakemake/pigx_bsseq/annotation/refseq.genes.ce10.bed"
+  refseqfile: "/blabla/annotation/refseq.genes.ce10.bed"
+  grFile: "ablabla.RData"
+  grFile_hyper:    "/blala.RData"
+  grFile_hypo:    "/blabla.RData"
+  ideoDMC_script: "/blabla/scripts/ideoDMC.R"
 ---
 
 ```{r eval_params, echo=FALSE}
 
-inBed     <- params$inBed
-assembly  <- params$assembly
+inBed      <- params$inBed
+assembly      <- params$assembly
 refgenes.file <- params$refseqfile
+grFile      <- params$grFile
+grFile_hyper      <- params$grFile_hyper
+grFile_hypo      <- params$grFile_hypo
+
 ```
 
 ## Annotation Report
 
-The annotation with 
 
 ```{r, include=FALSE,warning=FALSE}
 
   suppressPackageStartupMessages(expr = {
     library("genomation")
+    library("AnnotationHub")
+    library("rtracklayer")
+    library("DT")
+    library("ggplot2")
+    library("GenomeInfoDb")
 
   })
 ```
@@ -45,6 +57,9 @@ The annotation with
     library("genomation")
     library("AnnotationHub")
     library("rtracklayer")
+    library("DT")
+    library("ggplot2")
+    library("GenomeInfoDb")
 
 ```
 
@@ -52,121 +67,297 @@ The annotation with
 ```{r print_params, echo=TRUE, results="asis"}
 
 
-print("PARAMS")
-print(params)
+paramsDesc <- c("Input Data",
+                "Input RDS Data (diff.-methyl.)",
+                "Input RDS Data (hyper-methyl.)",
+                "Input RDS Data (hypo-methyl.)",
+                "Assembly",
+                "RefSeq genes file")
 
+paramsValues <- c( inBed ,
+                   grFile,
+                   grFile_hyper,
+                   grFile_hypo,
+                   assembly,
+                   refgenes.file )
 
+inputParams <- data.frame(Parameters = paramsDesc,
+                          Values = paramsValues,
+                          stringsAsFactors = FALSE)
+
+knitr::kable(inputParams)
 
 ```
-
-
 
 
 ### Preprocessing
 
-We first need to fetch the reference gene set for the given genome assembly. To do this we check the data from the [AnnotationHub](http://bioconductor.org/packages/release/bioc/html/AnnotationHub.html) Package [@ah2017] wich provides fast access to tracks and datasets available at BroadInstitute, UCSC, Ensembl and others. Whilst this package allows us to query a current snapshot of those databases, there is the possibility that a certain track might be newer than the current snapshot. This is why we query the UCSC table browser directly using the [rtracklayer](http://bioconductor.org/packages/release/bioc/html/rtracklayer.html) Package [@rtracklayer2009].
+```{r, message=FALSE, echo=TRUE}
 
 
+# Load differentially methylated bases from a BED file.
+diffmeth.gr <- readBed(file = inBed,
+                      track.line = "auto")
+# Load differentially methylated, hypo- and hyper-methylated
+# bases from RDS files.
+diffmeth <- readRDS(grFile)
+diffmeth_hyper = readRDS(grFile_hyper)
+diffmeth.gr_hyper = as(diffmeth_hyper, "GRanges")
+diffmeth_hypo = readRDS(grFile_hypo)
+diffmeth.gr_hypo = as(diffmeth_hypo, "GRanges")
 
-
-```{r, eval=FALSE, include=TRUE}
-## this function tries to fetch the reference genes for the given assembly
-fetchRefGene <- function(refgenes.loc = NULL,
-                         refgenes.assembly) {
-  
-  if(is.null(refgenes.loc)) refgenes.loc <- paste0("refseq.genes.",refgenes.assembly,".bed")
-  
-  ## import local bed file if available
-  if( file.exists(refgenes.loc) ) {
-    ## parse it 
-    message("Found RefSeq track at:")
-    return(refgenes.loc)
-    
-  } else {
-    message("Trying to fetch from AnnotationHub.\n")
-    ## else query it from AnnotationHub 
-    ah = AnnotationHub()
-    ## query refseq genes for assembly
-    refseq.q <- query(ah,c("refseq","genes",assembly))
-    ## either there is exactly one record, so fetch it
-    if(length(refseq.q) == 1) {
-      message("Found single RefSeq track, downloading...\n")
-      refGenes <- ah[[names(refseq.q)]]
-      ## and write it to BED file
-      export.bed(object = refGenes,
-                 con = refgenes.loc,
-                 trackLine=FALSE)
-      message("Written the RefSeq track to:")
-      return(refgenes.loc)
-      
-    } else if ( length(refseq.q) == 0 ) { 
-      message("Trying to fetch from UCSC table browser.\n")
-      ## or there is none, 
-      ## so we check with rtracklayer for the latest ucsc data
-      mySession = browserSession("UCSC")
-      genome(mySession) <- assembly
-      track.names <- trackNames(ucscTableQuery(mySession))
-      # I am interested in the refGene track 
-      if("refGene" %in% track.names) {
-        message("Found single RefSeq track, downloading...\n")
-        # fetch it as a GRanges object 
-        targetTrack <- track(mySession,"refGene")
-        ## and write it to BED file
-        export.bed(object = targetTrack,
-                   con = refgenes.loc,
-                   trackLine=FALSE)
-        
-        message("Written the RefSeq track to:")
-        return(refgenes.loc)
-      } 
-    } else {
-      stop(paste("Could not find reference gene set for the given assembly <'",assembly,"'>." ))
-    }
-    
-  }
-}
 ```
 
 
-After we have aquired the reference genes, we can determine different features intrinsic to each gene, such as promoter, exon or intron using the `readTranscriptFeatures()` function from [genomation](http://bioinformatics.mdc-berlin.de/genomation/) [@genomation2014]. 
+We query the UCSC table browser directly to fetch the reference gene set and CpG islads locations for the given genome assembly using the [rtracklayer](http://bioconductor.org/packages/release/bioc/html/rtracklayer.html) Package [@rtracklayer2009]. After we have aquired the reference genes, we can determine different features intrinsic to each gene, such as promoter, exon or intron using the `readTranscriptFeatures()` function from [genomation](http://bioinformatics.mdc-berlin.de/genomation/) [@genomation2014] and appropriately
+for CpG islands and shores.
 
 
-```{r, message=FALSE, include=TRUE, eval=FALSE}
+```{r annotate with refseq genes}
+
+#' Fetch a table from the UCSC browser and save it as a BED file
+#' 
+#' The windows are color coded based on their score (methylation or differential
+#' methylation value).
+#' 
+#' @param table.name a character indicating name of a UCSC table
+#' @param table.loc a character indicating path to the output BED file
+#' @param assembly a character indicating a genome version, e.g. "ce10""
+#' 
+#' @return location of a output BED file which can be visualized in the UCSC browser 
+#' 
+#' 
+#' @export
+#' @docType methods
+#' @rdname fetchTablefromUCSC
+fetchTablefromUCSC <- function(table.name,
+                       table.loc = NULL,
+                       assembly){
+  
+      if(is.null(table.loc)) table.loc <- paste0(table.name, assembly,".bed")
+  
+      ## import local bed file if available
+      if( file.exists(table.loc) ) {
+          ## parse it 
+          message(paste0("Found ",table.name," track at:\n", table.loc))
+          return(table.loc)
+    
+      } else {
+        message("Trying to fetch from UCSC table browser.\n")
+        ## so we check with rtracklayer for the latest ucsc data
+        require(rtracklayer)
+        mySession = browserSession("UCSC")
+        genome(mySession) <- assembly
+        track.names <- trackNames(ucscTableQuery(mySession))
+        
+        if(table.name %in% track.names) {
+          message(paste0("Found single ",table.name," track, downloading...\n"))
+          # fetch it as a GRanges object 
+          targetTrack <- track(mySession,table.name)
+          ## and write it to BED file
+          export.bed(object = targetTrack,
+                     con = table.loc,
+                     trackLine=FALSE)
+          
+          message(paste0("Written the RefSeq track to:\n",table.loc))
+          return(table.loc)
+        } else {
+          print(paste("Could not find ",table.name," for the given assembly <'",assembly,"'>." ))
+          return(NA)
+        }
+      }
+}
 
 ## filename can either be passed as argument or be this generic pasted one
 refgenes.file <- paste0("refseq.genes.",assembly,".bed")
-#refgenes.file="/home/kwreczy/tmp/my_output/annotation/refseq.genes.ce10.bed"
-fetchRefGene(refgenes.loc = refgenes.file,refgenes.assembly = assembly)
+fetched.refgenes = fetchTablefromUCSC("refGene", table.loc = refgenes.file, assembly)
 
-## now we parse the gene features
-refgenes.grl <- readTranscriptFeatures(refgenes.file)
+cpgi.file <- paste0("cpgi.",assembly,".bed")
+fetched.cpgi = fetchTablefromUCSC("cpgIslandExt", table.loc = cpgi.file, assembly)
+
 ```
 
-```{r, echo=FALSE, message=FALSE}
 
-## now we parse the gene features
-refgenes.grl <- readTranscriptFeatures(refgenes.file)
+### Show number of differentially methylated bases per chromosome
+
+```{r, message=FALSE, echo=TRUE}
+
+number.of.elements.per.chr = function(gr.obj){
+  
+  # Optional, if you want a genomic order of the chromosomes
+  diffmeth.gr = sortSeqlevels(gr.obj)
+  # Split into a GRangesList
+  # where each element has all ranges for one chromosome
+  diffmeth.gr.perchr = split(diffmeth.gr, seqnames(diffmeth.gr))
+  el.chrs = elementNROWS(diffmeth.gr.perchr)
+  
+  df = data.frame(Chromosome=names(el.chrs), Number.diff.meth.bases=as.vector(el.chrs))
+  return(df)
+}
+
+# Show number of differentially methylated bases per chromosome
+if(length(diffmeth.gr)!=0){
+   stats.df = number.of.elements.per.chr(diffmeth.gr)
+   datatable(stats.df,
+          extensions = 'Buttons',
+          options = list(
+            dom = 'Brtip',
+            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+            scrollX = TRUE),
+          caption = "Number of differentially methylated bases per chromosome",
+          rownames = FALSE)
+}else{
+  print("There are no differentially methylated bases.")
+}
+
+
+if(length(diffmeth.gr_hyper)!=0){
+   stats.df = number.of.elements.per.chr(diffmeth.gr_hyper)
+   datatable(stats.df,
+          extensions = 'Buttons',
+          options = list(
+            dom = 'Brtip',
+            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+            scrollX = TRUE),
+          caption = "Number of hyper-methylated bases per chromosome",
+          rownames = FALSE)
+}else{
+  print("There are no hyper-methylated bases.")
+}
+
+
+if(length(diffmeth.gr_hypo)!=0){
+   stats.df = number.of.elements.per.chr(diffmeth.gr_hypo)
+   datatable(stats.df,
+             extensions = 'Buttons',
+          options = list(
+            dom = 'Brtip',
+            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+            scrollX = TRUE),
+          caption = "Number of hypo-methylated bases per chromosome",
+          rownames = FALSE)
+}else{
+  print("There are no hypo-methylated bases.")
+}
+
+# stats.df = number.of.elements.per.chr(diffmeth.gr)
+# knitr::kable(stats.df )
+# 
+# stats.df = number.of.elements.per.chr(diffmeth.gr_hyper)
+# knitr::kable(stats.df )
+# 
+# stats.df = number.of.elements.per.chr(diffmeth.gr_hypo)
+# knitr::kable(stats.df )
+
 ```
+
 
 ### Annotation
 
-Now we can load differentially methylated regions to detect overlap percentage with gene features.
+Now we can load differentially methylated bases to detect overlap percentage with gene features, CpG islands and shores.
 
 ```{r, message=FALSE,fig.show="hold"}
 
+if(!is.na(fetched.refgenes)){
+  ## now we parse the gene features
+  refgenes.grl <- readTranscriptFeatures(refgenes.file)
 
-diffmeth.gr <- readBed(file = inBed,
-                      track.line = "auto")
-
-annot.gene <- annotateWithGeneParts(target = diffmeth.gr,
+  annot.gene <- annotateWithGeneParts(target = diffmeth.gr,
                                          feature = refgenes.grl,
                                          intersect.chr = TRUE)
 
-# plot the target overlap for each segemnt type
-plotTargetAnnotation(annot.gene)
+  # plot the target overlap for each
+  genomation::plotTargetAnnotation(annot.gene,
+                       main="Differential methylation annotation")
+}
+
+if(!is.na(fetched.cpgi)){
+  
+  # read the shores and flanking regions and name the flanks as shores 
+  # and CpG islands as CpGi
+  cpg.obj=readFeatureFlank(cpgi.file,
+                           feature.flank.name=c("CpGi","shores"))
+  #
+  # convert methylDiff object to GRanges and annotate
+  diffCpGann=annotateWithFeatureFlank(diffmeth.gr,
+                                      cpg.obj$CpGi, cpg.obj$shores,
+                                      feature.name="CpGi",flank.name="shores")
+
+  # plot the target overlap for each
+  genomation::plotTargetAnnotation(diffCpGann, 
+                       col=c("green","gray","white"),
+                       main="Differential methylation annotation")
+}
 
 
 ```
+
+
+### Plot distance to the nearest TSSs
+
+After getting the annotation of differentially methylated regions, we can get the distance to TSS and the nearest gene name using the  `getAssociationWithTSS` function from genomation package.
+
+```{r, message=FALSE, echo=TRUE}
+
+if(!is.na(fetched.refgenes)){
+
+# Get distance to nearest TSS and gene id from AnnotationByGeneParts
+# target.row is the row number in diffmeth.gr
+assoTSS = getAssociationWithTSS(annot.gene)
+
+datatable(as.data.frame(assoTSS),
+          extensions = 'Buttons',
+          options = list(
+            dom = 'Bfrtip',
+            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+            scrollX = TRUE),
+          caption = "Distance to nearest TSS",
+          rownames = FALSE)
+
+
+hist(assoTSS[,2], main="Distance to the nearest TSS", xlab="bp", ylab="Frequency", col="cornflowerblue")
+
+}
+
+print('getwd()')
+print(getwd())
+
+```
+
+
+
+### Plot overview of hyper and hypo-methylated regions over the genome
+
+```{r, message=FALSE,fig.show="hold"}
+
+# Plotting overview of differentially methylated bases
+
+if(length(diffmeth.gr_hypo)!=0 & length(diffmeth.gr_hyper)!=0){
+
+chr.len.df=fetchExtendedChromInfoFromUCSC(assembly,
+        goldenPath_url="http://hgdownload.cse.ucsc.edu/goldenPath",
+        quiet=FALSE)
+chr.len=chr.len.df[,2]
+names(chr.len)=chr.len.df[,1]
+# 
+
+methylDiff.hyper = diffmeth
+methylDiff.hyper@.Data[7][[1]]  = rep(80, length(methylDiff.hyper@.Data[6][[1]]))
+methylDiff.hypo = diffmeth
+methylDiff.hypo @.Data[7][[1]]  = rep(-80, length(methylDiff.hyper@.Data[6][[1]]))
+
+source(ideoDMC_script)
+
+plot( ideoDMC1(methylDiff.hyper, methylDiff.hypo, chrom.length = chr.len,
+   circos = TRUE, title = "Differential methylation", hyper.col = "magenta", hypo.col = "green") )
+
+plot( ideoDMC1(methylDiff.hyper, methylDiff.hypo, chrom.length = chr.len,
+   circos = FALSE, title = "Differential methylation", hyper.col = "magenta", hypo.col = "green") )
+
+}
+
+```
+
 
 
 ## Session Info

@@ -15,6 +15,8 @@ bibliography: reports.bib
 params:
   inputfiles: ["methylation_calls/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted_methylRaw.RData","methylation_calls/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted_methylRaw.RData"]
   grdata: "segmentation/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted_meth_windows_gr.RData"
+  grdata_hyper: "segmentation/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted_meth_windows_gr.RData"
+  grdata_hypo: "segmentation/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted_meth_windows_gr.RData"
   outBed:   "segmentation/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted_meth_windows.bed"
   sampleids: ["sampleA", "sampleB"]
   assembly: "ce10"
@@ -28,12 +30,12 @@ params:
   
 ```{r eval_params, echo=FALSE}
 
-saveRDS(params, "~/tmp/params.rds")
-
 input     <- params$inputfiles
 sampleids <- params$sampleids
 output    <- params$outBed
 grFile    <- params$grdata
+grFile_hyper    <- params$grdata_hyper
+grFile_hypo    <- params$grdata_hypo
 assembly  <- params$assembly
 treatment <- params$treatment
 mincov    <- params$mincov
@@ -43,61 +45,65 @@ cores     <- params$cores
 
 ```
 
-## Differential methylation report
+# Differential methylation report
 
-  TODO: add few sentences about diff meth.
+## Calling differentially methylated bases
+
+The logistic regression is applied to model the log odds ratio which is based on methylation proportion of a CpG using the treatment vector which denotes the sample group membership for the CpGs in the model. 
+
+When covariates (such as e.g. age) are included in the analysist, we will test if full model (model with treatment and covariates) is better than the model with the covariates only. If there is no effect due to the treatment (sample groups), the full model will not explain the data better than the model with covariates only.
+
+After q-value calculation, differentially methylated bases are extracted based on q-value and percent methylation difference cutoffs. Here we select bases that have q-value < 0.01 and percent methylation difference larger than 25%. Futhermore, we calculate hyper-methylated or hypo-methylated bases. 
+
+Overdispersion occurs when there is more variability in the data than assumed by the distribution and is here included in the differentially methylatation calculation.
+
+For more details about `calculateDiffMeth()` and `getMethylDiff()` functions see [@methylKit2012] and for details about
+the logistic regression and overdispersion see [@Wreczycka2017].
+
 
 ```{r, include=FALSE,warning=FALSE}
 
 suppressPackageStartupMessages(expr = {
   ## load methylKit
   library("methylKit",warn.conflicts = FALSE,quietly = TRUE)
+  library("DT",warn.conflicts = FALSE,quietly = TRUE)
 })
+
 ```
 
 ### Libraries
 ```{r load libraries, eval=FALSE, include=TRUE}
 
-## load methylKit
+## load libraries
 library("methylKit")
+library("DT")
 
 ```
 
 ### Parameters
 ```{r print_params, echo=TRUE}
 
+inputParams <- data.frame(sampleids=sampleids,
+                          input1 = input[1],
+                          input2 = input[2],
+                          treatment=treatment,
+                          context=context,
+                          mincov=mincov,
+                          assembly=assembly,
+                          output=output,
+                          RDSfile=grFile,
+                          stringsAsFactors = FALSE)
 
-print("PARAMS")
-print(params)
+datatable(inputParams,
+          options = list(dom="t", autoWidth = TRUE, scrollX=TRUE, colReorder = TRUE),
+          rownames = FALSE, class = 'cell-border stripe')
 
-# convert treatment values to integers
-
-
-# paramsDesc <- c("Input Data",
-#                 "Output file")
-# 
-# paramsValues <- c( input,
-#                    output)
-# 
-# print("paramsValues")
-# print(paramsValues)
-# 
-# inputParams <- data.frame(Parameters = paramsDesc,
-#                           Values = paramsValues,
-#                           stringsAsFactors = FALSE)
-
-#inputList <- list(InputData=input, Outputfile=output)
-
-#params
-#datatable(inputParams,options = list(dom = 't'),rownames = FALSE)
-#knitr::kable(inputList)
 ```
 
-### Differential methylation
+### Load methylation profiles
 
-#TODO
 
-```{r differential methylation, echo=TRUE}
+```{r load methylation, echo=TRUE,warning=FALSE}
 
 ###################################### TODO: this is ugly, improvee it
 # becauses not treatment in the input file can be only numbers...
@@ -119,7 +125,34 @@ methRawList.obj = methRead(as.list(inputfiles),
 # Take bases with coverage from all samples are retained
 meth.unite=unite(methRawList.obj, destrand=FALSE)
 
-# Calculate differential methylation statistics
+############### onyl for now, remove it later ################################################
+# saveRDS(methRawList.obj, "~/tmp/methRawList.obj.rds")
+# 
+# #methRawList.obj = readRDS("~/tmp/methRawList.obj.rds")
+# 
+# data(methylKit)
+# 
+# covariates=data.frame(age=c(30,80,30,80))
+# meth.unite<-dataSim(replicates=4,sites=1000,treatment=c(1,1,0,0),
+#                              covariates=covariates,
+#                              sample.ids=c("test1","test2","ctrl1","ctrl2"))
+
+###############  ################################################
+
+
+```
+
+### Find differentially methylated bases
+
+
+```{r, differential methylation, echo=TRUE,warning=FALSE}
+
+# Cutoff for absolute value of methylation percentage change
+# between test and control
+difference = 25
+# Cutoff for qvalue of differential methylation statistic
+qvalue = 0.01
+
 if(nrow(meth.unite)!=0){
   
   meth.diffmeth <- calculateDiffMeth(meth.unite, 
@@ -127,40 +160,85 @@ if(nrow(meth.unite)!=0){
                                    adjust = "qvalue",
                                    test="Chisq",
                                    mc.cores=cores)
-  # get differentially methylated regions/bases based on cutoffs  
+
+  # Get differentially methylated regions/bases based on cutoffs  
   meth.diffmeth.all = getMethylDiff(meth.diffmeth, 
-                                           difference=25,
+                                           difference=difference,
                                            type="all",
-                                           qvalue=0.01)
-  # # get hypo-methylated
-  # meth.diffmeth.hypo = getMethylDiff(meth.diffmeth, 
-  #                                          difference=25,
-  #                                          type="hypo",
-  #                                          qvalue=0.01)
-  # # get hyper-methylated
-  # meth.diffmeth.hyper = getMethylDiff(meth.diffmeth, 
-  #                                          difference=25,
-  #                                          type="hyper",
-  #                                          qvalue=0.01)
+                                           qvalue=qvalue)
+  # Get hypo-methylated
+  meth.diffmeth.hypo = getMethylDiff(meth.diffmeth,
+                                           difference=difference,
+                                           type="hypo",
+                                           qvalue=qvalue)
+  # Get hyper-methylated
+  meth.diffmeth.hyper = getMethylDiff(meth.diffmeth,
+                                           difference=difference,
+                                           type="hyper",
+                                           qvalue=qvalue)
 }
 
-############### onyl for now, remove it later
-print(head(meth.diffmeth))
-meth.diffmeth@.Data[[7]] = rep(25,length(meth.diffmeth@.Data[[6]]))
-# meth.diffmeth.hypo@.Data[[7]] = rep(25,length(meth.diffmeth@.Data[[6]]))
-# meth.diffmeth.hyper@.Data[[7]] = rep(25,length(meth.diffmeth@.Data[[6]]))
 
-############### 
+methylDiff2df_roundint = function(methylDiff.obj, roundval=4){
+  df = as(methylDiff.obj, "data.frame")
+  df[,5:7] = round(df[,5:7], roundval)
+  return(df)
+}
 
+## show the regions
+datatable(methylDiff2df_roundint(meth.diffmeth),
+          extensions = 'Buttons',
+          options = list(
+            dom = 'Bfrtip',
+            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+            scrollX = TRUE),
+          caption = "All regions",
+          rownames = FALSE)
+
+
+## show differentially methylated regions
+if(nrow(meth.diffmeth.all)!=0){
+datatable(methylDiff2df_roundint(meth.diffmeth.all),
+          extensions = 'Buttons',
+          options = list(
+            dom = 'Bfrtip',
+            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+            scrollX = TRUE),
+          caption = "Differentially methylated bases",
+          rownames = FALSE)
+}
+
+## show hyper-methylated region
+if(nrow(meth.diffmeth.hyper)!=0){
+datatable(methylDiff2df_roundint(meth.diffmeth.hyper),
+          extensions = 'Buttons',
+          options = list(
+            dom = 'Bfrtip',
+            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+            scrollX = TRUE),
+          caption = "Hyper-methylated bases",
+          rownames = FALSE)
+}
+
+## show hypo-methylated region
+if(nrow(meth.diffmeth.hypo)!=0){
+datatable(methylDiff2df_roundint(meth.diffmeth.hypo),
+          extensions = 'Buttons',
+          options = list(
+            dom = 'Bfrtip',
+            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+            scrollX = TRUE),
+          caption = "Hypo-methylated bases",
+          rownames = FALSE)
+}
+  
 ```
 
 
-### Export
+### Export differentially methylated bases
 
 Finally we export the regions to a *BED* file, which can be loaded into any genome browser like [IGV](http://software.broadinstitute.org/software/igv/) or [UCSC](https://genome.ucsc.edu/) to allow for further analysis, annotation and visualisation. 
-```{r export to bed}
-
-
+```{r export to bed,warning=FALSE}
 
 #' Export windows to a BED file
 #' 
@@ -189,7 +267,6 @@ meth2bed<-function(windows,filename,
   
   range01 <- function(x){(x-min(x)+1)/(max(x)-min(x)+1)}
 
-    
   if(class(windows)!="GRanges"){
     stop("windows object has to be of class GRanges")
   }
@@ -217,13 +294,19 @@ meth2bed<-function(windows,filename,
 }
 
 
-if(nrow(meth.unite)!=0){
+
+# Export differentially methylated bases
+
+if(nrow(meth.diffmeth)!=0){
+  
+
+####################################################### TODO: change it to meth.diffmeth.all!!!!
   
   # Convert a methylDiff object to a GRanges object
   meth.diffmeth.gr = as(meth.diffmeth, "GRanges")
   
-  # Export differentially methylated regions to a bed file
-  trackLine = paste0("track name='differentially methylated regions ' ",
+  # Export differentially methylated bases to a bed file
+  trackLine = paste0("track name='differentially methylated bases ' ",
                                "description='diff. meth. between ",
                                paste(meth.diffmeth@sample.ids,collapse=","),
                                " mapped to ",
@@ -236,14 +319,21 @@ if(nrow(meth.unite)!=0){
 
 }
 
+
 ```
 
 The GRanges object is saved to enable fast loading for further analysis.
 ```{r}
+
+
 if(nrow(meth.unite)!=0){
 
-## Saving object
-saveRDS(meth.diffmeth.gr, grFile)
+####################################################### TODO: change it to meth.diffmeth.all!!!!
+
+  ## Saving object from methylDiff to a RDS file
+  saveRDS(meth.diffmeth, grFile)
+  saveRDS(meth.diffmeth.hyper, grFile_hyper)
+  saveRDS(meth.diffmeth.hypo, grFile_hypo)
   
 }
 ```
@@ -251,13 +341,12 @@ saveRDS(meth.diffmeth.gr, grFile)
 
 ```{r, echo=FALSE}
 
-#a=meth.unite[-(1:674),]
-# If samples
-#touch file to force snakemake to exit in nice way and generate html anyways ??? #TODO
-# create a 
+# In case when there are no differentially methylated bases
+# create an empty output
+
 if(nrow(meth.unite)==0){
   
-  trackLine = paste0("track name='differentially methylated regions ' ",
+  trackLine = paste0("track name='differentially methylated bases ' ",
                                "description='diff. meth. between ",
                                paste(meth.unite@sample.ids,collapse=","),
                                " mapped to ",
@@ -268,10 +357,11 @@ if(nrow(meth.unite)==0){
   close(fileConn)
   
   saveRDS(as(meth.unite, "GRanges"), grFile)
+  saveRDS(as(meth.unite, "GRanges"), grFile_hyper)
+  saveRDS(as(meth.unite, "GRanges"), grFile_hypo)
 }
 
 ```
-
 
 
 ## Session Info
