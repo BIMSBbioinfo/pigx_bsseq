@@ -212,19 +212,6 @@ methylDiff2df_roundint = function(methylDiff.obj, roundval=4){
 
 ```
 
-## show hyper-methylated region
-if(nrow(meth.diffmeth.hyper)!=0){
-datatable(methylDiff2df_roundint(meth.diffmeth.hyper),
-          extensions = 'Buttons',
-          options = list(
-            dom = 'Bfrtip',
-            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-            scrollX = TRUE),
-          caption = "Hyper-methylated bases",
-          rownames = FALSE)
-}else{
-  print("There are no hyper-methylated bases")
-}
 
 ### Export differentially methylated bases
 
@@ -312,7 +299,6 @@ if(nrow(meth.unite)>1){
     }
 
 }
-
 
 ```
 
