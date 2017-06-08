@@ -28,7 +28,6 @@ minqual   <- params$minqual
 rdatafile <- params$rdata
 ```
 
-
 ## Methylation Calling Report
 
 
