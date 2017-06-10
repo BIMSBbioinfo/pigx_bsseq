@@ -44,7 +44,7 @@ workdir   <- params$workdir
 cores     <- params$cores
 
 
-saveRDS(params, "~/tmp/params.rds")
+saveRDS(params, "~/tmp/params_diffmeth.rds") ### sth is wrong in the calculateDiffMeth function, I dont know what.
 
 ```
 
@@ -106,6 +106,7 @@ datatable(inputParams,
 
 ```{r load methylation, echo=TRUE, warning=FALSE}
 
+# Treatment can have onyl numeric values
 treatment = as.numeric(treatment)
 
 inputfiles = paste0(workdir, input)
