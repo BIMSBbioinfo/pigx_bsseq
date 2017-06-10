@@ -15,7 +15,7 @@ output_file: "sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted.meth_calls.htm
 date: "`r Sys.Date()`"
 #bibliography: reports.bib
 params:
-  inBam:    ""#../test_dataset/sample_bam_files/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted.bam"
+  inBam:    "../test_dataset/sample_bam_files/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted.bam"
   assembly: "ce10"
   mincov:   10
   minqual:  20

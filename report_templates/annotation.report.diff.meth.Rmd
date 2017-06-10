@@ -65,9 +65,6 @@ ideoDMC_script <- params$ideoDMC_script
 ### Parameters
 ```{r print_params, echo=TRUE, results="asis"}
 
-
-saveRDS(params, "~/tmp/params.rds")
-
 paramsDesc <- c("Input Data (diff.methyl.)",
                 "Input RDS Data (diff.methyl.)",
                 "Input RDS Data (hyper-methyl.)",
