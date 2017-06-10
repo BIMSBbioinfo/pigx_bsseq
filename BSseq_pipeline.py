@@ -12,92 +12,84 @@
 # import IPython;
 # IPython.embed()
  
-#
 #============================================================================================================
 
 #------ set config file, include function definitions, and set os:
 import os
-configfile: "config.json"
-include   : "scripts/func_defs.py"
-# include   : "rules/post_mapping.rules"
-# include   : "rules/samtools.rules"
+include   : "./rules/post_mapping.rules"
+include   : "./scripts/func_defs.py"
 
-#-------------------------------  READ IN SETTINGS FROM CONFIG FILE:  ----------------------------------
+#---------------------------     LIST THE OUTPUT DIRECTORIED AND SUBDIRECTORIED TO BE PRODUCED     ------------------------------
+
+DIR_deconved='07_deconved/'
+DIR_sorted='06_sorted/'
+DIR_mapped='04_mapped/'
+DIR_deduped='05_deduped/'
+DIR_posttrim_QC='03_posttrim_QC/'
+DIR_trimmed='02_trimmed/'
+DIR_rawqc='01_rawqc/'
+DIR_annot = 'annotation/'
+
+
+#---------------------------------     DEFINE PATHS AND FILE NAMES:  ----------------------------------
+
+PATHIN          = "path_links/input/"      #--- location of the data files to be imported
+GENOMEPATH      = "path_links/refGenome/"     #--- where the reference genome being mapped to is stored
+GTOOLBOX        = config["GTOOLBOX"]       #--- where the programs are stored to carry out the necessary operations
+
+VERSION         = config["GENOME_VERSION"]  #--- version of the genome being mapped to.
 
 NICE=config["NICE"]
-    #--- NICE is an option to gauge the burden on computational resources, ranges from -19 to +19. 
-    #--- The more "nice" you are, the more you allow other processes to jump ahead of you 
-    #--- (like in traffic). Generally set to maximally nice=19 to avoid interference with system processes.
+     #--- NICE gauges the computational burden, ranging from -19 to +19. 
+     #--- The more "nice" you are, the more you allow other processes to jump ahead of you 
+     #--- (like in traffic). Generally set to maximally nice=19 to avoid interference with other users.
 
-RCODE           = config["RCODE"]                   #--- String denoting which read the file corresponds to (for paired-end.)
-INEXT           = config["INEXT"]                   #--- input file extension; usually .fq.gz, but can also be .bz2 among other possibilities.
-VERSION         = config["genomedat"]["VERSION"]    #--- version of the genome being mapped to.
+#-------------------------------      DEFINE PROGRAMS TO BE EXECUTED: ---------------------------------
 
-NUMTHREADS      = config["NUMTHREADS"]              #--- (max) number of threads to run at a time for a given process.
+FASTQC                         =  GTOOLBOX+config["PROGS"]["FASTQC"]            #--- self-explanatory program names.
+TRIMGALORE                     =  GTOOLBOX+config["PROGS"]["TRIMGALORE"]
+CUTADAPT                       =  GTOOLBOX+config["PROGS"]["CUTADAPT"]
+BISMARK_GENOME_PREPARATION     =  GTOOLBOX+config["PROGS"]["BISMARK_GENOME_PREPARATION"]
+BISMARK                        =  GTOOLBOX+config["PROGS"]["BISMARK"]
+BOWTIE2                        =  GTOOLBOX+config["PROGS"]["BOWTIE2"]
+DEDUPLICATE_BISMARK            =  GTOOLBOX+config["PROGS"]["DEDUPLICATE_BISMARK"]
+BISMARK_METHYLATION_EXTRACTOR  =  GTOOLBOX+config["PROGS"]["BISMARK_METHYLATION_EXTRACTOR"]
+BISMARK2REPORT                 =  GTOOLBOX+config["PROGS"]["BISMARK2REPORT"]
 
+SAMTOOLS                       =  GTOOLBOX+config["PROGS"]["SAMTOOLS"]
 
-# paths are hard-coded using symbolic links established by the shell script that calls this SM script. 
-PATHIN="path_links/in/"                             #--- location of the data files to be imported
-PATHOUT="path_links/out/"                           #--- output
-GTOOLBOX="path_links/dependencies/"                 #--- path to dependency programs.
-GENOMEPATH="path_links/genome_ref/"                 #--- reference genome.
-# Thus, all paths are relative within SM.
-
-if ( config["directional"] ):                       # --- Directional adapters/reads are assumed by default:
-    NON_DIR_FLAG=""
-else:
-    NON_DIR_FLAG=" --non_directional "
-
-#-------------------------      DEFINE PROGRAMS TO BE EXECUTED:      ---------------------------------
-
-FASTQC                         =  GTOOLBOX+config["progs"]["FASTQC"]            #--- self-explanatory program names.
-TRIMGALORE                     =  GTOOLBOX+config["progs"]["TRIMGALORE"]
-CUTADAPT                       =  GTOOLBOX+config["progs"]["CUTADAPT"]
-BISMARK_GENOME_PREPARATION     =  GTOOLBOX+config["progs"]["BISMARK_GENOME_PREPARATION"]
-BISMARK                        =  GTOOLBOX+config["progs"]["BISMARK"]
-BOWTIE2                        =  GTOOLBOX+config["progs"]["BOWTIE2"]
-DEDUPLICATE_BISMARK            =  GTOOLBOX+config["progs"]["DEDUPLICATE"]
-BISMARK_METHYLATION_EXTRACTOR  =  GTOOLBOX+config["progs"]["BISMARK_METHYLATION_EXTRACTOR"]
-BISMARK2REPORT                 =  GTOOLBOX+config["progs"]["BISMARK2REPORT"]
-
-SAMTOOLS                       =  GTOOLBOX+config["progs"]["SAMTOOLS"] 
 
 #---------------------------     LIST THE OUTPUT FILES TO BE PRODUCED     ------------------------------
 
-# --- Below is the list of expected output files. They are enumerated by their sequence in the rules of the processing pipeline
+# --- Below is the list of expected output files. They are enumerated in sequence by the rules that produce them
 # --- the process can be terminated earlier by expressing (i.e. uncommenting) only the [expand] commands corresponding to the 
 # --- last rule that you wish to have executed.
 
+
 OUTPUT_FILES = [
-                #               ======  rule 01 raw QC    =========
-                [ expand (list_files(PATHOUT+"01_rawqc/", config["SAMPLES"][sampleID]["files"], "_fastqc.html")  ) for sampleID in config["SAMPLES"]  ],
+                #               ==== rule 01 raw QC    =========
+                [ expand (list_files(DIR_rawqc, config["SAMPLES"][sampleID]["fastq_name"], "_fastqc.html")  ) for sampleID in config["SAMPLES"]  ],
 
                 #----RULE 2 IS ALWAYS EXECUTED, TRIMMING IS A PREREQUISITE FOR SUBSEQUENT RULES ----
+                #               ==== rule 02 trimgalore ======
+                #[ expand ( list_files_TG( DIR_trimmed, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
                 
-                #               ======  rule 03 posttrim_QC_ ======
-                [ expand ( list_files_posttrim_QC(PATHOUT+"03_posttrim_QC/", config["SAMPLES"][sampleID]["files"],".html")  ) for sampleID in config["SAMPLES"]  ],
+                #               ==== rule 03 posttrim_QC_ ======
+                [ expand ( list_files_posttrim_QC(DIR_posttrim_QC, config["SAMPLES"][sampleID]["fastq_name"],".html")  ) for sampleID in config["SAMPLES"]  ],
                 #--- fastQC output files are not needed downstream and need to be called explicitly.
-
                 
-                #-----  here is a list of intermediary files to be uncommented back into execution if you want to stop part-way along the process -----------------
-                #               ====rule 02 trimgalore ======
-                #               [ expand ( list_files_TG( PATHOUT+"02_trimmed/", config["SAMPLES"][sampleID]["files"] )  ) for sampleID in config["SAMPLES"]  ],
-                #               [ expand ( list_files_TG( PATHOUT+"02_trimmed/", config["SAMPLES"][sampleID]["files"] )  ) for sampleID in config["SAMPLES"]  ],                
-                #               ====rule 04 Mapping ======
-                [ expand ( list_files_bismark(PATHOUT+"04_mapped/", config["SAMPLES"][sampleID]["files"] )  ) for sampleID in config["SAMPLES"]  ],
- 
-                #               ====formerly rule 05 Deduplication ======
-                [ expand ( list_files_dedupe(PATHOUT+"05_deduped/", config["SAMPLES"][sampleID]["files"] )  ) for sampleID in config["SAMPLES"]  ],                                
+                #               ==== rule 04 mapping ======
+                #[ expand ( list_files_bismark(DIR_mapped, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
               
-                #               ====rule 06 sorting ======
-                [ expand ( list_files_sortbam(PATHOUT+"06_sorted/", config["SAMPLES"][sampleID]["files"] )  ) for sampleID in config["SAMPLES"]  ],
- 
-                #               ====rule 07 deconvolution ======
-                [ expand ( list_files_deconv(PATHOUT+"07_deconv/", config["SAMPLES"][sampleID]["files"] )  ) for sampleID in config["SAMPLES"]  ],
+                #               ==== rule 05 deduplication ======
+                [ expand ( list_files_dedupe(DIR_deduped, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],                                
 
-                # ==================  FINAL REPORT =========================
-                # @@@! This needs to be editted once we determine what final reports we want to export!
-                # [ expand (PATHOUT+config["SAMPLES"][sampleID]["files"][0]+SEPEstr(config["SAMPLES"][sampleID]["files"] )+"_report.html"  ) for sampleID in config["SAMPLES"]  ], 
+                #               ==== rule 06 sorting ======
+                [ expand ( list_files_sortbam(DIR_sorted, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
+
+                #               ====rule 07 deconvolution ======
+                #[ expand ( list_files_deconv(PATHOUT+"07_deconv/", config["SAMPLES"][sampleID]["files"] )  ) for sampleID in config["SAMPLES"]  ],
+
 		]
 
 #--- In case you want to debug the code with interactive commands:
@@ -117,139 +109,126 @@ rule all:
     input:
         OUTPUT_FILES
 
-# --------------------------------------------------------------------------------
-
-# rule clean:
-#    shell: "if [ -d {PATHOUT} ]; then rm -r {PATHOUT}; fi"
 # ==========================================================================================
 
 rule deconvolve_se:
     input:
-        PATHOUT+"06_sorted/{sample}_se_bt2.deduped.sorted.bam"
+        DIR_sorted+"{sample}_se_bt2.deduped.sorted.bam"
     output:
-        PATHOUT+"07_deconv/{sample}_se.deconv_out.RData"
+        DIR_deconved+"{sample}_se.deconv_out.RData"
     shell:
         "nice -"+str(NICE)+" Rscript BSseq_deconv.R {input} {{sample}}_se"
 
 #------
 rule deconvolve_pe:
     input:
-        PATHOUT+"06_sorted/{sample}"+RCODE+"1_val_1_bt2.deduped.sorted.bam"
+        DIR_sorted+"{sample}_1_val_1_bt2.deduped.sorted.bam"
     output:
-        PATHOUT+"07_deconv/{sample}"+RCODE+"1_val_1.deconv_out.RData"
+        DIR_deconved+"{sample}_1_val_1.deconv_out.RData"
     shell:
-        "nice -"+str(NICE)+" Rscript BSseq_deconv.R {input} {{sample}}"+RCODE+"1_val_1"
-
+        "nice -"+str(NICE)+" Rscript BSseq_deconv.R {input} {{sample}}_1_val_1"
 
 # ==========================================================================================
-# sort:
+# sort the bam file:
 
 rule sortbam_se:
     input:
-        PATHOUT+"05_deduped/{sample}_se_bt2.deduped.bam"
+        DIR_deduped+"{sample}_se_bt2.deduped.bam"
     output:
-        PATHOUT+"06_sorted/{sample}_se_bt2.deduped.sorted.bam"
+        DIR_sorted+"{sample}_se_bt2.deduped.sorted.bam"
     shell:
-        "nice -"+str(NICE)+" samtools sort {input} -o {output}"
+        "nice -"+str(NICE)+" {SAMTOOLS} sort {input} -o {output}"
 
-#-----
 rule sortbam_pe:
     input:
-        PATHOUT+"05_deduped/{sample}"+RCODE+"1_val_1_bt2.deduped.bam"
+        DIR_deduped+"{sample}_1_val_1_bt2.deduped.bam"
     output:
-        PATHOUT+"06_sorted/{sample}"+RCODE+"1_val_1_bt2.deduped.sorted.bam"
+        DIR_sorted+"{sample}_1_val_1_bt2.deduped.sorted.bam"
     shell:
-        "nice -"+str(NICE)+" samtools sort {input} -o {output}"
+        "nice -"+str(NICE)+" {SAMTOOLS} sort {input} -o {output}"
 
 # ==========================================================================================
-# deduplicate:
+# deduplicate the bam file:
 
 rule deduplication_se:
     input:
-        PATHOUT+"04_mapped/{sample}_trimmed_bismark_bt2.bam"
+        DIR_mapped+"{sample}_trimmed_bismark_bt2.bam"
     output:
-        PATHOUT+"05_deduped/{sample}_se_bt2.deduped.bam"
+        DIR_deduped+"{sample}_se_bt2.deduped.bam"
     params:
         bam="--bam ",
         sampath="--samtools_path "+SAMTOOLS
     log:
-        PATHOUT+"05_deduped/{sample}_deduplication.log"
+        DIR_deduped+"{sample}_deduplication.log"
     message: """-----------   Deduplicating single-end read alignments ---------------------- """
     shell:
-        "nice -"+str(NICE)+" samtools rmdup {input}  {output} 2> {log}"
-
-#-----
+        "nice -"+str(NICE)+" {SAMTOOLS} rmdup {input}  {output} 2> {log}"
+# #--------
 rule deduplication_pe:
     input:
-        PATHOUT+"04_mapped/{sample}"+RCODE+"1_val_1_bismark_bt2_pe.bam"
+        DIR_mapped+"{sample}_1_val_1_bismark_bt2_pe.bam"
     output:
-        PATHOUT+"05_deduped/{sample}"+RCODE+"1_val_1_bt2.deduped.bam"
+        DIR_deduped+"{sample}_1_val_1_bt2.deduped.bam"
     log:
-        PATHOUT+"05_deduped/{sample}_deduplication.log"
+        DIR_deduped+"{sample}_deduplication.log"
     message: """-----------   Deduplicating paired-end read alignments ---------------------- """
     shell:
-        "nice -"+str(NICE)+" samtools fixmate {input}  {output} 2> {log}"
+        "nice -"+str(NICE)+" {SAMTOOLS} fixmate {input}  {output} 2> {log}"
 
 # ==========================================================================================
-#  N.B. MIGHT NEED TO ADD A "SORT BY NAME" RULE HERE IN CASE THE MAPPING DOESN'T KEEP PAIRED READS ORGANIZED.
-# ==========================================================================================
-# Align and map:
-
+# align and map:
+ 
 rule bismark_se:
     input:
-       PATHOUT+"02_trimmed/{sample}_trimmed.fq.gz"
+        refconvert_CT = GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
+	refconvert_GA = GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa",
+        fqfile = DIR_trimmed+"{sample}_trimmed.fq.gz"
     output:
-        PATHOUT+"04_mapped/{sample}_trimmed_bismark_bt2.bam",
-        PATHOUT+"04_mapped/{sample}_trimmed_bismark_bt2.nucleotide_stats.txt",
-        PATHOUT+"04_mapped/{sample}_trimmed_bismark_bt2_SE_report.txt"
-    threads: 2
+        DIR_mapped+"{sample}_trimmed_bismark_bt2.bam",
+        DIR_mapped+"{sample}_trimmed_bismark_bt2_SE_report.txt"
     params:
-        N = "-N 1",
-        L = "-L 20",
+        bismark_args = config.get("bismark_args",""),
         genomeFolder = "--genome_folder " + GENOMEPATH,
-        outdir = "--output_dir  "+PATHOUT+"04_mapped/",
+        outdir = "--output_dir  "+DIR_mapped,
         nucCov = "--nucleotide_coverage",
-	    nonDir = NON_DIR_FLAG,             #--- THIS IS EMPTY IF DATA IS DIRECTIONAL (DEFAULT) OTHERWISE "non_directional". 
         pathToBowtie = "--path_to_bowtie "+ os.path.dirname(BOWTIE2) ,
         useBowtie2  = "--bowtie2 ",
         samtools    = "--samtools_path "+ os.path.dirname(SAMTOOLS),
-        tempdir     = "--temp_dir "+PATHOUT
+        tempdir     = "--temp_dir "+DIR_mapped
     log:
-        PATHOUT+"04_mapped/{sample}_bismark_se_mapping.log"
+        DIR_mapped+"/{sample}_bismark_se_mapping.log"
     message: """-------------   Mapping single-end reads to genome {VERSION}. ------------- """
     shell:
-        "nice -"+str(NICE)+" {BISMARK} {params} --multicore {threads} {input} 2> {log}"
+        "nice -"+str(NICE)+" {BISMARK} {params} {input.fqfile} 2> {log}"
 
 #--------
-
 rule bismark_pe:
     input:
-        fin1 = PATHOUT+"02_trimmed/{sample}"+RCODE+"1_val_1.fq.gz",
-        fin2 = PATHOUT+"02_trimmed/{sample}"+RCODE+"2_val_2.fq.gz"
+        refconvert_CT = GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
+	refconvert_GA = GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa",
+        fin1 = DIR_trimmed+"{sample}_1_val_1.fq.gz",
+        fin2 = DIR_trimmed+"{sample}_2_val_2.fq.gz"
     output:
-        PATHOUT+"04_mapped/{sample}"+RCODE+"1_val_1_bismark_bt2_pe.bam",
-        PATHOUT+"04_mapped/{sample}"+RCODE+"1_val_1_bismark_bt2_pe.nucleotide_stats.txt",
-        PATHOUT+"04_mapped/{sample}"+RCODE+"1_val_1_bismark_bt2_PE_report.txt"
-    threads: 2
+        DIR_mapped+"{sample}_1_val_1_bismark_bt2_pe.bam",
+        DIR_mapped+"{sample}_1_val_1_bismark_bt2_PE_report.txt"
     params:
-        N = "-N 1",
-        L = "-L 20",
+        bismark_args = config.get("bismark_args",""),
         genomeFolder = "--genome_folder " + GENOMEPATH,
-        outdir = "--output_dir  "+PATHOUT+"04_mapped/",
+        outdir = "--output_dir  "+DIR_mapped,
         nucCov = "--nucleotide_coverage",
-        nonDir = NON_DIR_FLAG,             #--- THIS IS EMPTY IF DATA IS DIRECTIONAL (DEFAULT) OTHERWISE "non_directional".
         pathToBowtie = "--path_to_bowtie "+ os.path.dirname(BOWTIE2) ,
         useBowtie2  = "--bowtie2 ",
         samtools    = "--samtools_path "+ os.path.dirname(SAMTOOLS),
-        tempdir     = "--temp_dir "+PATHOUT
+        tempdir     = "--temp_dir "+DIR_mapped
     log:
-        PATHOUT+"04_mapped/{sample}_bismark_pe_mapping.log"
+        DIR_mapped+"{sample}_bismark_pe_mapping.log"
     message: """-------------   Mapping paired-end reads to genome {VERSION}. ------------- """
     shell:
-        "nice -"+str(NICE)+" {BISMARK} {params} --multicore {threads} -1 {input.fin1} -2 {input.fin2} 2> {log}"
+        "nice -"+str(NICE)+" {BISMARK} {params}  -1 {input.fin1} -2 {input.fin2} 2> {log}"
+
 
 # ==========================================================================================
-# generate reference genome: ----  THIS ONLY GETS INVOKED WHEN MANUALLY CALLED SPECIFICIALLY ------
+# generate reference genome:
 
 rule bismark_genome_preparation:
     input:
@@ -258,11 +237,12 @@ rule bismark_genome_preparation:
         GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
         GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa"
     params:
+        bismark_genome_preparation_args = config.get("bismark_genome_preparation",""),
         pathToBowtie = "--path_to_bowtie "+ os.path.dirname(BOWTIE2) ,
         useBowtie2 = "--bowtie2 ",
         verbose = "--verbose "
     log:
-        PATHOUT+'bismark_genome_preparation_'+VERSION+'.log'
+        'bismark_genome_preparation_'+VERSION+'.log'
     message: """ --------  converting {VERSION} Genome into Bisulfite analogue ------- """
     shell:
         "nice -"+str(NICE)+" {BISMARK_GENOME_PREPARATION} {params} {input} 2> {log}"
@@ -272,79 +252,75 @@ rule bismark_genome_preparation:
 
 rule fastqc_after_trimming_se:
     input:
-        PATHOUT+"02_trimmed/{sample}_trimmed.fq.gz",
+        DIR_trimmed+"{sample}_trimmed.fq.gz",
     output:
-    	PATHOUT+"03_posttrim_QC/{sample}_trimmed_fastqc.html",
-    	PATHOUT+"03_posttrim_QC/{sample}_trimmed_fastqc.zip"
+    	DIR_posttrim_QC+"{sample}_trimmed_fastqc.html",
+    	DIR_posttrim_QC+"{sample}_trimmed_fastqc.zip"
     params:
-        outdir = "--outdir "+PATHOUT+"03_posttrim_QC/"
+        fastqc_args = config.get("fastqc_args", ""),
+        outdir = "--outdir "+DIR_posttrim_QC
     log:
-   	    PATHOUT+"03_posttrim_QC/{sample}_trimmed_fastqc.log"
+   	    DIR_posttrim_QC+"{sample}_trimmed_fastqc.log"
     message: """ ------------  Quality checking trimmmed single-end data with Fastqc ------------- """
     shell:
         "nice -"+str(NICE)+" {FASTQC} {params.outdir} {input} 2> {log}"
-
+#--------
 rule fastqc_after_trimming_pe:
     input:
-        PATHOUT+"02_trimmed/{sample}"+RCODE+"1_val_1.fq.gz",
-        PATHOUT+"02_trimmed/{sample}"+RCODE+"2_val_2.fq.gz"
+        DIR_trimmed+"{sample}_1_val_1.fq.gz",
+        DIR_trimmed+"{sample}_2_val_2.fq.gz"
     output:
-    	PATHOUT+"03_posttrim_QC/{sample}"+RCODE+"1_val_1_fastqc.html",
-    	PATHOUT+"03_posttrim_QC/{sample}"+RCODE+"1_val_1_fastqc.zip",
-    	PATHOUT+"03_posttrim_QC/{sample}"+RCODE+"2_val_2_fastqc.zip",
-        PATHOUT+"03_posttrim_QC/{sample}"+RCODE+"2_val_2_fastqc.html"
+    	DIR_posttrim_QC+"{sample}_1_val_1_fastqc.html",
+    	DIR_posttrim_QC+"{sample}_1_val_1_fastqc.zip",
+    	DIR_posttrim_QC+"{sample}_2_val_2_fastqc.zip",
+        DIR_posttrim_QC+"{sample}_2_val_2_fastqc.html"
     params:
-        outdir = "--outdir "+PATHOUT+"03_posttrim_QC/"
+        fastqc_args = config.get("fastqc_args", ""),
+        outdir = "--outdir "+DIR_posttrim_QC
     log:
-   	    PATHOUT+"03_posttrim_QC/{sample}_trimmed_fastqc.log"
+   	    DIR_posttrim_QC+"{sample}_trimmed_fastqc.log"
     message: """ ------------  Quality checking trimmmed paired-end data with Fastqc ------------- """
     shell:
         "nice -"+str(NICE)+" {FASTQC} {params.outdir} {input} 2> {log}"
-#
+
 # ==========================================================================================
 # trim the reads
 
 rule trimgalore_se:
-   input:
-       PATHIN+"{sample}"+INEXT
-   output:
-       PATHOUT+"02_trimmed/{sample}_trimmed.fq.gz" #---- this ALWAYS outputs .fq.qz format.
-#       PATHOUT+"02_trimmed/{sample}"+INEXT+"_trimming_report.txt" #---@ commented out to avoid ambiguity: should find a way to put this back in while specififying it applies to any trimming report that does *NOT* contain "RCODE"
-   params:
-       outdir = "--output_dir "+PATHOUT+"02_trimmed/",
+    input:
+       PATHIN+"{sample}.fq.gz"
+    output:
+       DIR_trimmed+"{sample}_trimmed.fq.gz" #---- this ALWAYS outputs .fq.qz format.
+    params:
+       extra          = config.get("trim_galore_args", ""),
+       outdir = "--output_dir "+DIR_trimmed,
        phred = "--phred33",
        gz = "--gzip",
        cutadapt = "--path_to_cutadapt "+CUTADAPT,
-       FivePrimeClip = "--clip_R1 10",
-       ThreePrimeClip = "--three_prime_clip_R1 10"
-   log:
-       PATHOUT+"02_trimmed/{sample}.trimgalore.log"
-   message:
+    log:
+       DIR_trimmed+"{sample}.trimgalore.log"
+    message:
        " ---------  Trimming raw single-end read data using {TRIMGALORE} -------  "
-   shell:
+    shell:
        "nice -"+str(NICE)+" {TRIMGALORE} {params} {input} 2> {log}"
 
 #-----------------------
-
 rule trimgalore_pe:
     input:
-        PATHIN+"{sample}"+RCODE+"1"+INEXT,
-        PATHIN+"{sample}"+RCODE+"2"+INEXT
+        PATHIN+"{sample}_1.fq.gz",
+        PATHIN+"{sample}_2.fq.gz"
     output:
-        PATHOUT+"02_trimmed/{sample}"+RCODE+"1_val_1.fq.gz", #---- this ALWAYS outputs .fq.qz format.
-        PATHOUT+"02_trimmed/{sample}"+RCODE+"2_val_2.fq.gz",
-        #        PATHOUT+"02_trimmed/{sample}"+RCODE+"1"+INEXT+"_trimming_report.txt",
-        #        PATHOUT+"02_trimmed/{sample}"+RCODE+"2"+INEXT+"_trimming_report.txt"
+        DIR_trimmed+"{sample}_1_val_1.fq.gz", #---- this ALWAYS outputs .fq.qz format.
+        DIR_trimmed+"{sample}_2_val_2.fq.gz",
     params:
-        outdir         = "--output_dir "+PATHOUT+"02_trimmed/",
+        extra          = config.get("trim_galore_args", ""),
+        outdir         = "--output_dir "+DIR_trimmed,
         phred          = "--phred33",
         gz             = "--gzip",
         cutadapt       = "--path_to_cutadapt "+CUTADAPT,
-        FivePrimeClip  = "--clip_R1 10",
-        ThreePrimeClip = "--three_prime_clip_R1 10",
         paired         = "--paired"
     log:
-        PATHOUT+"02_trimmed/{sample}.trimgalore.log"
+        DIR_trimmed+"{sample}.trimgalore.log"
     message:
         " ---------  Trimming raw paired-end read data using {TRIMGALORE} -------  "
     shell:
@@ -355,15 +331,17 @@ rule trimgalore_pe:
 
 rule fastqc_raw: #----only need one: covers BOTH PE and SE cases.
     input:
-        PATHIN+"{sample}"+INEXT
+        PATHIN+"{sample}.fq.gz"
     output:
-        PATHOUT+"01_rawqc/{sample}_fastqc.html",
-        PATHOUT+"01_rawqc/{sample}_fastqc.zip"
+        DIR_rawqc+"{sample}_fastqc.html",
+        DIR_rawqc+"{sample}_fastqc.zip"
     params:
-        outdir = "--outdir "+PATHOUT+"01_rawqc/"     # usually pass params as strings instead of wildcards.
+        fastqc_args = config.get("fastqc_args", ""),
+        outdir = "--outdir "+ DIR_rawqc     # usually pass params as strings instead of wildcards.
 
     log:
-        PATHOUT+"01_rawqc/{sample}_fastqc.log"
+        DIR_rawqc+"{sample}_fastqc.log"
     message: """ ----------  Quality checking raw read data with {FASTQC}.  --------------   """
     shell:
         "nice -"+str(NICE)+" {FASTQC} {params.outdir}  {input} 2> {log}"
+

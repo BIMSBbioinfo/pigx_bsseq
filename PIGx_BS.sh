@@ -1,12 +1,30 @@
+#!/bin/bash
+
+
+# PIGx BSseq Pipeline.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 numjobs=12
 RUNTIME="32:00:00" 
 MEM="8G"
 
-#===== PATHS TO BE LINKED TO SYMBOLICALLY FOR THE SNAKEMAKE SCRIPT ======
-PATH_IN="/scratch/AG_Akalin/bosberg/SRA_files/"
-PATH_OUT="/scratch/AG_Akalin/bosberg/SRA_files/SRA_deconv_pipe_run_out/"
-PATH_GENOME="/scratch/AG_Akalin/Base/Genomes/hg19/"
-PATH_DEPS="/home/bosberg/.guix-profile/bin/"
+# #===== DEFAULT PATHS ===== #
+tablesheet="test_dataset/TableSheet_test.csv"
+path2configfile="./config.json"
+path2programsJSON="test_dataset/PROGS.json"
 
 #===== PATHS SPECIFIC TO THE R-SCRIPT FOR DECONVOLUTION:
 R_WORKDIR="/home/bosberg/bs/pigx_bsseq/"
@@ -14,48 +32,132 @@ R_SIGMAT_PATH="/home/bosberg/bs/pigx_out/HK_Sun_data/"
 R_PATH_DATA="/scratch/AG_Akalin/bosberg/SRA_files/SRA_deconv_pipe_run_out/06_deduped/"
 R_PATHOUT="/scratch/AG_Akalin/bosberg/SRA_files/SRA_deconv_pipe_run_out/07_deconv/"
 
-# ================================================================
 
+#=========== PARSE PARAMETERS ============#
 
-if [ -d "path_links" ]; then
-rm -r path_links
-fi
-#--- start clean ---
+usage="
+PIGx BSseq Pipeline.
 
-mkdir path_links
-#--- set symbolic links to the various paths.
-ln -s ${PATH_IN}     path_links/in
-ln -s ${PATH_OUT}    path_links/out
-ln -s ${PATH_GENOME} path_links/genome_ref
-ln -s ${PATH_DEPS}   path_links/dependencies
+PIGx is a data processing pipeline for raw fastq read data of
+bisulfite experiments.  It produces methylation and coverage
+information and can be used to produce information on differential
+methylation and segmentation.
 
-# ================================================================
-# create a unique log file for this run:
-i=1
-LOG="./nohup_SM_submit_"${i}".log"
-while [ -f ${LOG} ]
-do
-  i=$((i+1))
-  LOG="./nohup_SM_submit_"${i}".log"
+It was first developed by the Akalin group at MDC in Berlin in 2017.
+
+Usage: $(basename "$0") [OPTION]...
+
+Options:
+
+  -t, --tablesheet FILE     The tablesheet containing the basic configuration information
+                             for running the BSseq_pipeline.
+
+  -p, --programs FILE       A JSON file containing the absolute paths of the required tools.
+
+  -c, --configfile FILE     The config file used for calling the underlying snakemake process.
+                             By default the file '${path2configfile}' is dynamically created
+                             from tablesheet and programs file.
+                             
+  -C, --create-config       Force the re-creation of the config file, even if it already exists                            
+
+  -s, --snakeparams PARAMS  Additional parameters to be passed down to snakemake, e.g.
+                               --dryrun    do not execute anything
+                               --forceall  re-run the whole pipeline
+
+"
+
+createConfig=false
+
+# https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    shift
+
+    case $key in
+        -t|--tablesheet)
+            tablesheet="$1"
+            shift
+            ;;
+        -c|--configfile)
+            path2configfile="$1"
+            shift
+            ;;
+        -C|--create-config)
+            createConfig=true
+            shift
+            ;;
+        -p|--programs)
+            path2programsJSON="$1"
+            shift
+            ;;
+        -s|--snakeparams)
+            snakeparams="$1"
+            shift
+            ;;
+        -h|--help)
+            echo "$usage"
+            exit 1
+            ;;
+        *)
+            # unknown option
+            echo "$usage"
+            echo "$(basename "$0"): Error: unkown argument provided"
+            exit 1
+            ;;
+    esac
 done
-# ================================================================
 
-echo "starting Snakemake session on " $(date) >  ${LOG}
-echo "" >>${LOG}
+# echo "${tablesheet} ${path2configfile} ${path2programsJSON} ${snakeparams}" 
 
-echo ""                                       >> ${LOG}
-echo "------ using samples : ------"          >> ${LOG}
-grep -i "files" config.json                   >> ${LOG}
+#========================================================================================
+#----------  CREATE CONFIG FILE:  ----------------------------------------------
+ 
+ 
+warning="$(basename "$0"): Warning:
 
-echo ""                                       >> ${LOG}
-echo "------ from folder : --------"          >> ${LOG}
-grep   "PATHIN" config.json                   >> ${LOG}
+The config file ${path2configfile} does already exist and is not re-generated by default.
+You can savely ignore this warning, unless changes were made to either: 
+    tablesheet: ${tablesheet}  
+    or 
+    programs: ${path2programsJSON}
+    
+If that is the case, please remove ${path2configfile} or use the '-C/--create-config' option,
+to enforce the recreation of the config file.
+"
+  
+if [ ! -f $path2configfile ]
+  then
+    scripts/create_configfile.py $tablesheet $path2configfile $path2programsJSON
+  elif $createConfig
+    then
+     scripts/create_configfile.py $tablesheet $path2configfile $path2programsJSON
+  else    
+    echo "${warning}"
+fi
+ 
 
-echo ""                                       >> ${LOG}
-echo "------ to folder : ----------"          >> ${LOG}
-grep PATHOUT config.json                      >> ${LOG}
+#======================================================================================
+#----------  NOW CREATE SYMBOLIC LINKS TO THE INPUTS AND REFERENCE GENOME -------------
 
-echo ""                                       >> ${LOG}
+path_OUT=$( python -c "import sys, json; print(json.load(sys.stdin)['PATHOUT'])" < $path2configfile)
+path_IN=$( python -c "import sys, json; print(json.load(sys.stdin)['PATHIN'])" < $path2configfile)
+path_refG=$( python -c "import sys, json; print(json.load(sys.stdin)['GENOMEPATH'])" < $path2configfile)
+
+mkdir -p ${path_OUT}
+mkdir -p ${path_OUT}"path_links"
+mkdir -p ${path_OUT}"path_links/input"
+
+# create links within the output folder that point directly to the 
+# reference genome, as well as to each sample input file  
+# so that it's clear where the source data came from.
+# N.B. Any previous links of the same name are over-written.
+
+# link to reference genome:
+ln -sfn ${path_refG} ${path_OUT}"/path_links/refGenome"
+
+# create file links:
+scripts/create_file_links.py $path2configfile 
+
 
 #========================================================================================
 #----------  NOW START DEFINING THE VARIABLES NECESSARY FOR THE DCONVOLUTION SCRIPT -----
@@ -68,24 +170,9 @@ echo "R_PATHOUT="        ${R_PATHOUT}        >> Define_BSvars.R
 #========================================================================================
 #----------  NOW START RUNNING SNAKEMAKE:  ----------------------------------------------
 
-echo "------ Commencing Snakemake : ------"   >> ${LOG}
 
-if [ $# -eq 0 ]
-  then
-    echo "No arguments supplied. Exiting."
-    exit
-fi
+pathout=$( python -c "import sys, json; print(json.load(sys.stdin)['PATHOUT'])" < $path2configfile)
 
-if [ $1 == "dry" ] 
-then
-snakemake -s BSseq_pipeline.py -n
-elif [ $1 == "cluster" ] 
-then
-snakemake -s BSseq_pipeline.py --jobs ${numjobs}   --cluster "qsub -V -l h_vmem=${MEM} -pe smp 1  -l h_rt=${RUNTIME} -l h_stack=128k"       >> ${LOG} &
-elif [ $1 == "single_core" ] 
-then
-nohup  snakemake -s BSseq_pipeline.py    >> ${LOG} &
-else
-echo "command line arg not understood. Exiting without submission"
-fi
+snakemake -s BSseq_pipeline.py --configfile $path2configfile -d $pathout $snakeparams
+
 
