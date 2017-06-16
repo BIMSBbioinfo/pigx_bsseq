@@ -22,4 +22,4 @@ sampleB.pe1.fq.gz,sampleB.pe1.fq.gz,sampleBpe,WGBS,2
 
 
 [[ DIFFERENTIAL METHYLATION ]]
-0, 2
+0, 1
