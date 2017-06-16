@@ -62,6 +62,9 @@ SAMTOOLS                       =  GTOOLBOX+config["PROGS"]["SAMTOOLS"]
 # --- last rule that you wish to have executed.
 
 
+
+print(config)
+
 OUTPUT_FILES = [
 		#               ==== one-time rule: genome-prep =======
 		# GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
