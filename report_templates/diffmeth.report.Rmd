@@ -216,11 +216,7 @@ methylDiff2df_roundint = function(methylDiff.obj, roundval=4){
 ### Export differentially methylated bases
 
 Finally we export the regions to a *BED* file, which can be loaded into any genome browser like [IGV](http://software.broadinstitute.org/software/igv/) or [UCSC](https://genome.ucsc.edu/) to allow for further analysis, annotation and visualisation. 
-```{r export to bed,warning=FALSE}
 
-### Export differentially methylated bases
-
-Finally we export the regions to a *BED* file, which can be loaded into any genome browser like [IGV](http://software.broadinstitute.org/software/igv/) or [UCSC](https://genome.ucsc.edu/) to allow for further analysis, annotation and visualisation. 
 ```{r export to bed,warning=FALSE}
 
 #' Export windows to a BED file
