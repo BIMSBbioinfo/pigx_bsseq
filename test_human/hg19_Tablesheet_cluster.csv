@@ -1,0 +1,17 @@
+[[ GENERAL PARAMETERS ]]
+PATHIN="/scratch/AG_Akalin/bosberg/pre_SM_fullfqfiles_in/"
+PATHOUT="/scratch/AG_Akalin/bosberg/post_SM_adipose_immortal_out/"
+GENOMEPATH="/scratch/AG_Akalin/Base/Genomes/hg19/"
+GENOME_VERSION="hg19"
+bismark_args=" --multicore 8 -N 1 -L 2 "
+fastqc_args=""
+trim_galore_args=""
+bam_methCall_args_mincov="4"
+bam_methCall_args_minqual="10"
+NICE="5"
+
+[[ SAMPLES ]]
+Read1,Read2,SampleID,ReadType,Treatment
+immortal_encode_ENCSR890UQO.fq.gz,,immortal,WGBS,B
+
+[[ DIFFERENTIAL METHYLATION ]]

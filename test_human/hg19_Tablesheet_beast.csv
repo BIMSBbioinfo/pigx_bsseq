@@ -1,0 +1,18 @@
+[[ GENERAL PARAMETERS ]]
+PATHIN="/data/local/bosberg/pre_SM_fullfqfiles_in/"
+PATHOUT="/data/local/bosberg/post_SM_adipose_immortal_out/"
+GENOMEPATH="/data/local/Base_selectfiles_copy/Genomes/hg19/"
+GENOME_VERSION="hg19"
+bismark_args=" --multicore 2 -N 1 -L 2 "
+fastqc_args=""
+trim_galore_args=""
+bam_methCall_args_mincov="4"
+bam_methCall_args_minqual="10"
+NICE="19"
+
+[[ SAMPLES ]]
+Read1,Read2,SampleID,ReadType,Treatment
+adipose_SRX263887.fq.gz,,adipose,WGBS,A
+immortal_encode_ENCSR890UQO.fq.gz,,immortal,WGBS,B
+
+[[ DIFFERENTIAL METHYLATION ]]

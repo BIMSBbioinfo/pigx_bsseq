@@ -36,6 +36,7 @@ DIR_annot = 'annotation/'
 PATHIN          = "path_links/input/"      #--- location of the data files to be imported
 GENOMEPATH      = "path_links/refGenome/"     #--- where the reference genome being mapped to is stored
 GTOOLBOX        = config["GTOOLBOX"]       #--- where the programs are stored to carry out the necessary operations
+R_DECONV_PATH   = config["R_DECONV_PATH"]       #--- where the programs are for just deconvolution.
 
 VERSION         = config["GENOME_VERSION"]  #--- version of the genome being mapped to.
 
@@ -56,6 +57,7 @@ DEDUPLICATE_BISMARK            =  GTOOLBOX+config["PROGS"]["DEDUPLICATE_BISMARK"
 BISMARK_METHYLATION_EXTRACTOR  =  GTOOLBOX+config["PROGS"]["BISMARK_METHYLATION_EXTRACTOR"]
 BISMARK2REPORT                 =  GTOOLBOX+config["PROGS"]["BISMARK2REPORT"]
 
+DECONV                         =  R_DECONV_PATH+config["PROGS"]["R_DECONV"]
 SAMTOOLS                       =  GTOOLBOX+config["PROGS"]["SAMTOOLS"]
 
 
@@ -72,14 +74,14 @@ OUTPUT_FILES = [
 
                 #----RULE 2 IS ALWAYS EXECUTED, TRIMMING IS A PREREQUISITE FOR SUBSEQUENT RULES ----
                 #               ==== rule 02 trimgalore ======
-                #[ expand ( list_files_TG( DIR_trimmed, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
+                [ expand ( list_files_TG( DIR_trimmed, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
                 
                 #               ==== rule 03 posttrim_QC_ ======
                 [ expand ( list_files_posttrim_QC(DIR_posttrim_QC, config["SAMPLES"][sampleID]["fastq_name"],".html")  ) for sampleID in config["SAMPLES"]  ],
                 #--- fastQC output files are not needed downstream and need to be called explicitly.
                 
                 #               ==== rule 04 mapping ======
-                #[ expand ( list_files_bismark(DIR_mapped, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
+                [ expand ( list_files_bismark(DIR_mapped, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
               
                 #               ==== rule 05 deduplication ======
                 [ expand ( list_files_dedupe(DIR_deduped, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],                                
@@ -88,7 +90,7 @@ OUTPUT_FILES = [
                 [ expand ( list_files_sortbam(DIR_sorted, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
 
                 #               ====rule 07 deconvolution ======
-                #[ expand ( list_files_deconv(PATHOUT+"07_deconv/", config["SAMPLES"][sampleID]["files"] )  ) for sampleID in config["SAMPLES"]  ],
+                [ expand ( list_files_deconv(DIR_deconved, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
 
 		]
 
@@ -99,11 +101,12 @@ OUTPUT_FILES = [
 # for x in OUTPUT_FILES: print( x)
 #--- 
 
-# ===========================================================================================
+# ==============================================================================================================
 #
-#                             BEGIN RULES    
+#                                         BEGIN RULES    
 #
-# ===========================================================================================
+# rules are separated by "==" bars into pairs for paired-end and single-end (subdivided by smaller "--" dividers)
+# ===============================================================================================================
 
 rule all:
     input:
@@ -115,18 +118,18 @@ rule deconvolve_se:
     input:
         DIR_sorted+"{sample}_se_bt2.deduped.sorted.bam"
     output:
-        DIR_deconved+"{sample}_se.deconv_out.RData"
+        DIR_deconved+"{sample}_se_deconv_out.RData"
     shell:
-        "nice -"+str(NICE)+" Rscript BSseq_deconv.R {input} {{sample}}_se"
+        "nice -"+str(NICE)+" Rscript {DECONV}  {input} {{sample}}_se   {R_DECONV_PATH} {DIR_deconved} "
 
 #------
 rule deconvolve_pe:
     input:
         DIR_sorted+"{sample}_1_val_1_bt2.deduped.sorted.bam"
     output:
-        DIR_deconved+"{sample}_1_val_1.deconv_out.RData"
+        DIR_deconved+"{sample}_1_val_1_deconv_out.RData"
     shell:
-        "nice -"+str(NICE)+" Rscript BSseq_deconv.R {input} {{sample}}_1_val_1"
+        "nice -"+str(NICE)+" Rscript {DECONV}  {input} {{sample}}_1_val_1 {R_DECONV_PATH}  {DIR_deconved}"
 
 # ==========================================================================================
 # sort the bam file:
@@ -344,4 +347,3 @@ rule fastqc_raw: #----only need one: covers BOTH PE and SE cases.
     message: """ ----------  Quality checking raw read data with {FASTQC}.  --------------   """
     shell:
         "nice -"+str(NICE)+" {FASTQC} {params.outdir}  {input} 2> {log}"
-

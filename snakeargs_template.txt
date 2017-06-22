@@ -1,0 +1,1 @@
+--jobs 2 --cluster "qsub -V -l h_vmem=8G -pe smp 4"

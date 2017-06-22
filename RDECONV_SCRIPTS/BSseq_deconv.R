@@ -25,7 +25,7 @@ library(rtracklayer)
 library(limSolve)
 
 CLargs = commandArgs(trailingOnly=TRUE)
-if(length(CLargs) != 2)
+if(length(CLargs) != 4)
   {
   print("command line arguments supplied are: ")
   for(i in length(CLargs))
@@ -37,18 +37,20 @@ if(length(CLargs) != 2)
   }
 
 
-filename=CLargs[1]
-sampleID=CLargs[2]
+filename=CLargs[1]         #-- the name of the input file (including full path)
+sampleID=CLargs[2]         #-- an identifying string for this sample (will be used in output file)
+R_funcdef_path=CLargs[3]   #-- the location of the R script defining sub functions used by this program
+path_OUT=CLargs[4]         #-- the location of the output file (usually this will be "07_deconved/")
 
 
-source('./Define_BSvars.R'); # ==== this script should contain the following definitions:
+R_SIGMAT_PATH="path_links/SIGMAT/"
+
 # WORKDIR          ="/home/bosberg/bs/pigx_bsseq"
 # R_SIGMAT_PATH      ="/home/bosberg/bs/pigx_out/HK_Sun_data"
 # (this one is omitted): ATLAS_WIG_FOLDER ="/data/akalin/bosberg/genome_atlas"
 # R_PATH_DATA        ="/data/akalin/bosberg/Sun_PNAS_processed_output/MIX_FINAL_covfiles"
-setwd(R_WORKDIR)
 
-source('./BSseq_deconv_funcs.R');
+source(paste0(R_funcdef_path,'BSseq_deconv_funcs.R') ) ;
 
 #===============================================================
 # ----- GET THE SIGNATURE MATRIX AND MARKER LOCATIONS  ---------
@@ -65,7 +67,6 @@ NCT_full = dim(refdat$Sigmat)[2];
 #------------     IMPORT  YOUR SAMPLE DATA:      ----------------
 mincounts  = 1;  
 
-# fin=paste0(R_PATH_DATA,filename)
 fin=filename #--- snakemake just feeds the whole filename into the command line.
 type=".bam"
 
@@ -99,7 +100,8 @@ Peis_fracs = lsei(A = Exp_dat$Sigmat_whits, B =  Exp_dat$ROI_meth_profile, E=E_i
                          G = conditions$ui_COND, H = conditions$ci_COND)
   
 print(paste("saving data"))
-save(deconv_out, Peis_fracs, refdat, Exp_dat, sampleID, file = paste0(R_PATHOUT, sampleID, "deconv_out.RData") )
+save(deconv_out, Peis_fracs, refdat, Exp_dat, sampleID, file = paste0( path_OUT , sampleID, "_deconv_out.RData") )
+# working directory is already set to be in the output folder so the path 07_deconved is local
 
 print(paste("BSseq_deconv.R program complete."))
 # par(mfrow=c(1,1))

@@ -22,16 +22,12 @@ RUNTIME="32:00:00"
 MEM="8G"
 
 # #===== DEFAULT PATHS ===== #
-tablesheet="test_dataset/TableSheet_test.csv"
-path2configfile="./config.json"
-path2programsJSON="test_dataset/PROGS.json"
+tablesheet="test_human/hg19_Tablesheet_cluster.csv"
+path2configfile="config.json"
+path2programsJSON="test_human/PROGS.json"
 
 #===== PATHS SPECIFIC TO THE R-SCRIPT FOR DECONVOLUTION:
-R_WORKDIR="/home/bosberg/bs/pigx_bsseq/"
-R_SIGMAT_PATH="/home/bosberg/bs/pigx_out/HK_Sun_data/"
-R_PATH_DATA="/scratch/AG_Akalin/bosberg/SRA_files/SRA_deconv_pipe_run_out/06_deduped/"
-R_PATHOUT="/scratch/AG_Akalin/bosberg/SRA_files/SRA_deconv_pipe_run_out/07_deconv/"
-
+path_SIGMAT="/home/bosberg/bs/pigx_out/HK_Sun_data/"
 
 #=========== PARSE PARAMETERS ============#
 
@@ -124,7 +120,7 @@ You can savely ignore this warning, unless changes were made to either:
 If that is the case, please remove ${path2configfile} or use the '-C/--create-config' option,
 to enforce the recreation of the config file.
 "
-  
+ 
 if [ ! -f $path2configfile ]
   then
     scripts/create_configfile.py $tablesheet $path2configfile $path2programsJSON
@@ -155,24 +151,16 @@ mkdir -p ${path_OUT}"path_links/input"
 # link to reference genome:
 ln -sfn ${path_refG} ${path_OUT}"/path_links/refGenome"
 
+# link to SIGMAT folder:
+ln -sfn ${path_SIGMAT} ${path_OUT}"/path_links/SIGMAT"
+
 # create file links:
 scripts/create_file_links.py $path2configfile 
 
 
 #========================================================================================
-#----------  NOW START DEFINING THE VARIABLES NECESSARY FOR THE DCONVOLUTION SCRIPT -----
-
-echo "R_WORKDIR="        ${R_WORKDIR}          > Define_BSvars.R
-echo "R_SIGMAT_PATH="    ${R_SIGMAT_PATH}    >> Define_BSvars.R
-echo "R_PATH_DATA="      ${R_PATH_DATA}      >> Define_BSvars.R
-echo "R_PATHOUT="        ${R_PATHOUT}        >> Define_BSvars.R
-
-#========================================================================================
 #----------  NOW START RUNNING SNAKEMAKE:  ----------------------------------------------
 
-
-pathout=$( python -c "import sys, json; print(json.load(sys.stdin)['PATHOUT'])" < $path2configfile)
-
-snakemake -s BSseq_pipeline.py --configfile $path2configfile -d $pathout $snakeparams
+snakemake -s BSseq_pipeline.py --configfile $path2configfile  --jobs ${numjobs} --cluster "qsub -V -l h_vmem=${MEM} -pe smp 4" -d ${path_OUT} ${snakeparams}
 
 
