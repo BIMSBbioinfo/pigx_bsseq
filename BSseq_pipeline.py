@@ -7,7 +7,6 @@
 
 # SUBMIT THIS JOB INTERACTIVELY WITH:
 # $nohup  snakemake -s [this filename] --jobs [# of jobs to submit] > [logfilename] &
-# You can also add the following options for cluster submission: --cluster "qsub -V -l h_vmem={params.mem} -pe smp {params.threads} -l h_rt=36:00:00" &
 
 # import IPython;
 # IPython.embed()
@@ -22,6 +21,7 @@ include   : "./scripts/func_defs.py"
 #---------------------------     LIST THE OUTPUT DIRECTORIED AND SUBDIRECTORIED TO BE PRODUCED     ------------------------------
 
 DIR_deconved='07_deconved/'
+DIR_xmethed='06a_xmethed/'
 DIR_sorted='06_sorted/'
 DIR_mapped='04_mapped/'
 DIR_deduped='05_deduped/'
@@ -33,17 +33,16 @@ DIR_annot = 'annotation/'
 
 #---------------------------------     DEFINE PATHS AND FILE NAMES:  ----------------------------------
 
-PATHIN          = "path_links/input/"      #--- location of the data files to be imported
-GENOMEPATH      = "path_links/refGenome/"     #--- where the reference genome being mapped to is stored
-GTOOLBOX        = config["GTOOLBOX"]       #--- where the programs are stored to carry out the necessary operations
-R_DECONV_PATH   = config["R_DECONV_PATH"]       #--- where the programs are for just deconvolution.
+PATHIN          = "path_links/input/"       #--- location of the data files to be imported --shell script creates symbolic link.
+GENOMEPATH      = "path_links/refGenome/"   #--- where the reference genome being mapped to is stored
+GTOOLBOX        = config["GTOOLBOX"]        #--- where the programs are stored to carry out the necessary operations
+R_DECONV_PATH   = config["R_DECONV_PATH"]   #--- where the programs are for just deconvolution.
 
 VERSION         = config["GENOME_VERSION"]  #--- version of the genome being mapped to.
 
-NICE=config["NICE"]
-     #--- NICE gauges the computational burden, ranging from -19 to +19. 
-     #--- The more "nice" you are, the more you allow other processes to jump ahead of you 
-     #--- (like in traffic). Generally set to maximally nice=19 to avoid interference with other users.
+NICE=config["NICE"]                         #--- int between -20 and 19; higher values give computational priority to other processes.
+
+bismark_cores=config["bismark_cores"]       #--- from config file. Gets passed to bismark multicore argument.
 
 #-------------------------------      DEFINE PROGRAMS TO BE EXECUTED: ---------------------------------
 
@@ -57,7 +56,7 @@ DEDUPLICATE_BISMARK            =  GTOOLBOX+config["PROGS"]["DEDUPLICATE_BISMARK"
 BISMARK_METHYLATION_EXTRACTOR  =  GTOOLBOX+config["PROGS"]["BISMARK_METHYLATION_EXTRACTOR"]
 BISMARK2REPORT                 =  GTOOLBOX+config["PROGS"]["BISMARK2REPORT"]
 
-DECONV                         =  R_DECONV_PATH+config["PROGS"]["R_DECONV"]
+DECONV                         =  "path_links/Rscripts/BSseq_deconv.R"  
 SAMTOOLS                       =  GTOOLBOX+config["PROGS"]["SAMTOOLS"]
 
 
@@ -69,28 +68,35 @@ SAMTOOLS                       =  GTOOLBOX+config["PROGS"]["SAMTOOLS"]
 
 
 OUTPUT_FILES = [
+		#               ==== one-time rule: genome-prep =======
+		# GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
+        	# GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa"
+ 
                 #               ==== rule 01 raw QC    =========
                 [ expand (list_files(DIR_rawqc, config["SAMPLES"][sampleID]["fastq_name"], "_fastqc.html")  ) for sampleID in config["SAMPLES"]  ],
 
                 #----RULE 2 IS ALWAYS EXECUTED, TRIMMING IS A PREREQUISITE FOR SUBSEQUENT RULES ----
                 #               ==== rule 02 trimgalore ======
-                [ expand ( list_files_TG( DIR_trimmed, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
+                # [ expand ( list_files_TG( DIR_trimmed, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
                 
                 #               ==== rule 03 posttrim_QC_ ======
                 [ expand ( list_files_posttrim_QC(DIR_posttrim_QC, config["SAMPLES"][sampleID]["fastq_name"],".html")  ) for sampleID in config["SAMPLES"]  ],
-                #--- fastQC output files are not needed downstream and need to be called explicitly.
+                #--- fastQC output files are not needed downstream and need to be called explicitly if they are desired.
                 
                 #               ==== rule 04 mapping ======
-                [ expand ( list_files_bismark(DIR_mapped, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
+                # [ expand ( list_files_bismark(DIR_mapped, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
               
                 #               ==== rule 05 deduplication ======
-                [ expand ( list_files_dedupe(DIR_deduped, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],                                
+                # [ expand ( list_files_dedupe(DIR_deduped, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],                                
 
                 #               ==== rule 06 sorting ======
-                [ expand ( list_files_sortbam(DIR_sorted, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
+                # [ expand ( list_files_sortbam(DIR_sorted, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
+
+                #               ====rule 06a extract_methylation ======           
+                [ expand ( list_files_xmeth( DIR_xmethed, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ], 
 
                 #               ====rule 07 deconvolution ======
-                [ expand ( list_files_deconv(DIR_deconved, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
+                # [ expand ( list_files_deconv( DIR_deconved, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ]
 
 		]
 
@@ -98,8 +104,9 @@ OUTPUT_FILES = [
 # import IPython;
 # IPython.embed()
 # print("Executing job to produce the following files: ")
+# print("OUTPUT_FILES=")
 # for x in OUTPUT_FILES: print( x)
-#--- 
+#------- 
 
 # ==============================================================================================================
 #
@@ -120,8 +127,7 @@ rule deconvolve_se:
     output:
         DIR_deconved+"{sample}_se_deconv_out.RData"
     shell:
-        "nice -"+str(NICE)+" Rscript {DECONV}  {input} {{sample}}_se   {R_DECONV_PATH} {DIR_deconved} "
-
+        "nice -"+str(NICE)+" Rscript {DECONV}  {wildcards.sample}  {input}  {output}"
 #------
 rule deconvolve_pe:
     input:
@@ -129,7 +135,46 @@ rule deconvolve_pe:
     output:
         DIR_deconved+"{sample}_1_val_1_deconv_out.RData"
     shell:
-        "nice -"+str(NICE)+" Rscript {DECONV}  {input} {{sample}}_1_val_1 {R_DECONV_PATH}  {DIR_deconved}"
+        "nice -"+str(NICE)+" Rscript {DECONV}  {wildcards.sample}  {input}  {output}"
+
+# ==========================================================================================
+# extract methylation information from sorted bam file @@@ TODO: make the multicore argument general
+
+rule  bismark_se_methex:
+    input:
+        DIR_deduped+"{sample}_se_bt2.deduped.bam"
+    output:
+        expand(DIR_xmethed+"{{sample}}_se_bt2.deduped.{file}.gz",  file=["bedGraph","bismark.cov","CpG_report.txt"]),
+    params:
+        se = "--single-end",
+        gz = "--gzip",
+        cReport = "--cytosine_report",
+        bg = "--bedgraph",
+        genomeFolder = "--genome_folder " + GENOMEPATH,
+        outdir = "--output "+DIR_xmethed+""
+    log: DIR_xmethed+"{sample}_bismark_methylation_extraction.log"
+    message: """--------------  Extracting  Methylation Information from {input}  --------------- \n"""
+    shell:
+        "nice -"+str(NICE)+" {BISMARK_METHYLATION_EXTRACTOR} {params} --multicore 6 {input} 2> {log}"
+#-----------------
+rule  bismark_pe_methex:
+    input:
+        DIR_deduped+"{sample}_1_val_1_bt2.deduped.bam"
+    output:
+        expand(DIR_xmethed+"{{sample}}_1_val_1.deduped.{file}.gz",  file=["bedGraph","bismark.cov","CpG_report.txt"]),
+    params:
+        pe = "--paired-end",
+        gz = "--gzip",
+        cReport = "--cytosine_report",
+        bg = "--bedgraph",
+
+        genomeFolder = "--genome_folder " + GENOMEPATH,
+        outdir = "--output "+DIR_xmethed+""
+    log: DIR_xmethed+"{sample}_bismark_methylation_extraction.log"
+    message: """--------------  Extracting  Methylation Information from  {input}  --------------- \n"""
+    shell:
+        "nice -"+str(NICE)+" {BISMARK_METHYLATION_EXTRACTOR} {params} --multicore 6 {input} 2> {log}"
+
 
 # ==========================================================================================
 # sort the bam file:
@@ -139,6 +184,7 @@ rule sortbam_se:
         DIR_deduped+"{sample}_se_bt2.deduped.bam"
     output:
         DIR_sorted+"{sample}_se_bt2.deduped.sorted.bam"
+    message: """--------------  sorting bam file  {input} --------------- \n"""
     shell:
         "nice -"+str(NICE)+" {SAMTOOLS} sort {input} -o {output}"
 
@@ -147,6 +193,7 @@ rule sortbam_pe:
         DIR_deduped+"{sample}_1_val_1_bt2.deduped.bam"
     output:
         DIR_sorted+"{sample}_1_val_1_bt2.deduped.sorted.bam"
+    message: """--------------  sorting bam file {input} --------------- \n"""
     shell:
         "nice -"+str(NICE)+" {SAMTOOLS} sort {input} -o {output}"
 
@@ -200,9 +247,9 @@ rule bismark_se:
         tempdir     = "--temp_dir "+DIR_mapped
     log:
         DIR_mapped+"/{sample}_bismark_se_mapping.log"
-    message: """-------------   Mapping single-end reads to genome {VERSION}. ------------- """
+    message: """-------------   Mapping single-end reads to genome {VERSION}  -------------"""
     shell:
-        "nice -"+str(NICE)+" {BISMARK} {params} {input.fqfile} 2> {log}"
+        "nice -"+str(NICE)+" {BISMARK} {params} --multicore "+bismark_cores+" {input.fqfile} 2> {log}"
 
 #--------
 rule bismark_pe:
@@ -227,7 +274,7 @@ rule bismark_pe:
         DIR_mapped+"{sample}_bismark_pe_mapping.log"
     message: """-------------   Mapping paired-end reads to genome {VERSION}. ------------- """
     shell:
-        "nice -"+str(NICE)+" {BISMARK} {params}  -1 {input.fin1} -2 {input.fin2} 2> {log}"
+        "nice -"+str(NICE)+" {BISMARK} {params} --multicore "+bismark_cores+" -1 {input.fin1} -2 {input.fin2} 2> {log}"
 
 
 # ==========================================================================================
@@ -246,7 +293,7 @@ rule bismark_genome_preparation:
         verbose = "--verbose "
     log:
         'bismark_genome_preparation_'+VERSION+'.log'
-    message: """ --------  converting {VERSION} Genome into Bisulfite analogue ------- """
+    message: """ --------  converting {VERSION} Genome into Bisulfite analogue ------- \n """
     shell:
         "nice -"+str(NICE)+" {BISMARK_GENOME_PREPARATION} {params} {input} 2> {log}"
 
@@ -332,7 +379,7 @@ rule trimgalore_pe:
 # ==========================================================================================
 # raw quality control
 
-rule fastqc_raw: #----only need one: covers BOTH PE and SE cases.
+rule fastqc_raw: #----only need one: covers BOTH pe and se cases.
     input:
         PATHIN+"{sample}.fq.gz"
     output:
@@ -341,9 +388,8 @@ rule fastqc_raw: #----only need one: covers BOTH PE and SE cases.
     params:
         fastqc_args = config.get("fastqc_args", ""),
         outdir = "--outdir "+ DIR_rawqc     # usually pass params as strings instead of wildcards.
-
     log:
         DIR_rawqc+"{sample}_fastqc.log"
     message: """ ----------  Quality checking raw read data with {FASTQC}.  --------------   """
     shell:
-        "nice -"+str(NICE)+" {FASTQC} {params.outdir}  {input} 2> {log}"
+        "nice -"+str(NICE)+" {FASTQC} {params}  {input} 2> {log}"

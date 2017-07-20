@@ -1,10 +1,11 @@
 {
-    "GENOMEPATH": "/scratch/AG_Akalin/Base/Genomes/hg19/",
-    "GENOME_VERSION": "hg19",
+    "GENOMEPATH": "/home/bosberg/bs/refGenomes/ce10/",
+    "GENOME_VERSION": "ce10",
     "GTOOLBOX": "/home/bosberg/.guix-profile/bin/",
-    "NICE": "5",
-    "PATHIN": "/scratch/AG_Akalin/bosberg/pre_SM_fullfqfiles_in/",
-    "PATHOUT": "/scratch/AG_Akalin/bosberg/post_SM_adipose_immortal_out/",
+    "MEM_default": "8G",
+    "NICE": "19",
+    "PATHIN": "/home/bosberg/bs/pigx_deconv_cluster/test_CElegans/in/",
+    "PATHOUT": "/home/bosberg/bs/pigx_deconv_cluster/test_CElegans/out/",
     "PROGS": {
         "BISMARK": "bismark",
         "BISMARK2REPORT": "bismark2report",
@@ -14,30 +15,53 @@
         "CUTADAPT": "cutadapt",
         "DEDUPLICATE_BISMARK": "deduplicate_bismark",
         "FASTQC": "fastqc",
-        "R_DECONV": "BSseq_deconv.R",
         "SAMTOOLS": "samtools",
         "TRIMGALORE": "trim_galore"
     },
     "R_DECONV_PATH": "/home/bosberg/RDECONV_SCRIPTS/",
     "SAMPLES": {
-        "immortal": {
+        "sampleA": {
             "ReadType": "WGBS",
-            "SampleID": "immortal",
+            "SampleID": "sampleA",
+            "Treatment": "A",
+            "fastq_ext": [
+                ".fq.gz",
+                ".fq.gz"
+            ],
+            "fastq_name": [
+                "test_pe_1",
+                "test_pe_2"
+            ],
+            "files": [
+                "test_pe_1.fq.gz",
+                "test_pe_2.fq.gz"
+            ]
+        },
+        "sampleB": {
+            "ReadType": "WGBS",
+            "SampleID": "sampleB",
             "Treatment": "B",
             "fastq_ext": [
                 ".fq.gz"
             ],
             "fastq_name": [
-                "immortal_encode_ENCSR890UQO"
+                "test_se"
             ],
             "files": [
-                "immortal_encode_ENCSR890UQO.fq.gz"
+                "test_se.fq.gz"
             ]
         }
     },
-    "bam_methCall_args_mincov": "4",
+    "bam_methCall_args_mincov": "0",
     "bam_methCall_args_minqual": "10",
-    "bismark_args": " --multicore 8 -N 1 -L 2 ",
+    "bismark_MEM": "19G",
+    "bismark_args": " -N 0 -L 20 ",
+    "bismark_cores": "3",
+    "cluster_run": "TRUE",
+    "contact_email": "brendan.osberg@mdc-berlin.de",
     "fastqc_args": "",
+    "h_stack": "128m",
+    "numjobs": "6",
+    "qname": "all",
     "trim_galore_args": ""
 }

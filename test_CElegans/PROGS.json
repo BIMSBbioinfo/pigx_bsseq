@@ -1,5 +1,6 @@
 {
     "GTOOLBOX":"/home/bosberg/.guix-profile/bin/",
+    "R_DECONV_PATH":"/home/bosberg/RDECONV_SCRIPTS/",
 
     "PROGS": {
         "FASTQC"          : "fastqc",
@@ -11,6 +12,7 @@
         "BISMARK_GENOME_PREPARATION"     : "bismark_genome_preparation",
         "BISMARK_METHYLATION_EXTRACTOR"  : "bismark_methylation_extractor",
         "BISMARK2REPORT"                 : "bismark2report",
-        "SAMTOOLS"                       : "samtools"
+        "SAMTOOLS"                       : "samtools",
+        "R_DECONV"                       : "BSseq_deconv.R"
     }
 }
