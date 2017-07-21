@@ -155,7 +155,7 @@ mkdir -p ${path_OUT}"path_links/input"
 # create links within the output folder that point directly to the 
 # reference genome, as well as to each sample input file  
 # so that it's clear where the source data came from.
-# N.B. Any previous links of the same name are over-written.
+# N.B. Any previously existing links will be kept in place, and no warning will be issued if this is the case. 
 
 # link to reference genome:
 ln -sn ${path_refG}     ${path_OUT}"/path_links/refGenome" 2>/dev/null
