@@ -90,7 +90,7 @@ OUTPUT_FILES = [
                 # [ expand ( list_files_dedupe(DIR_deduped, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],                                
 
                 #               ==== rule 06 sorting ======
-                # [ expand ( list_files_sortbam(DIR_sorted, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
+                [ expand ( list_files_sortbam(DIR_sorted, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
 
                 #               ====rule 06a extract_methylation ======           
                 [ expand ( list_files_xmeth( DIR_xmethed, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ], 
@@ -126,6 +126,7 @@ rule deconvolve_se:
         DIR_sorted+"{sample}_se_bt2.deduped.sorted.bam"
     output:
         DIR_deconved+"{sample}_se_deconv_out.RData"
+    message: """--------------  Deconvolving se bam file {input}  --------------- \n"""
     shell:
         "nice -"+str(NICE)+" Rscript {DECONV}  {wildcards.sample}  {input}  {output}"
 #------
@@ -134,6 +135,7 @@ rule deconvolve_pe:
         DIR_sorted+"{sample}_1_val_1_bt2.deduped.sorted.bam"
     output:
         DIR_deconved+"{sample}_1_val_1_deconv_out.RData"
+    message: """--------------  Deconvolving _pe_ bam file {input}  --------------- \n"""
     shell:
         "nice -"+str(NICE)+" Rscript {DECONV}  {wildcards.sample}  {input}  {output}"
 
@@ -161,7 +163,7 @@ rule  bismark_pe_methex:
     input:
         DIR_deduped+"{sample}_1_val_1_bt2.deduped.bam"
     output:
-        expand(DIR_xmethed+"{{sample}}_1_val_1.deduped.{file}.gz",  file=["bedGraph","bismark.cov","CpG_report.txt"]),
+        expand(DIR_xmethed+"{{sample}}_1_val_1_bt2.deduped.{file}.gz",  file=["bedGraph","bismark.cov","CpG_report.txt"]),
     params:
         pe = "--paired-end",
         gz = "--gzip",
@@ -184,7 +186,7 @@ rule sortbam_se:
         DIR_deduped+"{sample}_se_bt2.deduped.bam"
     output:
         DIR_sorted+"{sample}_se_bt2.deduped.sorted.bam"
-    message: """--------------  sorting bam file  {input} --------------- \n"""
+    message: """--------------  Sorting bam file  {input} --------------- \n"""
     shell:
         "nice -"+str(NICE)+" {SAMTOOLS} sort {input} -o {output}"
 
@@ -193,7 +195,7 @@ rule sortbam_pe:
         DIR_deduped+"{sample}_1_val_1_bt2.deduped.bam"
     output:
         DIR_sorted+"{sample}_1_val_1_bt2.deduped.sorted.bam"
-    message: """--------------  sorting bam file {input} --------------- \n"""
+    message: """--------------  Sorting bam file {input} --------------- \n"""
     shell:
         "nice -"+str(NICE)+" {SAMTOOLS} sort {input} -o {output}"
 
@@ -210,7 +212,7 @@ rule deduplication_se:
         sampath="--samtools_path "+SAMTOOLS
     log:
         DIR_deduped+"{sample}_deduplication.log"
-    message: """-----------   Deduplicating single-end read alignments ---------------------- """
+    message: """-----------   Deduplicating single-end aligned reads from {input} ---------------------- """
     shell:
         "nice -"+str(NICE)+" {SAMTOOLS} rmdup {input}  {output} 2> {log}"
 # #--------
@@ -221,7 +223,7 @@ rule deduplication_pe:
         DIR_deduped+"{sample}_1_val_1_bt2.deduped.bam"
     log:
         DIR_deduped+"{sample}_deduplication.log"
-    message: """-----------   Deduplicating paired-end read alignments ---------------------- """
+    message: """-----------   Deduplicating paired-end aligned reads from {input} ---------------------- """
     shell:
         "nice -"+str(NICE)+" {SAMTOOLS} fixmate {input}  {output} 2> {log}"
 
@@ -293,7 +295,7 @@ rule bismark_genome_preparation:
         verbose = "--verbose "
     log:
         'bismark_genome_preparation_'+VERSION+'.log'
-    message: """ --------  converting {VERSION} Genome into Bisulfite analogue ------- \n """
+    message: """ --------  Converting {VERSION} Genome into Bisulfite analogue ------- \n """
     shell:
         "nice -"+str(NICE)+" {BISMARK_GENOME_PREPARATION} {params} {input} 2> {log}"
 
@@ -311,7 +313,7 @@ rule fastqc_after_trimming_se:
         outdir = "--outdir "+DIR_posttrim_QC
     log:
    	    DIR_posttrim_QC+"{sample}_trimmed_fastqc.log"
-    message: """ ------------  Quality checking trimmmed single-end data with Fastqc ------------- """
+    message: """ ------------  Quality checking trimmmed single-end data from {input} ------------- """
     shell:
         "nice -"+str(NICE)+" {FASTQC} {params.outdir} {input} 2> {log}"
 #--------
@@ -329,7 +331,7 @@ rule fastqc_after_trimming_pe:
         outdir = "--outdir "+DIR_posttrim_QC
     log:
    	    DIR_posttrim_QC+"{sample}_trimmed_fastqc.log"
-    message: """ ------------  Quality checking trimmmed paired-end data with Fastqc ------------- """
+    message: """ ------------  Quality checking trimmmed paired-end data from {input} ------------- """
     shell:
         "nice -"+str(NICE)+" {FASTQC} {params.outdir} {input} 2> {log}"
 
@@ -350,7 +352,7 @@ rule trimgalore_se:
     log:
        DIR_trimmed+"{sample}.trimgalore.log"
     message:
-       " ---------  Trimming raw single-end read data using {TRIMGALORE} -------  "
+       " ---------  Trimming raw single-end read data from {input}  -------  "
     shell:
        "nice -"+str(NICE)+" {TRIMGALORE} {params} {input} 2> {log}"
 
@@ -372,7 +374,7 @@ rule trimgalore_pe:
     log:
         DIR_trimmed+"{sample}.trimgalore.log"
     message:
-        " ---------  Trimming raw paired-end read data using {TRIMGALORE} -------  "
+        " ---------  Trimming raw paired-end read data from {input}  -------  "
     shell:
         "nice -"+str(NICE)+" {TRIMGALORE} {params} {input} 2> {log}"
 
@@ -390,6 +392,6 @@ rule fastqc_raw: #----only need one: covers BOTH pe and se cases.
         outdir = "--outdir "+ DIR_rawqc     # usually pass params as strings instead of wildcards.
     log:
         DIR_rawqc+"{sample}_fastqc.log"
-    message: """ ----------  Quality checking raw read data with {FASTQC}.  --------------   """
+    message: """ ----------  Quality checking raw read data from {input}  --------------   """
     shell:
         "nice -"+str(NICE)+" {FASTQC} {params}  {input} 2> {log}"

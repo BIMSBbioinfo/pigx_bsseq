@@ -21,7 +21,7 @@
 tablesheet="test_CElegans/TableSheet_test.csv"
 path2configfile="config.json"
 path2programsJSON="test_CElegans/PROGS.json"
-path2clusterconfig="cluster_config.json"
+path2clusterconfig="cluster_conf.json"
 
 #===== PATHS SPECIFIC TO THE R-SCRIPT FOR DECONVOLUTION:
 path_SIGMAT="/home/bosberg/bs/HK_Sun_data/"
@@ -176,9 +176,13 @@ ln -sn ${path_Rscripts} ${path_OUT}"path_links/Rscripts"   2>/dev/null
 scripts/create_file_links.py $path2configfile 
 
 
+#========================================================================================
+#----------  NOW CREATE THE CLUSTER CONFIGURATION FILE  ---------------------------------
 
-# ---- create cluster configuration file ----
-# ---- python scripts takes parameters in the order: rulename, nthreads, q, MEM, [comma --boolean as to whether there are still more to come, should be 1 for except the last.]
+
+# ---- python scripts takes parameters in the order: 
+# rulename, nthreads, q, MEM, [comma] 
+# The last is a boolean as to whether there are still more to come, should be 1 for all except the last.]
 
 
 echo "{"  >  ${path2clusterconfig}
@@ -193,25 +197,14 @@ python scripts/rules_cluster.py  bismark_pe_methex  ${bismark_pe_threads}  ${qna
 #========================================================================================
 #----------  NOW START RUNNING SNAKEMAKE:  ----------------------------------------------
 
-## ,h_vmem=${MEM}
-#   RUNTIME="95:59:00" # invoke with:  -l h_rt=${RUNTIME}
-
-
-# if multicore is set to 8, then this should suffice.
+# I decided ultimately not to use drmaa for snakemake here (qsub seems to work fine and is less complicated). 
+# Nevertheless, I'm leaving these lines commented here, in case I want to revisit this choice.
+#
 # --drmaa  "qsub -V -l h_vmem=${MEM} -l h_rt=${RUNTIME}  -pe smp ${NUMTHREADS}"
-
 #    export DRMAA_LIBRARY_PATH=/opt/uge/lib/lx-amd64/libdrmaa.so.1.0
 #   LD_PRELOAD=/usr/lib64/libssl.so.10:/lib64/libgssapi_krb5.so.2:/lib64/libkrb5.so.3:/lib64/libcom_err.so.2:/lib64/libk5crypto.so.3:/usr/lib64/libcrypto.so.10:/lib64/libz.so.1:/lib64/libkrb5support.so.0:/lib64/libkeyutils.so.1:/lib64/libselinux.so.1  snakemake -s BSseq_pipeline.py --configfile $path2configfile  -d ${path_OUT}  --drmaa "  -l h_rt=${RUNTIME},longrun,h_vmem=${MEM} -cwd "  --jobs ${numjobs} ${snakeparams}
 
-#
-#    snakemake -s BSseq_pipeline.py --configfile $path2configfile  -d ${path_OUT}  --cluster " qsub  -l h_rt=${RUNTIME},longrun,h_vmem=${MEM} -cwd "  --jobs ${numjobs} ${snakeparams}
 
-# @@@ TODO: implement this part:  --cluster-config ${path2clusterconfig}    
-# at the moment, it continues to raise this error: 
-# raise WorkflowError("Config file is not valid JSON and PyYAML "
-# snakemake.exceptions.WorkflowError: Config file is not valid JSON and PyYAML has not been installed. Please install PyYAML to use YAML config files.
-#-l h_vmem={cluster.MEM} 
- 
 if [ ${cluster_run} = true ] || [ ${cluster_run} = TRUE ]
   then
     echo " Commencing snakemake run submission to cluster "

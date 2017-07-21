@@ -15,6 +15,7 @@
         "CUTADAPT": "cutadapt",
         "DEDUPLICATE_BISMARK": "deduplicate_bismark",
         "FASTQC": "fastqc",
+        "R_DECONV": "BSseq_deconv.R",
         "SAMTOOLS": "samtools",
         "TRIMGALORE": "trim_galore"
     },
