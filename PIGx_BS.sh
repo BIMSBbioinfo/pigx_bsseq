@@ -23,10 +23,6 @@ path2configfile="config.json"
 path2programsJSON="test_CElegans/PROGS.json"
 path2clusterconfig="cluster_conf.json"
 
-#===== PATHS SPECIFIC TO THE R-SCRIPT FOR DECONVOLUTION:
-path_SIGMAT="/home/bosberg/bs/HK_Sun_data/"
-path_Rscripts="/home/bosberg/RDECONV_SCRIPTS/"
-
 #=========== PARSE PARAMETERS ============#
 
 usage="

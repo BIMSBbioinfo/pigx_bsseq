@@ -20,8 +20,7 @@ include   : "./scripts/func_defs.py"
 
 #---------------------------     LIST THE OUTPUT DIRECTORIED AND SUBDIRECTORIED TO BE PRODUCED     ------------------------------
 
-DIR_deconved='07_deconved/'
-DIR_xmethed='06a_xmethed/'
+# DIR_xmethed='07_xmethed/'
 DIR_sorted='06_sorted/'
 DIR_mapped='04_mapped/'
 DIR_deduped='05_deduped/'
@@ -36,7 +35,6 @@ DIR_annot = 'annotation/'
 PATHIN          = "path_links/input/"       #--- location of the data files to be imported --shell script creates symbolic link.
 GENOMEPATH      = "path_links/refGenome/"   #--- where the reference genome being mapped to is stored
 GTOOLBOX        = config["GTOOLBOX"]        #--- where the programs are stored to carry out the necessary operations
-R_DECONV_PATH   = config["R_DECONV_PATH"]   #--- where the programs are for just deconvolution.
 
 VERSION         = config["GENOME_VERSION"]  #--- version of the genome being mapped to.
 
@@ -56,7 +54,6 @@ DEDUPLICATE_BISMARK            =  GTOOLBOX+config["PROGS"]["DEDUPLICATE_BISMARK"
 BISMARK_METHYLATION_EXTRACTOR  =  GTOOLBOX+config["PROGS"]["BISMARK_METHYLATION_EXTRACTOR"]
 BISMARK2REPORT                 =  GTOOLBOX+config["PROGS"]["BISMARK2REPORT"]
 
-DECONV                         =  "path_links/Rscripts/BSseq_deconv.R"  
 SAMTOOLS                       =  GTOOLBOX+config["PROGS"]["SAMTOOLS"]
 
 
@@ -93,10 +90,7 @@ OUTPUT_FILES = [
                 [ expand ( list_files_sortbam(DIR_sorted, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
 
                 #               ====rule 06a extract_methylation ======           
-                [ expand ( list_files_xmeth( DIR_xmethed, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ], 
-
-                #               ====rule 07 deconvolution ======
-                # [ expand ( list_files_deconv( DIR_deconved, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ]
+                # [ expand ( list_files_xmeth( DIR_xmethed, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ], 
 
 		]
 
@@ -120,27 +114,7 @@ rule all:
         OUTPUT_FILES
 
 # ==========================================================================================
-
-rule deconvolve_se:
-    input:
-        DIR_sorted+"{sample}_se_bt2.deduped.sorted.bam"
-    output:
-        DIR_deconved+"{sample}_se_deconv_out.RData"
-    message: """--------------  Deconvolving se bam file {input}  --------------- \n"""
-    shell:
-        "nice -"+str(NICE)+" Rscript {DECONV}  {wildcards.sample}  {input}  {output}"
-#------
-rule deconvolve_pe:
-    input:
-        DIR_sorted+"{sample}_1_val_1_bt2.deduped.sorted.bam"
-    output:
-        DIR_deconved+"{sample}_1_val_1_deconv_out.RData"
-    message: """--------------  Deconvolving _pe_ bam file {input}  --------------- \n"""
-    shell:
-        "nice -"+str(NICE)+" Rscript {DECONV}  {wildcards.sample}  {input}  {output}"
-
-# ==========================================================================================
-# extract methylation information from sorted bam file @@@ TODO: make the multicore argument general
+# extract methylation information from sorted bam file 
 
 rule  bismark_se_methex:
     input:
@@ -158,7 +132,7 @@ rule  bismark_se_methex:
     message: """--------------  Extracting  Methylation Information from {input}  --------------- \n"""
     shell:
         "nice -"+str(NICE)+" {BISMARK_METHYLATION_EXTRACTOR} {params} --multicore 6 {input} 2> {log}"
-#-----------------
+#-----------------------
 rule  bismark_pe_methex:
     input:
         DIR_deduped+"{sample}_1_val_1_bt2.deduped.bam"
@@ -189,7 +163,7 @@ rule sortbam_se:
     message: """--------------  Sorting bam file  {input} --------------- \n"""
     shell:
         "nice -"+str(NICE)+" {SAMTOOLS} sort {input} -o {output}"
-
+#-----------------------
 rule sortbam_pe:
     input:
         DIR_deduped+"{sample}_1_val_1_bt2.deduped.bam"
@@ -215,7 +189,7 @@ rule deduplication_se:
     message: """-----------   Deduplicating single-end aligned reads from {input} ---------------------- """
     shell:
         "nice -"+str(NICE)+" {SAMTOOLS} rmdup {input}  {output} 2> {log}"
-# #--------
+#-----------------------
 rule deduplication_pe:
     input:
         DIR_mapped+"{sample}_1_val_1_bismark_bt2_pe.bam"
@@ -253,7 +227,8 @@ rule bismark_se:
     shell:
         "nice -"+str(NICE)+" {BISMARK} {params} --multicore "+bismark_cores+" {input.fqfile} 2> {log}"
 
-#--------
+#-----------------------
+
 rule bismark_pe:
     input:
         refconvert_CT = GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
@@ -316,7 +291,7 @@ rule fastqc_after_trimming_se:
     message: """ ------------  Quality checking trimmmed single-end data from {input} ------------- """
     shell:
         "nice -"+str(NICE)+" {FASTQC} {params.outdir} {input} 2> {log}"
-#--------
+#-----------------------
 rule fastqc_after_trimming_pe:
     input:
         DIR_trimmed+"{sample}_1_val_1.fq.gz",

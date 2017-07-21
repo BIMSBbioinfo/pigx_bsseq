@@ -1,9 +1,0 @@
-[[ SAMPLES ]]
-Read1,Read2,SampleID,ReadType,Treatment
-adipose_SRX263887.fq.gz,,adipose,WGBS,M
-adrenal_SRX263881.fq.gz,,adrenal,WGBS,N
-small_intest_SRX263877.fq.gz,,small_intest,WGBS,O
-mix_50pc-adipA_50pc-adrenA.fq.gz,,mix_50pc-adipA,WGBS,P
-mix_50pc-adipB_50pcSI.fq.gz,,mix_50pc-adipB,WGBS,Q
-mix_50pc-adrenB_50pcSI.fq.gz,,mix_50pc-adrenB,WGBS,R
-

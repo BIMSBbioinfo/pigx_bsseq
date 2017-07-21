@@ -42,20 +42,11 @@ def list_files_dedupe(PATH, files):
     else:
         raise Exception("=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
 
-
 def list_files_sortbam(PATH, files):
     if len(files) == 1:
         return [PATH+files[0]+"_se_bt2.deduped.sorted.bam"] #---- single end
     elif len(files) == 2:
         return [PATH+files[0]+"_val_1_bt2.deduped.sorted.bam"] #---- paired end
-    else:
-        raise Exception("=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
-
-def list_files_deconv(PATH, files):
-    if len(files) == 1:
-        return [PATH+files[0]+"_se_deconv_out.RData"] #---- single end
-    elif len(files) == 2:
-        return [PATH+files[0]+"_val_1_deconv_out.RData"] #---- paired end
     else:
         raise Exception("=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
 
@@ -84,18 +75,5 @@ def list_files_xmeth(PATH, files):
                 PATH+files[0]+"_val_1_bt2.deduped.CpG_report.txt.gz"] #---- paired end 
     else:
         raise Exception("=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")   
-
-# --------------------------------
-
-def Nproc(N):
-   return lambda x: N*x
-N_cores            = Nproc(1)
-N_threads_mostjobs = Nproc(1)
-N_threads_bismark  = Nproc(2)
-
-def string_MEM(s):                                                                                                     
-   return lambda x: str(x)+s 
-
-lambdaMEM=string_MEM("G")
 
 
