@@ -42,7 +42,6 @@ def list_files_dedupe(PATH, files):
     else:
         raise Exception("=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
 
-
 def list_files_sortbam(PATH, files):
     if len(files) == 1:
         return [PATH+files[0]+"_se_bt2.deduped.sorted.bam"] #---- single end
@@ -50,7 +49,6 @@ def list_files_sortbam(PATH, files):
         return [PATH+files[0]+"_val_1_bt2.deduped.sorted.bam"] #---- paired end
     else:
         raise Exception("=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
-
 
 def SEPEstr(files):
     if len(files) == 1:
@@ -66,6 +64,16 @@ def Annot(PATH, files, assembly):
     elif len(files) == 2:
         return [PATH+files[0]+"_val_1_bt2.deduped.sorted_"+assembly+"_annotation.nb.html"] #---- paired end
 
-        
-        
-        
+def list_files_xmeth(PATH, files):
+    if len(files) == 1:
+        return [ PATH+files[0]+"_se_bt2.deduped.bedGraph.gz",
+                 PATH+files[0]+"_se_bt2.deduped.bismark.cov.gz",
+                 PATH+files[0]+"_se_bt2.deduped.CpG_report.txt.gz"] #---- single end 
+    elif len(files) == 2:
+        return [PATH+files[0]+"_val_1_bt2.deduped.bedGraph.gz",
+                PATH+files[0]+"_val_1_bt2.deduped.bismark.cov.gz",
+                PATH+files[0]+"_val_1_bt2.deduped.CpG_report.txt.gz"] #---- paired end 
+    else:
+        raise Exception("=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")   
+
+
