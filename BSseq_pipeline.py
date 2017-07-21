@@ -6,9 +6,6 @@
 # To process bisulfite sequencing data from raw fastq files to performing integrated bioinformatics analysis.
 
 # SUBMIT THIS JOB INTERACTIVELY WITH:
-# $nohup  snakemake -s [this filename] --jobs [# of jobs to submit] > [logfilename] &
-# You can also add the following options for cluster submission: --cluster "qsub -V -l h_vmem={params.mem} -pe smp {params.threads} -l h_rt=36:00:00" &
-
 # import IPython;
 # IPython.embed()
  
@@ -21,6 +18,7 @@ include   : "./scripts/func_defs.py"
 
 #---------------------------     LIST THE OUTPUT DIRECTORIED AND SUBDIRECTORIED TO BE PRODUCED     ------------------------------
 
+DIR_xmethed='07_xmethed/'
 DIR_sorted='06_sorted/'
 DIR_mapped='04_mapped/'
 DIR_deduped='05_deduped/'
@@ -32,16 +30,15 @@ DIR_annot = 'annotation/'
 
 #---------------------------------     DEFINE PATHS AND FILE NAMES:  ----------------------------------
 
-PATHIN          = "path_links/input/"      #--- location of the data files to be imported
-GENOMEPATH      = "path_links/refGenome/"     #--- where the reference genome being mapped to is stored
-GTOOLBOX        = config["GTOOLBOX"]       #--- where the programs are stored to carry out the necessary operations
+PATHIN          = "path_links/input/"       #--- location of the data files to be imported --shell script creates symbolic link. 
+GENOMEPATH      = "path_links/refGenome/"   #--- where the reference genome being mapped to is stored
+GTOOLBOX        = config["GTOOLBOX"]        #--- where the programs are stored to carry out the necessary operations
 
 VERSION         = config["GENOME_VERSION"]  #--- version of the genome being mapped to.
 
-NICE=config["NICE"]
-     #--- NICE gauges the computational burden, ranging from -19 to +19. 
-     #--- The more "nice" you are, the more you allow other processes to jump ahead of you 
-     #--- (like in traffic). Generally set to maximally nice=19 to avoid interference with other users.
+NICE=config["NICE"]                         #--- int between -20 and 19; higher values give computational priority to other processes
+
+bismark_cores=config["bismark_cores"]       #--- from config file. Gets passed to bismark multicore argument.  
 
 #-------------------------------      DEFINE PROGRAMS TO BE EXECUTED: ---------------------------------
 
@@ -66,6 +63,10 @@ SAMTOOLS                       =  GTOOLBOX+config["PROGS"]["SAMTOOLS"]
 
 
 OUTPUT_FILES = [
+		#               ==== one-time rule: genome-prep =======
+		# GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
+        	# GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa"
+ 
                 #               ==== rule 01 raw QC    =========
                 [ expand (list_files(DIR_rawqc, config["SAMPLES"][sampleID]["fastq_name"], "_fastqc.html")  ) for sampleID in config["SAMPLES"]  ],
 
@@ -86,13 +87,22 @@ OUTPUT_FILES = [
                 #               ==== rule 06 sorting ======
                 [ expand ( list_files_sortbam(DIR_sorted, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
                 
+                #               ====rule 07 extract_methylation (if needed) ======
+                # [ expand ( list_files_xmeth( DIR_xmethed, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
+
                 # ==================  FINAL REPORT =========================
                 # TODO: This needs to be editted once we determine what final reports we want to export!
 		#            [ expand ( Annot(DIR_annot, config["SAMPLES"][sampleID]["fastq_name"], VERSION )) for sampleID in config["SAMPLES"]  ]
                 
+               ]
 
-]
-
+#--- In case you want to debug the code with interactive commands:
+# import IPython;
+# IPython.embed()
+# print("Executing job to produce the following files: ")
+# print("OUTPUT_FILES=")
+# for x in OUTPUT_FILES: print( x)
+#-------
 
 # ==============================================================================================================
 #
@@ -106,6 +116,45 @@ rule all:
         OUTPUT_FILES
 
 # ==========================================================================================
+# extract methylation information from sorted bam file 
+
+rule  bismark_se_methex:
+    input:
+        DIR_deduped+"{sample}_se_bt2.deduped.bam"
+    output:
+        expand(DIR_xmethed+"{{sample}}_se_bt2.deduped.{file}.gz",  file=["bedGraph","bismark.cov","CpG_report.txt"]),
+    params:
+        se = "--single-end",
+        gz = "--gzip",
+        cReport = "--cytosine_report",
+        bg = "--bedgraph",
+        genomeFolder = "--genome_folder " + GENOMEPATH,
+        outdir = "--output "+DIR_xmethed+""
+    log: DIR_xmethed+"{sample}_bismark_methylation_extraction.log"
+    message: """--------------  Extracting  Methylation Information from {input}  --------------- \n"""
+    shell:
+        "nice -"+str(NICE)+" {BISMARK_METHYLATION_EXTRACTOR} {params} --multicore 6 {input} 2> {log}"
+#-----------------------
+rule  bismark_pe_methex:
+    input:
+        DIR_deduped+"{sample}_1_val_1_bt2.deduped.bam"
+    output:
+        expand(DIR_xmethed+"{{sample}}_1_val_1_bt2.deduped.{file}.gz",  file=["bedGraph","bismark.cov","CpG_report.txt"]),
+    params:
+        pe = "--paired-end",
+        gz = "--gzip",
+        cReport = "--cytosine_report",
+        bg = "--bedgraph",
+
+        genomeFolder = "--genome_folder " + GENOMEPATH,
+        outdir = "--output "+DIR_xmethed+""
+    log: DIR_xmethed+"{sample}_bismark_methylation_extraction.log"
+    message: """--------------  Extracting  Methylation Information from  {input}  --------------- \n"""
+    shell:
+        "nice -"+str(NICE)+" {BISMARK_METHYLATION_EXTRACTOR} {params} --multicore 6 {input} 2> {log}"
+
+
+# ==========================================================================================
 # sort the bam file:
 
 rule sortbam_se:
@@ -113,14 +162,16 @@ rule sortbam_se:
         DIR_deduped+"{sample}_se_bt2.deduped.bam"
     output:
         DIR_sorted+"{sample}_se_bt2.deduped.sorted.bam"
+    message: """--------------  Sorting bam file  {input} --------------- \n"""
     shell:
         "nice -"+str(NICE)+" {SAMTOOLS} sort {input} -o {output}"
-
+#-----------------------
 rule sortbam_pe:
     input:
         DIR_deduped+"{sample}_1_val_1_bt2.deduped.bam"
     output:
         DIR_sorted+"{sample}_1_val_1_bt2.deduped.sorted.bam"
+    message: """--------------  Sorting bam file {input} --------------- \n"""
     shell:
         "nice -"+str(NICE)+" {SAMTOOLS} sort {input} -o {output}"
 
@@ -137,10 +188,10 @@ rule deduplication_se:
         sampath="--samtools_path "+SAMTOOLS
     log:
         DIR_deduped+"{sample}_deduplication.log"
-    message: """-----------   Deduplicating single-end read alignments ---------------------- """
+    message: """-----------   Deduplicating single-end aligned reads from {input} ---------------------- """
     shell:
         "nice -"+str(NICE)+" {SAMTOOLS} rmdup {input}  {output} 2> {log}"
-# #--------
+#-----------------------
 rule deduplication_pe:
     input:
         DIR_mapped+"{sample}_1_val_1_bismark_bt2_pe.bam"
@@ -148,7 +199,7 @@ rule deduplication_pe:
         DIR_deduped+"{sample}_1_val_1_bt2.deduped.bam"
     log:
         DIR_deduped+"{sample}_deduplication.log"
-    message: """-----------   Deduplicating paired-end read alignments ---------------------- """
+    message: """-----------   Deduplicating paired-end aligned reads from {input} ---------------------- """
     shell:
         "nice -"+str(NICE)+" {SAMTOOLS} fixmate {input}  {output} 2> {log}"
 
@@ -174,11 +225,12 @@ rule bismark_se:
         tempdir     = "--temp_dir "+DIR_mapped
     log:
         DIR_mapped+"/{sample}_bismark_se_mapping.log"
-    message: """-------------   Mapping single-end reads to genome {VERSION}. ------------- """
+    message: """-------------   Mapping single-end reads to genome {VERSION}  -------------"""
     shell:
-        "nice -"+str(NICE)+" {BISMARK} {params} {input.fqfile} 2> {log}"
+        "nice -"+str(NICE)+" {BISMARK} {params} --multicore "+bismark_cores+" {input.fqfile} 2> {log}"
 
-#--------
+#-----------------------
+
 rule bismark_pe:
     input:
         refconvert_CT = GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
@@ -201,7 +253,7 @@ rule bismark_pe:
         DIR_mapped+"{sample}_bismark_pe_mapping.log"
     message: """-------------   Mapping paired-end reads to genome {VERSION}. ------------- """
     shell:
-        "nice -"+str(NICE)+" {BISMARK} {params}  -1 {input.fin1} -2 {input.fin2} 2> {log}"
+        "nice -"+str(NICE)+" {BISMARK} {params} --multicore "+bismark_cores+" -1 {input.fin1} -2 {input.fin2} 2> {log}"
 
 
 # ==========================================================================================
@@ -220,7 +272,7 @@ rule bismark_genome_preparation:
         verbose = "--verbose "
     log:
         'bismark_genome_preparation_'+VERSION+'.log'
-    message: """ --------  converting {VERSION} Genome into Bisulfite analogue ------- """
+    message: """ --------  Converting {VERSION} Genome into Bisulfite analogue ------- \n """
     shell:
         "nice -"+str(NICE)+" {BISMARK_GENOME_PREPARATION} {params} {input} 2> {log}"
 
@@ -238,10 +290,10 @@ rule fastqc_after_trimming_se:
         outdir = "--outdir "+DIR_posttrim_QC
     log:
    	    DIR_posttrim_QC+"{sample}_trimmed_fastqc.log"
-    message: """ ------------  Quality checking trimmmed single-end data with Fastqc ------------- """
+    message: """ ------------  Quality checking trimmmed single-end data from {input} ------------- """
     shell:
         "nice -"+str(NICE)+" {FASTQC} {params.outdir} {input} 2> {log}"
-#--------
+#-----------------------
 rule fastqc_after_trimming_pe:
     input:
         DIR_trimmed+"{sample}_1_val_1.fq.gz",
@@ -256,7 +308,7 @@ rule fastqc_after_trimming_pe:
         outdir = "--outdir "+DIR_posttrim_QC
     log:
    	    DIR_posttrim_QC+"{sample}_trimmed_fastqc.log"
-    message: """ ------------  Quality checking trimmmed paired-end data with Fastqc ------------- """
+    message: """ ------------  Quality checking trimmmed paired-end data from {input} ------------- """
     shell:
         "nice -"+str(NICE)+" {FASTQC} {params.outdir} {input} 2> {log}"
 
@@ -277,7 +329,7 @@ rule trimgalore_se:
     log:
        DIR_trimmed+"{sample}.trimgalore.log"
     message:
-       " ---------  Trimming raw single-end read data using {TRIMGALORE} -------  "
+       " ---------  Trimming raw single-end read data from {input}  -------  "
     shell:
        "nice -"+str(NICE)+" {TRIMGALORE} {params} {input} 2> {log}"
 
@@ -299,14 +351,14 @@ rule trimgalore_pe:
     log:
         DIR_trimmed+"{sample}.trimgalore.log"
     message:
-        " ---------  Trimming raw paired-end read data using {TRIMGALORE} -------  "
+        " ---------  Trimming raw paired-end read data from {input}  -------  "
     shell:
         "nice -"+str(NICE)+" {TRIMGALORE} {params} {input} 2> {log}"
 
 # ==========================================================================================
 # raw quality control
 
-rule fastqc_raw: #----only need one: covers BOTH PE and SE cases.
+rule fastqc_raw: #----only need one: covers BOTH pe and se cases.
     input:
         PATHIN+"{sample}.fq.gz"
     output:
@@ -315,9 +367,8 @@ rule fastqc_raw: #----only need one: covers BOTH PE and SE cases.
     params:
         fastqc_args = config.get("fastqc_args", ""),
         outdir = "--outdir "+ DIR_rawqc     # usually pass params as strings instead of wildcards.
-
     log:
         DIR_rawqc+"{sample}_fastqc.log"
-    message: """ ----------  Quality checking raw read data with {FASTQC}.  --------------   """
+    message: """ ----------  Quality checking raw read data from {input}  --------------   """
     shell:
-        "nice -"+str(NICE)+" {FASTQC} {params.outdir}  {input} 2> {log}"
+        "nice -"+str(NICE)+" {FASTQC} {params}  {input} 2> {log}"
