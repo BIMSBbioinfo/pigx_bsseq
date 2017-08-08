@@ -1,9 +1,9 @@
 [[ GENERAL PARAMETERS ]]
-PATHIN="/home/bosberg/bs/pigx_sandbox/test_dataset/in/"
-PATHOUT="/home/bosberg/bs/pigx_sandbox/test_dataset/out/"
-GENOMEPATH="/home/bosberg/bs/ref_genome/ce10/"
-LOG="/home/bosberg/bs/pigx_sandbox/test_dataset/out/"
-CHROM_INFO="/home/bosberg/bs/ref_genome/ce10/chromInfo.txt"
+PATHIN="/home/kwreczy/repositories/pigx_bsseq/test_dataset/in/"
+PATHOUT="/data/akalin/kwreczy/my_output/"
+GENOMEPATH="/data/akalin/kwreczy/ce10/"
+LOG="/data/akalin/kwreczy/log/"
+CHROM_INFO="/data/akalin/kwreczy/chromInfo_ce10.txt"
 GENOME_VERSION="ce10"
 NUMTHREADS="2"
 bismark_args=" --multicore 2 -N 1 -L 2 "
@@ -14,12 +14,13 @@ RCODE="2K_"
 bam_methCall_args_mincov="0"
 bam_methCall_args_minqual="10"
 NICE="19"
+diffmeth_cores="5"
 
 [[ SAMPLES ]]
 Read1,Read2,SampleID,ReadType,Treatment
-output2K_1.fq.gz,output2K_2.fq.gz,sampleA,WGBS,A
-output2K_1.fq.gz,,sampleB,WGBS,B
+output2K_1.fq.gz,output2K_2.fq.gz,sampleA,WGBS,1
+output2K_1.fq.gz,,sampleB,WGBS,0
 
 
 [[ DIFFERENTIAL METHYLATION ]]
-A, B
+1, 0

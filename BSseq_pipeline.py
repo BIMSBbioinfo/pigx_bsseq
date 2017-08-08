@@ -34,6 +34,7 @@ include   : "./scripts/func_defs.py"
 
 #---------------------------------     DEFINE PATHS AND FILE NAMES:  ----------------------------------
 
+<<<<<<< HEAD
 PATHIN          = "path_links/input/"       #--- location of the data files to be imported --shell script creates symbolic link. 
 GENOMEPATH      = "path_links/refGenome/"   #--- where the reference genome being mapped to is stored
 GTOOLBOX        = config["GTOOLBOX"]        #--- where the programs are stored to carry out the necessary operations

@@ -44,7 +44,7 @@ workdir   <- params$workdir
 cores     <- params$cores
 
 
-saveRDS(params, "~/tmp/params_diffmeth.rds") ### sth is wrong in the calculateDiffMeth function, I dont know what.
+#saveRDS(params, "~/tmp/params_diffmeth.rds") ### sth is wrong in the calculateDiffMeth function, I dont know what.
 
 ```
 
