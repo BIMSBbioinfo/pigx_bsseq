@@ -188,7 +188,7 @@ def createConfigfile(tablesheet, outfile, *args):
   
   # Load pairs of treatments for differential methylation
   diff_meth = sections['differential methylation']
-  diff_meth_params = parseDiffMeth(diffmeth, sample_params)
+  diff_meth_params = parseDiffMeth(diff_meth, sample_params)
 
   # Create a config file  
   config=gen_params
