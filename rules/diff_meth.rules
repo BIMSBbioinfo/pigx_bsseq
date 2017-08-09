@@ -83,11 +83,11 @@ def diffmeth_input_function(wc):
     indx = SAMPLE_TREATMENTS.index(t)
     sampleid = SAMPLE_IDS[indx]
     
-    fqname = config["SAMPLES"][sampleid]["fastq_name"]
+    fqname = config["SAMPLES"][sampleid]['fastq_name']
     if len(fqname)==1:
-      inputfile=[METHCALLDIR + fqname[0]+"_se_bt2.deduped.sorted_CpG.txt"]
+      inputfile=[METHCALLDIR + sampleid+"_se_bt2.deduped.sorted_CpG.txt"]
     elif len(fqname)==2:
-      inputfile=[METHCALLDIR + fqname[0]+"_val_1_bt2.deduped.sorted_CpG.txt"]
+      inputfile=[METHCALLDIR + sampleid+"_1_val_1_bt2.deduped.sorted_CpG.txt"]
 
     inputfiles.append(inputfile)
   
