@@ -18,8 +18,6 @@ NICE="19"
 Read1,Read2,SampleID,ReadType,Treatment
 sampleA.pe1.fq.gz,sampleA.pe2.fq.gz,sampleA,WGBS,0
 sampleB.se.fq.gz,,sampleBse,WGBS,1
-sampleB.pe1.fq.gz,sampleB.pe1.fq.gz,sampleBpe,WGBS,2
-
 
 [[ DIFFERENTIAL METHYLATION ]]
 0, 1

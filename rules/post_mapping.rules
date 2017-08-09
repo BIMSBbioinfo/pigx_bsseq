@@ -134,8 +134,8 @@ rule bam_methCall:
         ## absolute path to bamfiles
         inBam       = WORKDIR + BAMDIR + "{prefix}.sorted.bam",
         assembly    = config["GENOME_VERSION"],
-        mincov      = int(config["bam_methCall_args_mincov"]), ##TODO
-        minqual     = int(config["bam_methCall_args_minqual"]), ##TODO
+        mincov      = int(config["bam_methCall_args_mincov"]), 
+        minqual     = int(config["bam_methCall_args_minqual"]),
         ## absolute path to output folder in working dir
         rdata       = WORKDIR + METHCALLDIR + "{prefix}.sorted_methylRaw.RData"
     log:

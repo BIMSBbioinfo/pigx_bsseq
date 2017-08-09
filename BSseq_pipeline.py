@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.5
+#!/usr/bin/env python3
 
 #============================================================================================================
 # SNAKEMAKE FILE WRITTEN BY THE AKALIN GROUP AT MDC, BERLIN, 2017
@@ -42,7 +42,6 @@ include   : "./scripts/func_defs.py"
 
 #---------------------------------     DEFINE PATHS AND FILE NAMES:  ----------------------------------
 
-<<<<<<< HEAD
 PATHIN          = "path_links/input/"       #--- location of the data files to be imported --shell script creates symbolic link. 
 GENOMEPATH      = "path_links/refGenome/"   #--- where the reference genome being mapped to is stored
 GTOOLBOX        = config["GTOOLBOX"]        #--- where the programs are stored to carry out the necessary operations
@@ -71,23 +70,20 @@ SAMTOOLS                       =  GTOOLBOX+config["PROGS"]["SAMTOOLS"]
 # --- last rule that you wish to have executed.
 
 
-
-print(config)
-
 OUTPUT_FILES = [
 		#               ==== one-time rule: genome-prep =======
 		# GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
         	# GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa"
  
                 #               ==== rule 01 raw QC    =========
-                [ expand (list_files_rawQC(DIR_rawqc, config["SAMPLES"][sample]["files"], config["SAMPLES"][sample]["SampleID"] )  ) for sample in config["SAMPLES"]  ],
+                #[ expand (list_files_rawQC(DIR_rawqc, config["SAMPLES"][sample]["files"], config["SAMPLES"][sample]["SampleID"] )  ) for sample in config["SAMPLES"]  ],
 
                 #----RULE 2 IS ALWAYS EXECUTED, TRIMMING IS A PREREQUISITE FOR SUBSEQUENT RULES ----
                 #               ==== rule 02 trimgalore ======
                 #[ expand ( list_files_TG( DIR_trimmed, config["SAMPLES"][sample]["files"], config["SAMPLES"][sample]["SampleID"] ) ) for sample in config["SAMPLES"]  ],
                 
                 #               ==== rule 03 posttrim_QC_ ======
-                [ expand ( list_files_posttrim_QC(DIR_posttrim_QC, config["SAMPLES"][sample]["files"] , config["SAMPLES"][sample]["SampleID"]  )  ) for sample in config["SAMPLES"]  ],
+                #[ expand ( list_files_posttrim_QC(DIR_posttrim_QC, config["SAMPLES"][sample]["files"] , config["SAMPLES"][sample]["SampleID"]  )  ) for sample in config["SAMPLES"]  ],
                 #--- fastQC output files are not needed downstream and need to be called explicitly.
                 
                 #               ==== rule 04 mapping ======
@@ -106,8 +102,8 @@ OUTPUT_FILES = [
                 [ expand ( bam_processing(METHCALLDIR, config["SAMPLES"][sample]["files"] )  ) for sampleID in config["SAMPLES"]  ], #had to add it to call bam_methCall for diff meth rule
                 
                 #               ==== rule Bam processing ======
-                [ expand ( bam_processing(METHCALLDIR, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ], #had to add it to call bam_methCall for diff meth rule
-                
+                #[ expand ( bam_processing(METHCALLDIR, config["SAMPLES"][sample]["files"], sample )  ) for sample in config["SAMPLES"]  ], # TODO: had to add this line to call bam_methCall for diff meth rule
+
                 # ==================  FINAL REPORT =========================
                 # TODO: This needs to be editted once we determine what final reports we want to export!
 		[ expand ( Annot(DIR_annot, config["SAMPLES"][sample]["files"], VERSION, config["SAMPLES"][sample]["SampleID"] ) ) for sample in config["SAMPLES"]  ]
@@ -119,6 +115,8 @@ OUTPUT_FILES = [
 		            
 
 ]
+
+print( OUTPUT_FILES  )
 
 
 #--- NICE gauges the computational burden, ranging from -19 to +19.

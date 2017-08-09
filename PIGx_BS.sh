@@ -162,7 +162,6 @@ ln -sfn ${path_refG} ${path_OUT}"/path_links/refGenome" 2>/dev/null
 python scripts/create_file_links.py $path2configfile
 
 
-
 #========================================================================================
 #----------  NOW START RUNNING SNAKEMAKE:  ----------------------------------------------
 

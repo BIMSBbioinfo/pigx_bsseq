@@ -78,6 +78,8 @@ cat(paste(
   "into directory:",normalizePath(dirname(snakemake@output[["report"]])),"\n"
 ))
 
+Sys.setenv(RSTUDIO_PANDOC="/usr/lib/rstudio-server/bin/pandoc")######################################TODO
+
 
 render2Report(reportFile = normalizePath(snakemake@input[["template"]]),
               outFile = basename(snakemake@output[["report"]]),
