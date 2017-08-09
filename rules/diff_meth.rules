@@ -103,15 +103,15 @@ rule diffmeth:
         inputfiles  = diffmeth_input_function
     output: 
         report      = DIFFMETHDIR + "{treatment}.sorted_diffmeth.nb.html",
-        grfile      = DIFFMETHDIR + "{treatment}.sorted_diffmeth.RData",
+        methylDiff_file  = DIFFMETHDIR + "{treatment}.sorted_diffmeth.RDS",
         bedfile     = DIFFMETHDIR + "{treatment}.sorted_diffmeth.bed"
     params:
         workdir     = WORKDIR,
         inputfiles  = diffmeth_input_function,
         sampleids   = lambda wc: [SAMPLE_IDS[SAMPLE_TREATMENTS.index(t)] for t in wc.treatment.split("_")],
-        grdata      = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmeth.RData",
-        grdata_hyper  = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmethhyper.RData",
-        grdata_hypo   = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmethhypo.RData",
+        methylDiff_file      = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmeth.RDS",
+        methylDiff_hyper_file  = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmethhyper.RDS",
+        methylDiff_hypo_file   = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmethhypo.RDS",
         outBed      = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmeth.bed",
         assembly    = config["GENOME_VERSION"],
         treatment   = lambda wc: wc.treatment.split("_"),
@@ -138,9 +138,9 @@ rule annotation_diffmeth:
         inBed       = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmeth.bed",
         assembly    = config["GENOME_VERSION"],
         refseqfile  = WORKDIR + ANNODIR + "refseq.genes.{assembly}.bed",
-        grFile      = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmeth.RData",
-        grFile_hyper= WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmethhyper.RData",
-        grFile_hypo = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmethhypo.RData",
+        methylDiff_file  = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmeth.RDS",
+        methylDiff_hyper_file = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmethhyper.RDS",
+        methylDiff_hypo_file  = WORKDIR + DIFFMETHDIR + "{treatment}.sorted_diffmethhypo.RDS",
         ideoDMC_script = SCRIPTDIR + "ideoDMC.R"
     log:
         ANNODIR + "{treatment}.sorted_{assembly}_annotation.diff.meth.log"
