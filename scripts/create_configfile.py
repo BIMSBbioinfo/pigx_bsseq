@@ -125,7 +125,14 @@ def parseTable2dict(lines):
   outputdict1['SAMPLES'] =  outputdict 
   return( outputdict1 )
   
-  
+# -------------------------------------------------------------------------------
+def num(s):
+    try:
+        return int(s)
+    except:
+        print("Treatment has to be a numeric value.")
+        exit()
+        
 def parseDiffMeth(lines, sample_params):
   """
   Parse lines with information pairs samples
@@ -153,7 +160,13 @@ def parseDiffMeth(lines, sample_params):
   treatments_samples = set([sample_params['SAMPLES'][s]['Treatment'] 
                             for s in sample_params['SAMPLES'].keys()])
   # treatments values from the [[ DIFFERENTIAL METHYLATION ]] part
-  treatments_diffmeth = set(sum(list_of_list, []))
+  treatments_diffmeth = sum(list_of_list, [])
+  
+  # treatment values have to be numeric in the current methylKit implementation
+  treatments_diffmeth =[num(i) for i in treatments_diffmeth]
+  treatments_samples = [num(i) for i in treatments_samples]
+
+  treatments_diffmeth = set(treatments_diffmeth)
   if treatments_diffmeth.issubset(treatments_samples)==False:
     invalid_treatments = list(set(treatments_diffmeth) - set(treatments_samples))
     raise Exception("Invalid treatment value(s) " + ", ".join(invalid_treatments))

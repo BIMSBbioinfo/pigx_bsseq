@@ -118,15 +118,21 @@ ideoDMC_hyper_hypo <- function(methylDiff.hyper, methylDiff.hypo, chrom.length,
     
   } else {
     
-    p <- ggplot() + layout_karyogram(myIdeo, cytoband = FALSE)
-    p + layout_karyogram(c(g.po, g.per), geom = "point", size = 1, 
-                         aes(x = midpoint, 
-                             y = meth.diff, color = id)) + scale_colour_manual("Regions", values = c(hyper.col, 
-                                                                                                     hypo.col)) + labs(title = title)
-    # new alternative commented out
-    #autoplot(c(g.po, g.per), layout = "karyogram", geom = "point", size = 0.65, 
-    #aes(x = midpoint,y = meth.diff, color = id))  + scale_colour_manual(values = c(hyper.col, 
-    #                                                                                        hypo.col)) + labs(title = title)
     
+    # this doesnt work, because somehow the second layout_karyogram shortens some chromosomes..
+    #available.genomes = levels(ucscGenomes()$db)
+    # p <- ggplot() + layout_karyogram(myIdeo, cytoband = FALSE)
+    # p + layout_karyogram(c(g.po, g.per),  geom = "point", size = 1, 
+    #                      aes(x = midpoint, 
+    #                          y = meth.diff, color = id)) + scale_colour_manual("Regions", values = c(hyper.col, 
+    #                                                                                                  hypo.col)) + labs(title = title)
+    # new alternative commented out
+    d = c(g.per, g.po)
+    d$midpoint = start(d)
+    autoplot(d, layout = "karyogram", geom = "point", size = 0.65,
+             aes(x = midpoint,y = meth.diff, color = id))  + 
+      scale_colour_manual(values = c(hyper.col, hypo.col)) + 
+      labs(title = title) +
+      scale_fill_manual(values = "green")
   }
 }
