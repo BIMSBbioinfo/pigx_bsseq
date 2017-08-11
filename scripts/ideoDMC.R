@@ -76,7 +76,7 @@ ideoDMC <- function(methylDiff.obj, chrom.length, difference = 25,
 }
 
 ideoDMC_hyper_hypo <- function(methylDiff.hyper, methylDiff.hypo, chrom.length, 
-                               circos = FALSE, title = "test", hyper.col = "magenta", 
+                               circos = FALSE, title = "Differentially methylated cytosines", hyper.col = "magenta", 
                                hypo.col = "green") {
   require(methylKit)
   require(GenomicRanges)
@@ -128,11 +128,14 @@ ideoDMC_hyper_hypo <- function(methylDiff.hyper, methylDiff.hypo, chrom.length,
     #                                                                                                  hypo.col)) + labs(title = title)
     # new alternative commented out
     d = c(g.per, g.po)
-    d$midpoint = start(d)
-    autoplot(d, layout = "karyogram", geom = "point", size = 0.65,
-             aes(x = midpoint,y = meth.diff, color = id))  + 
-      scale_colour_manual(values = c(hyper.col, hypo.col)) + 
-      labs(title = title) +
-      scale_fill_manual(values = "green")
+    p = autoplot(myIdeo, layout = "karyogram")
+    p + layout_karyogram(d, geom = "point", size = 0.65,
+                         aes(x = start,  y = meth.diff, color = id))+
+      scale_colour_manual(values = c(hyper.col, hypo.col))+
+      labs(title = title) 
   }
 }
+
+
+
+

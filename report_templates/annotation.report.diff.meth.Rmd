@@ -300,30 +300,18 @@ hist(assoTSS[,2], main="Distance to the nearest TSS", xlab="bp", ylab="Frequency
 
 if(length(GRanges.diffmeth.hypo)>1 & length(GRanges.diffmeth.hyper)>1){
 
-  
-#TODO: check if this genome assembly is available
-# if not add length of chromosomes base on only methylDiff.obj objects
-require(rtracklayer)  
-available.genomes = levels(ucscGenomes()$db)  
-  
-if(assembly %in% available.genomes){
-  
-  require(GenomeInfoDb)
-  chr.len.df=fetchExtendedChromInfoFromUCSC(assembly,
+require(GenomeInfoDb)
+chr.len.df=fetchExtendedChromInfoFromUCSC(assembly,
         goldenPath_url="http://hgdownload.cse.ucsc.edu/goldenPath",
         quiet=FALSE)
-  chr.len=chr.len.df[,2]
-  names(chr.len)=chr.len.df[,1]
+chr.len=chr.len.df[,2]
+names(chr.len)=chr.len.df[,1]
 
-  myseqinfo = Seqinfo(chr.len.df[,1], seqlengths=chr.len.df[,2], genome=assembly)
-  myseqinfo.st = keepStandardChromosomes(myseqinfo)
+myseqinfo = Seqinfo(chr.len.df[,1], seqlengths=chr.len.df[,2], genome=assembly)
+myseqinfo.st = keepStandardChromosomes(myseqinfo)
 
-
-  plot( ideoDMC_hyper_hypo(methylDiff.obj_hyper, methylDiff.obj_hypo, chrom.length = seqlengths( myseqinfo.st ),
-   circos = FALSE, title = "Differential methylation", hyper.col = "magenta", hypo.col = "green") )
-
-}
-
+plot( ideoDMC_hyper_hypo(methylDiff.obj_hyper, methylDiff.obj_hypo, chrom.length = seqlengths( myseqinfo.st ),
+       circos = FALSE, title = "Differential methylation", hyper.col = "magenta", hypo.col = "green") )
 
 }
 
