@@ -91,7 +91,7 @@ OUTPUT_FILES = [
                 # [ expand ( list_files_xmeth( DIR_xmethed, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
 
                 #               ==== rule Bam processing ======
-                [ expand ( bam_processing(METHCALLDIR, config["SAMPLES"][sample]["files"] )  ) for sampleID in config["SAMPLES"]  ], #had to add it to call bam_methCall for diff meth rule
+                [ expand ( bam_processing(METHCALLDIR, config["SAMPLES"][sample]["files"], sample)  ) for sample in config["SAMPLES"]  ], #had to add it to call bam_methCall for diff meth rule
                 
                 #               ==== rule Bam processing ======
                 #[ expand ( bam_processing(METHCALLDIR, config["SAMPLES"][sample]["files"], sample )  ) for sample in config["SAMPLES"]  ], # TODO: had to add this line to call bam_methCall for diff meth rule
