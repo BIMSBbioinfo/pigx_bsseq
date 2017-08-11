@@ -108,7 +108,6 @@ OUTPUT_FILES = [
 
 ]
 
-print( OUTPUT_FILES  )
 
 
 #--- NICE gauges the computational burden, ranging from -19 to +19.
@@ -124,8 +123,6 @@ def nice(cmd):
 # print("OUTPUT_FILES=")
 # for x in OUTPUT_FILES: print( x)
 #-------
-print("OUTPUT_FILES")
-print(OUTPUT_FILES)
 
 # ==============================================================================================================
 #
