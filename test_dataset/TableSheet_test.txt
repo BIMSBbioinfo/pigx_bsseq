@@ -1,9 +1,9 @@
 [[ GENERAL PARAMETERS ]]
-PATHIN="/home/kwreczy/repositories/pigx_bsseq/test_CElegans/in/"
+PATHIN="/scratch/AG_Akalin/kwreczy/pigx_testdata/in/"
 PATHOUT="/home/kwreczy/tmp/my_output/"
-GENOMEPATH="/data/akalin/Base/Genomes/ce10/"
+GENOMEPATH="/scratch/AG_Akalin/kwreczy/pigx_testdata/in/genome/"
 LOG="/home/kwreczy/tmp/logs/"
-GENOME_VERSION="ce10"
+GENOME_VERSION="hg38"
 bismark_args=" -N 1 -L 2"
 fastqc_args=""
 trim_galore_args=""
@@ -23,8 +23,10 @@ numjobs="30"
 
 [[ SAMPLES ]]
 Read1,Read2,SampleID,ReadType,Treatment
-PEtest_strand-A.fq.gz,PEtest_strand-B.fq.gz,sampleA,WGBS,0
-SEtest.fq.gz,,sampleBse,WGBS,1
+ENCFF079RGH_sorted_chr1_2564471_2571599_1.fq.gz,ENCFF079RGH_sorted_chr1_2564471_2571599_2.fq.gz,pe1,WGBS,0
+ENCFF151RSB_sorted_chr1_2564471_2571599.fq.gz,,se1,WGBS,1
+ENCFF732MWA_sorted_chr1_2564471_2571599.fq.gz,,se2,WGBS,2
 
 [[ DIFFERENTIAL METHYLATION ]]
 0, 1
+2, 1
