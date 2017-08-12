@@ -1,5 +1,5 @@
 [[ GENERAL PARAMETERS ]]
-PATHIN="./test_hg38/"
+PATHIN="./test_hg38/in"
 PATHOUT="/home/kwreczy/tmp/my_output/"
 GENOMEPATH="./test_hg38/genome/"
 LOG="/home/kwreczy/tmp/logs/"
