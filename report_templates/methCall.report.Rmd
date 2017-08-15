@@ -13,9 +13,9 @@ output:
 output_dir: "methylation_calls/"
 output_file: "sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted.meth_calls.html"
 date: "`r Sys.Date()`"
-bibliography: reports.bib
+#bibliography: reports.bib
 params:
-  inBam:    ""#../test_dataset/sample_bam_files/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted.bam"
+  inBam:    "../test_dataset/sample_bam_files/sampleA.pe1_trimmed_bismark_bt2.deduplicated.sorted.bam"
   assembly: "ce10"
   mincov:   10
   minqual:  20
@@ -31,7 +31,6 @@ mincov    <- params$mincov
 minqual   <- params$minqual
 rdatafile <- params$rdata
 ```
-
 
 ## Methylation Calling Report
 
@@ -113,7 +112,6 @@ but to enable direct loading of the `methylRaw` object it is saved for further a
 Here we show some simple statistics as distribution of methylation and coverage.
 
 ```{r, fig.show="hold"}
-
 
     ## show some statistics of the data  
     par(mfrow = c(1,2))

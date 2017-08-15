@@ -214,4 +214,3 @@ if [ ${cluster_run} = true ] || [ ${cluster_run} = TRUE ]
   else
     echo "ERROR: cluster_run string interpreted as: " ${cluster_run} "-- this is not understood to be either true or false (all characters in the word must be the same case --UPPER or lower, but not MiXEd). Exiting."
 fi
-
