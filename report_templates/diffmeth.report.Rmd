@@ -25,10 +25,22 @@ params:
   context: "CpG"
   workdir: "~/outputdir/"
   cores: 2
+  sessioninfo: TRUE
+  references: TRUE
 ---
+
+
+```{r include=FALSE}
+makeSessioninfo=params$sessioninfo
+makeReferences = params$references
+```
   
   
 ```{r eval_params, echo=FALSE}
+
+#saveRDS(params, "~/params.RDS")
+#params = readRDS("~/params.RDS")
+#print(getwd())
 
 input     <- params$inputfiles
 sampleids <- params$sampleids
@@ -43,7 +55,9 @@ context   <- params$context
 workdir   <- params$workdir
 cores     <- as.numeric(params$cores)
 
+
 ```
+
 
 # Differential methylation report
 
@@ -66,6 +80,17 @@ suppressPackageStartupMessages(expr = {
   library("methylKit",warn.conflicts = FALSE,quietly = TRUE)
   library("DT",warn.conflicts = FALSE,quietly = TRUE)
 })
+
+```
+
+```{r}
+# This code is to test if diff. meth reports will work on data that contain diff. meth. cytosines.
+# by using fake input files (takes from the methylKit library).
+#fake_input=c(  "/home/kwreczy/repositories/pigx_bsseq/test_CElegans/tmp/test1.myCpG1.txt",
+#              "/home/kwreczy/repositories/pigx_bsseq/test_CElegans/tmp/control2.myCpG1.txt"
+#              )
+#file.copy(fake_input[1], paste0(workdir, input)[1], overwrite=TRUE)
+#file.copy(fake_input[2], paste0(workdir, input)[2], overwrite=TRUE)
 
 ```
 
@@ -130,7 +155,7 @@ methRawList.obj = methRead(as.list(inputfiles),
 # Take bases with coverage in all samples.
 meth.unite=unite(methRawList.obj, destrand=FALSE)
 
-meth.unite.nonempty = nrow(meth.unite)<1
+meth.unite.nonempty = nrow(meth.unite)>1
 if(!meth.unite.nonempty) print("There are no bases with coverage in all samples")
 
 
@@ -141,33 +166,33 @@ difference = 25
 qvalue = 0.01
 
 
+
 if(nrow(meth.unite)>1){
 
-  meth.diffmeth <- calculateDiffMeth(meth.unite, 
+      meth.diffmeth <- calculateDiffMeth(meth.unite, 
                                    overdispersion="MN",
                                    adjust = "qvalue",
                                    test="Chisq",
-                                   mc.cores=cores)
+                                   mc.cores=cores) 
 
-  # Get differentially methylated regions/bases based on cutoffs  
-  methylDiff.obj = getMethylDiff(meth.diffmeth, 
+      # Get differentially methylated regions/bases based on cutoffs  
+      methylDiff.obj = getMethylDiff(meth.diffmeth, 
                                difference=difference,
                                type="all",
                                qvalue=qvalue)
-  # Get hypo-methylated
-  methylDiff.obj.hypo = getMethylDiff(meth.diffmeth,
+      # Get hypo-methylated
+      methylDiff.obj.hypo = getMethylDiff(meth.diffmeth,
                                     difference=difference,
                                     type="hypo",
                                     qvalue=qvalue)
-  # Get hyper-methylated
-  methylDiff.obj.hyper = getMethylDiff(meth.diffmeth,
+      # Get hyper-methylated
+      methylDiff.obj.hyper = getMethylDiff(meth.diffmeth,
                                      difference=difference,
                                      type="hyper",
                                      qvalue=qvalue)
 
 }else{
-  
-  create.empty.methylDiff = function(sampleids, assembly, context, treatment){
+    create.empty.methylDiff = function(sampleids, assembly, context, treatment){
       new("methylDiff",
           sample.ids = sampleids, 
           assembly = assembly,
@@ -176,9 +201,8 @@ if(nrow(meth.unite)>1){
           # strand.aware is set to FALSe by defualt in methylKit@1.3.3
           destranded=FALSE, 
           resolution="base"
-    )
-  }
-    
+      )
+    }
     methylDiff.obj = create.empty.methylDiff(meth.unite@sample.ids, assembly, context, treatment)
     methylDiff.obj.hypo = create.empty.methylDiff(meth.unite@sample.ids, assembly, context, treatment)
     methylDiff.obj.hyper = create.empty.methylDiff(meth.unite@sample.ids, assembly, context, treatment)
@@ -188,7 +212,7 @@ if(nrow(meth.unite)>1){
 
 
 # Check if there are some differentially methylated cytosines
-methylDiff.nonempty = nrow(methylDiff.obj)<1
+methylDiff.nonempty = nrow(methylDiff.obj)>1
 if(!methylDiff.nonempty) print("There are no differentially methylated bases")
 meth.unite.or.methylDiff.nonempty = meth.unite.nonempty | methylDiff.nonempty
 ```
@@ -321,12 +345,19 @@ saveRDS(methylDiff.obj.hyper, methylDiff_hyper_file)
 ```
 
 
-## Session Info
+`r if(makeSessioninfo) {"### Session Info"}`
 
-```{r sessioninfo}
+```{r ,include=makeSessioninfo  }
 sessionInfo()
 ```
 
 
+<!-- this section is used to generate a merged sessioninfo from multiple reports -->
+```{r, include=FALSE }
+session_file <- tempfile(pattern = 'session',tmpdir = ".",fileext = '.rds')
+sess <- sessionInfo()
+saveRDS(sess,file = session_file)
+```
 
-## References
+
+`r if(makeReferences) {"### References"}`

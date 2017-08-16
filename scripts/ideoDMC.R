@@ -128,7 +128,7 @@ ideoDMC_hyper_hypo <- function(methylDiff.hyper, methylDiff.hypo, chrom.length,
     p = autoplot(myIdeo, layout = "karyogram")
     p + layout_karyogram(d, geom = "point", size = 0.65,
                          aes(x = start,  y = meth.diff, color = id))+
-      scale_colour_manual(values = c(hyper.col, hypo.col))+
+      scale_colour_manual("", values = c(hyper.col, hypo.col))+
       labs(title = title) 
   }
 }

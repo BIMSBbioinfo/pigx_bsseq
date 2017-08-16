@@ -22,6 +22,8 @@ params:
   methylDiff_hyper_file:    "/blala.RDS"
   methylDiff_hypo_file:    "/blabla.RDS"
   ideoDMC_script: "/blabla/scripts/ideoDMC.R"
+  sessioninfo: TRUE
+  references: TRUE
 ---
 
 ```{r eval_params, echo=FALSE}
@@ -310,8 +312,9 @@ names(chr.len)=chr.len.df[,1]
 myseqinfo = Seqinfo(chr.len.df[,1], seqlengths=chr.len.df[,2], genome=assembly)
 myseqinfo.st = keepStandardChromosomes(myseqinfo)
 
-plot( ideoDMC_hyper_hypo(methylDiff.obj_hyper, methylDiff.obj_hypo, chrom.length = seqlengths( myseqinfo.st ),
-       circos = FALSE, title = "Differential methylation", hyper.col = "magenta", hypo.col = "green") )
+source(ideoDMC_script)
+ideoDMC_hyper_hypo(methylDiff.obj_hyper, methylDiff.obj_hypo, chrom.length = seqlengths( myseqinfo.st ),
+       circos = FALSE, title = "Differential methylation", hyper.col = "magenta", hypo.col = "green") 
 
 }
 

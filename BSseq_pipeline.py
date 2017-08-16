@@ -28,7 +28,6 @@ DIR_final    = "final_Report/"
 #------ set config file, include function definitions, and set os:
 import os
 include   : "./rules/post_mapping.rules"
-include   : "./rules/diff_meth.rules"
 include   : "./scripts/func_defs.py"
 
 
@@ -63,48 +62,46 @@ SAMTOOLS                       =  GTOOLBOX+config["PROGS"]["SAMTOOLS"]
 
 
 OUTPUT_FILES = [
-		#               ==== one-time rule: genome-prep =======
-		GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
-        	GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa",
+		            #               ==== one-time rule: genome-prep =======
+		            # GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
+        	      # GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa"
  
                 #               ==== rule 01 raw QC    =========
-                [ expand (list_files_rawQC(DIR_rawqc, config["SAMPLES"][sample]["files"], config["SAMPLES"][sample]["SampleID"] )  ) for sample in config["SAMPLES"]  ],
+                #[ expand (list_files_rawQC(DIR_rawqc, config["SAMPLES"][sample]["files"], config["SAMPLES"][sample]["SampleID"] )  ) for sample in config["SAMPLES"]  ],
 
                 #----RULE 2 IS ALWAYS EXECUTED, TRIMMING IS A PREREQUISITE FOR SUBSEQUENT RULES ----
                 #               ==== rule 02 trimgalore ======
-                [ expand ( list_files_TG( DIR_trimmed, config["SAMPLES"][sample]["files"], config["SAMPLES"][sample]["SampleID"] ) ) for sample in config["SAMPLES"]  ],
+                #[ expand ( list_files_TG( DIR_trimmed, config["SAMPLES"][sample]["files"], config["SAMPLES"][sample]["SampleID"] ) ) for sample in config["SAMPLES"]  ],
                 
                 #               ==== rule 03 posttrim_QC_ ======
                 [ expand ( list_files_posttrim_QC(DIR_posttrim_QC, config["SAMPLES"][sample]["files"] , config["SAMPLES"][sample]["SampleID"]  )  ) for sample in config["SAMPLES"]  ],
                 #--- fastQC output files are not needed downstream and need to be called explicitly.
                 
                 #               ==== rule 04 mapping ======
-                [ expand ( list_files_bismark(DIR_mapped, config["SAMPLES"][sample]["files"], config["SAMPLES"][sample]["SampleID"]   )  ) for sample in config["SAMPLES"]  ],
+                #[ expand ( list_files_bismark(DIR_mapped, config["SAMPLES"][sample]["files"], config["SAMPLES"][sample]["SampleID"]   )  ) for sample in config["SAMPLES"]  ],
               
                 #               ==== rule 05 deduplication ======
-                [ expand ( list_files_dedupe(DIR_deduped, config["SAMPLES"][sample]["files"], config["SAMPLES"][sample]["SampleID"]  )  ) for sample in config["SAMPLES"]  ],
+                # [ expand ( list_files_dedupe(DIR_deduped, config["SAMPLES"][sample]["files"], config["SAMPLES"][sample]["SampleID"]  )  ) for sample in config["SAMPLES"]  ],
 
                 #               ==== rule 06 sorting ======
                 #[ expand ( list_files_sortbam(DIR_sorted, config["SAMPLES"][sample]["files"], config["SAMPLES"][sample]["SampleID"]  )  ) for sample in config["SAMPLES"]  ],
                 
                 #               ====rule 07 extract_methylation (if needed) ======
-                #[ expand ( list_files_xmeth( DIR_xmethed, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
+                # [ expand ( list_files_xmeth( DIR_xmethed, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
 
                 #               ==== rule Bam processing ======
-                [ expand ( bam_processing(METHCALLDIR, config["SAMPLES"][sample]["files"], sample)  ) for sample in config["SAMPLES"]  ], #had to add it to call bam_methCall for diff meth rule
-                
-                #               ==== rule Bam processing ======
-                #[ expand ( bam_processing(METHCALLDIR, config["SAMPLES"][sample]["files"], sample )  ) for sample in config["SAMPLES"]  ], # TODO: had to add this line to call bam_methCall for diff meth rule
+                [ expand ( bam_processing(METHCALLDIR, config["SAMPLES"][sample]["files"], sample )  ) for sample in config["SAMPLES"]  ], # TODO: had to add this line to call bam_methCall for diff meth rule
 
+                #               ==== rule Differential methylation calling ======
+		            [ DIFFMETHDIR+"_".join(x)+".sorted_diffmeth.nb.html" for x in config["DIFF_METH"]  ],
+		            
+		            #               ==== rule annotation diff meth cytosines ======
+		            [ DIR_annot+"_".join(x)+".sorted_"+config["GENOME_VERSION"]+"_annotation.diff.meth.nb.html" for x in config["DIFF_METH"]  ],
+		            
                 # ==================  FINAL REPORT =========================
                 # TODO: This needs to be editted once we determine what final reports we want to export!
 		            [ expand ( Final(DIR_final, config["SAMPLES"][sample]["files"], VERSION , config["SAMPLES"][sample]["SampleID"]  )) for sample in config["SAMPLES"]  ]
                 
-		            # diff meth
-		            [ DIFFMETHDIR+"_".join(x)+".sorted_diffmeth.nb.html" for x in config["DIFF_METH"]  ],
-		            # annotation diff meth regions
-		            [ DIR_annot+"_".join(x)+".sorted_"+config["GENOME_VERSION"]+"_annotation.diff.meth.nb.html" for x in config["DIFF_METH"]  ]
-		            
 
 ]
 
