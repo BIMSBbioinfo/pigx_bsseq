@@ -331,21 +331,32 @@ def diff_meth_input(wc):
   sampleid = get_fastq_name(sample)
   treatment_of_sampleid = SAMPLE_TREATMENTS_DICT[ sampleid ]
   
-  diffmeth_reports_sampleid = []
+  mylist = []
   for x in DIFF_METH_TREATMENT_PAIRS:
     if treatment_of_sampleid in x:
-      report = x[0]+"_"+x[1]+".sorted_diffmeth.nb.html"
-      diffmeth_reports_sampleid.append(DIFFMETHDIR + report)
+      name_of_dir = x[0]+"_"+x[1]+".sorted_diffmeth.nb.html"
+      mylist.append(DIFFMETHDIR + name_of_dir)
     
-  return(diffmeth_reports_sampleid)
+  return(mylist)
 
-  
+
+rule integrateFinalReport:
+    input:
+      diffmeth = diff_meth_input
+    output:
+       touch(FINALDIR + "{prefix}_{assembly}_integrateDiffMeth2FinalReport.txt")
+    log:
+       FINALDIR + "{prefix}_{assembly}_integrateFinalReport.log"
+    script:
+      SCRIPTDIR + "integrate2finalreport.R"
+      
 
 ## Final Report
 rule final_report:
     input:  
         rules.methseg_annotation.output,
-        diff_meth_reports = diff_meth_input,
+        #diff_meth_reports = diff_meth_input,
+        rules.integrateFinalReport.output,
         index       = TEMPLATEDIR + "index.Rmd",   
         references  = TEMPLATEDIR + "references.Rmd",
         sessioninfo = TEMPLATEDIR + "sessioninfo.Rmd"

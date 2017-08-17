@@ -269,6 +269,8 @@ cat(paste(
 ))
 
 
+
+
 render2multireport(final_output = normalizePath(snakemake@output[["finalreport"]]),
                    finalreportdir = normalizePath(snakemake@params[["finalreportdir"]]),
                    #workdir = normalizePath(snakemake@params[["workdir"]]),
