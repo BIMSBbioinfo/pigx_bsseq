@@ -108,8 +108,7 @@ render2multireport <- function(final_output,
                                references=NULL,
                                sessioninfo=NULL,
                                self_contained=TRUE,
-                               clean=FALSE,
-                               differential_methylation_reports=NULL) {
+                               clean=FALSE) {
   
   
   meta.file <- list.files(path = finalreportdir,
@@ -208,7 +207,8 @@ render2multireport <- function(final_output,
   #                                                      full.names = TRUE),
   #                               files = inputFiles)
   
-  
+  print("meta.............................")
+  print(meta)
   
   # merge_chapters2(c(index,unlist(meta),references), 
   #                 to = paste0(finalreportdir,"/","finalreport",".Rmd"),  
@@ -268,7 +268,8 @@ cat(paste(
   "\n"
 ))
 
-
+print('-------------------------------------------------------snakemake')
+print(snakemake)
 
 
 render2multireport(final_output = normalizePath(snakemake@output[["finalreport"]]),
@@ -276,9 +277,8 @@ render2multireport(final_output = normalizePath(snakemake@output[["finalreport"]
                    #workdir = normalizePath(snakemake@params[["workdir"]]),
                    index = snakemake@input[["index"]],
                    references = snakemake@input[["references"]],
-                   sessioninfo = snakemake@input[["sessioninfo"]],
-                   differential_methylation_reports=normalizePath(snakemake@input[["diff_meth_reports"]])
-                   )
+                   sessioninfo = snakemake@input[["sessioninfo"]])
+                   
 
 # finalReportDir = "Final_Report/"
 # 

@@ -20,7 +20,7 @@ diff.meth.reports = snakemake@input[['diffmeth']]
 # one for diff. meth. calling
 treatment_pairs = sapply(diff.meth.reports, function(x){
   basex=basename(x)
-  strsplit(basex, ".sorted_diffmeth.nb.html")
+  strsplit(basex, paste0(".sorted_",assembly,"_annotation.diff.meth.nb.html"))
   })
 
 # 1. Copy session info from diff meth to the sample-specific directory
@@ -44,10 +44,8 @@ names(diffmeth_annot_knitrmeta) = paste0(tools::file_path_sans_ext(as.character(
 
 final_knitrmeta = readRDS(paste0("final_Report/",prefix,"/knitr_meta.rds"))
 
-print(names(final_knitrmeta))
-print(names(diffmeth_knitrmeta))
 
-# If diff meth reports are already included in th final report, then dont include it again
+# # If diff meth reports are already included in th final report, then dont include it again
 if( !(any(   names(diffmeth_knitrmeta) %in% names(final_knitrmeta)  ) )){
 
   merged_final_report=c(final_knitrmeta, diffmeth_knitrmeta, diffmeth_annot_knitrmeta)

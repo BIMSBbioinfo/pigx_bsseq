@@ -334,11 +334,8 @@ def diff_meth_input(wc):
   mylist = []
   for x in DIFF_METH_TREATMENT_PAIRS:
     if treatment_of_sampleid in x:
-      name_of_dir = x[0]+"_"+x[1]+".sorted_diffmeth.nb.html"
-      mylist.append(DIFFMETHDIR + name_of_dir)
-  print("diff_meth_inpu")
-  print(wc.prefix)  
-  print(mylist)
+      name_of_dir = x[0]+"_"+x[1]+".sorted_"+wc.assembly+"_annotation.diff.meth.nb.html"
+      mylist.append(ANNODIR + name_of_dir)
   return(mylist)
 
 
@@ -357,7 +354,6 @@ rule integrateFinalReport:
 rule final_report:
     input:  
         rules.methseg_annotation.output,
-        #diff_meth_reports = diff_meth_input,
         rules.integrateFinalReport.output,
         index       = TEMPLATEDIR + "index.Rmd",   
         references  = TEMPLATEDIR + "references.Rmd",
