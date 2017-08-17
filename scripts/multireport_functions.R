@@ -114,6 +114,7 @@ render2multireport <- function(final_output,
                           pattern = "knitr_meta.rds",
                           full.names = TRUE)
   
+  
   if(!is.null(index) || !is.null(references) || !is.null(sessioninfo)){
     
     ## save a copy of render arguments in a temp file
@@ -206,11 +207,9 @@ render2multireport <- function(final_output,
   #                               files = inputFiles)
   
   
-  
   # merge_chapters2(c(index,unlist(meta),references), 
   #                 to = paste0(finalreportdir,"/","finalreport",".Rmd"),  
   #                 orig = c(index,template.list,references))
-  
   
   merge_chapters2(unlist(lapply(meta ,function(x) attr(x,"intermediates")[2])),
                   to = paste0(finalreportdir,"/",bookdown:::with_ext(basename(final_output),".md"))#,
@@ -274,6 +273,7 @@ render2multireport(final_output = normalizePath(snakemake@output[["finalreport"]
                    index = snakemake@input[["index"]],
                    references = snakemake@input[["references"]],
                    sessioninfo = snakemake@input[["sessioninfo"]])
+                   
 
 # finalReportDir = "Final_Report/"
 # 

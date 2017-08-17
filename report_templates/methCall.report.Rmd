@@ -28,7 +28,6 @@ minqual   <- params$minqual
 rdatafile <- params$rdata
 ```
 
-
 ## Methylation Calling Report
 
 
@@ -106,7 +105,6 @@ but to enable direct loading of the `methylRaw` object it is saved for further a
 Here we show some simple statistics as distribution of methylation and coverage.
 
 ```{r, fig.show="hold"}
-
 
     ## show some statistics of the data  
     par(mfrow = c(1,2))
