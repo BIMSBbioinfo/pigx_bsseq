@@ -74,7 +74,7 @@ OUTPUT_FILES = [
                 #[ expand ( list_files_TG( DIR_trimmed, config["SAMPLES"][sample]["files"], config["SAMPLES"][sample]["SampleID"] ) ) for sample in config["SAMPLES"]  ],
                 
                 #               ==== rule 03 posttrim_QC_ ======
-                [ expand ( list_files_posttrim_QC(DIR_posttrim_QC, config["SAMPLES"][sample]["files"] , config["SAMPLES"][sample]["SampleID"]  )  ) for sample in config["SAMPLES"]  ],
+                #[ expand ( list_files_posttrim_QC(DIR_posttrim_QC, config["SAMPLES"][sample]["files"] , config["SAMPLES"][sample]["SampleID"]  )  ) for sample in config["SAMPLES"]  ],
                 #--- fastQC output files are not needed downstream and need to be called explicitly.
                 
                 #               ==== rule 04 mapping ======
@@ -90,13 +90,13 @@ OUTPUT_FILES = [
                 # [ expand ( list_files_xmeth( DIR_xmethed, config["SAMPLES"][sampleID]["fastq_name"] )  ) for sampleID in config["SAMPLES"]  ],
 
                 #               ==== rule Bam processing ======
-                [ expand ( bam_processing(METHCALLDIR, config["SAMPLES"][sample]["files"], sample )  ) for sample in config["SAMPLES"]  ], # TODO: had to add this line to call bam_methCall for diff meth rule
+                #[ expand ( bam_processing(METHCALLDIR, config["SAMPLES"][sample]["files"], sample )  ) for sample in config["SAMPLES"]  ], # TODO: had to add this line to call bam_methCall for diff meth rule
 
                 #               ==== rule Differential methylation calling ======
-		            [ DIFFMETHDIR+"_".join(x)+".sorted_diffmeth.nb.html" for x in config["DIFF_METH"]  ],
+		            #[ DIFFMETHDIR+"_".join(x)+".sorted_diffmeth.nb.html" for x in config["DIFF_METH"]  ],
 		            
 		            #               ==== rule annotation diff meth cytosines ======
-		            [ DIR_annot+"_".join(x)+".sorted_"+config["GENOME_VERSION"]+"_annotation.diff.meth.nb.html" for x in config["DIFF_METH"]  ],
+		            #[ DIR_annot+"_".join(x)+".sorted_"+config["GENOME_VERSION"]+"_annotation.diff.meth.nb.html" for x in config["DIFF_METH"]  ],
 		            
                 # ==================  FINAL REPORT =========================
                 # TODO: This needs to be editted once we determine what final reports we want to export!

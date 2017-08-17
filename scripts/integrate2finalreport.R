@@ -58,15 +58,3 @@ if( !(any(   names(diffmeth_knitrmeta) %in% names(final_knitrmeta)  ) )){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
