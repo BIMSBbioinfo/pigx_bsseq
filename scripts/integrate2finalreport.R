@@ -1,18 +1,6 @@
 
-
 prefix = snakemake@wildcards$prefix
 assembly = snakemake@wildcards$assembly
-
-
-####################################
-
-if(prefix=='PEsample_test_1_val_1_bt2.deduped'){
-  #print(snakemake)
-  saveRDS(snakemake,"~/snakemake.RDS")
-  #snakemake=readRDS("~/snakemake.RDS")
-}
-
-###################################
 
 diff.meth.reports = snakemake@input[['diffmeth']]
 # there can be more than 1 diff meth report per sample

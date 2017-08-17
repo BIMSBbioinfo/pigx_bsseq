@@ -1,4 +1,3 @@
-Sys.setenv(RSTUDIO_PANDOC="/usr/lib/rstudio-server/bin/pandoc")#####################################################REMOVE ITTTTTTTTTTTT
 ## Wrapper function to combine a set of precompiled Rmd scripts
 ## and render them as multiRmd report 
 
@@ -207,8 +206,6 @@ render2multireport <- function(final_output,
   #                                                      full.names = TRUE),
   #                               files = inputFiles)
   
-  print("meta.............................")
-  print(meta)
   
   # merge_chapters2(c(index,unlist(meta),references), 
   #                 to = paste0(finalreportdir,"/","finalreport",".Rmd"),  
@@ -268,8 +265,6 @@ cat(paste(
   "\n"
 ))
 
-print('-------------------------------------------------------snakemake')
-print(snakemake)
 
 
 render2multireport(final_output = normalizePath(snakemake@output[["finalreport"]]),

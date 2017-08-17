@@ -1,4 +1,3 @@
-Sys.setenv(RSTUDIO_PANDOC="/usr/lib/rstudio-server/bin/pandoc")#####################################################REMOVE ITTTTTTTTTTTT
 
 ## modified from http://github.com/rstudio/bookdown/blob/master/R/utils.R#L201-L203
 # Rscript = function(args, ...) {
