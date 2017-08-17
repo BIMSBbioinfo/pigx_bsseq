@@ -336,7 +336,9 @@ def diff_meth_input(wc):
     if treatment_of_sampleid in x:
       name_of_dir = x[0]+"_"+x[1]+".sorted_diffmeth.nb.html"
       mylist.append(DIFFMETHDIR + name_of_dir)
-    
+  print("diff_meth_inpu")
+  print(wc.prefix)  
+  print(mylist)
   return(mylist)
 
 

@@ -1,12 +1,18 @@
 
-####################################
-#print(snakemake)
-saveRDS(snakemake,"~/snakemake.RDS")
-#snakemake=readRDS("~/snakemake.RDS")
-###################################
 
 prefix = snakemake@wildcards$prefix
 assembly = snakemake@wildcards$assembly
+
+
+####################################
+
+if(prefix=='PEsample_test_1_val_1_bt2.deduped'){
+  #print(snakemake)
+  saveRDS(snakemake,"~/snakemake.RDS")
+  #snakemake=readRDS("~/snakemake.RDS")
+}
+
+###################################
 
 diff.meth.reports = snakemake@input[['diffmeth']]
 # there can be more than 1 diff meth report per sample
@@ -44,20 +50,8 @@ print(names(diffmeth_knitrmeta))
 # If diff meth reports are already included in th final report, then dont include it again
 if( !(any(   names(diffmeth_knitrmeta) %in% names(final_knitrmeta)  ) )){
 
-  
-  mynames = c(names(final_knitrmeta[1:3]),
-    names(diffmeth_knitrmeta),
-    names(diffmeth_annot_knitrmeta),
-    names(final_knitrmeta[4:6]))
-  
-  #merged_final_report=c(final_knitrmeta, diffmeth_knitrmeta, diffmeth_annot_knitrmeta)
-  
-  merged_final_report=c(final_knitrmeta[1:3],
-                        diffmeth_knitrmeta,
-                        diffmeth_annot_knitrmeta,
-                        final_knitrmeta[4:6])
-  
-  
+  merged_final_report=c(final_knitrmeta, diffmeth_knitrmeta, diffmeth_annot_knitrmeta)
+
   saveRDS(merged_final_report, paste0("final_Report/",prefix,"/knitr_meta.rds"))
 
 }

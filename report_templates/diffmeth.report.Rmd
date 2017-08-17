@@ -59,9 +59,9 @@ cores     <- as.numeric(params$cores)
 ```
 
 
-# Differential methylation report
+## Differential methylation report
 
-## Calling differentially methylated bases
+### Calling differentially methylated bases
 
 The logistic regression is applied to model the log odds ratio which is based on methylation proportion of a CpG using the treatment vector which denotes the sample group membership for the CpGs in the model. 
 

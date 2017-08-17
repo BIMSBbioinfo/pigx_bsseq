@@ -26,6 +26,14 @@ params:
   references: TRUE
 ---
 
+
+```{r include=FALSE}
+makeSessioninfo=params$sessioninfo
+makeReferences = params$references
+```
+  
+
+
 ```{r eval_params, echo=FALSE}
 
 inBed      <- params$inBed
@@ -321,12 +329,19 @@ ideoDMC_hyper_hypo(methylDiff.obj_hyper, methylDiff.obj_hypo, chrom.length = seq
 ```
 
 
-## Session Info
+`r if(makeSessioninfo) {"### Session Info"}`
 
-```{r }
+```{r ,include=makeSessioninfo  }
 sessionInfo()
 ```
 
 
+<!-- this section is used to generate a merged sessioninfo from multiple reports -->
+```{r, include=FALSE }
+session_file <- tempfile(pattern = 'session',tmpdir = ".",fileext = '.rds')
+sess <- sessionInfo()
+saveRDS(sess,file = session_file)
+```
 
-## References
+
+`r if(makeReferences) {"### References"}`
