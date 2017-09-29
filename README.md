@@ -69,6 +69,7 @@ configuration time.
 
 ## Installation of dependecies via Guix
 
+
 You can install PiGx through Guix (TODO: add details here after release).
 
 Run the `configure` script to probe your environment for tools needed
