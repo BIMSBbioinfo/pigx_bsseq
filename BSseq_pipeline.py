@@ -19,15 +19,16 @@ DIR_templates = os.path.join(config['locations']['output-dir'], 'path_links/repo
 DIR_xmethed     = 'xx_xmethed/' #--- no longer used
 
 DIR_diffmeth    = '10_diff_meth/'
-DIR_methcall    = '09_methyl_called/'
-DIR_annot       = '08_annotated/'
-DIR_seg         = '07_segmented/'
+DIR_annot       = '09_annotated/'
+DIR_seg         = '08_segmented/'
+DIR_methcall    = '07_methyl_called/'
 DIR_sorted      = '06_sorted/'
 DIR_deduped     = '05_deduped/'
 DIR_mapped      = '04_mapped/'
 DIR_posttrim_QC = '03_posttrim_QC/'
 DIR_trimmed     = '02_trimmed/'
 DIR_rawqc       = '01_rawqc/'
+
 DIR_final       = os.path.join(config['locations']['output-dir'], "final_Report/")
 
 #------ set config file, include function definitions, and set os:
