@@ -56,10 +56,6 @@ workdir   <- params$workdir
 cores     <- as.numeric(params$cores)
 covariates <- if(params$covariates==""){NULL}else{data.frame(lapply(params$covariates,as.numeric))} # it converts empty strings to NA in a data.frame
 
-# change data.frame of strings to numeric
-#data.frame(lapply(params$covariates,as.numeric))
-saveRDS(covariates, paste0("~/covariates.RDS"))
-
 ```
 
 
