@@ -176,10 +176,10 @@ def parse_samples(lines):
     """
     Parse csv table with information about samples, eg:
     
-    Read1,Read2,SampleID,ReadType,Treatment
-    sampleB.pe1.fq.gz,sampleB.pe2.fq.gz,sampleB,WGBS,B,,
-    pe1.single.fq.gz,,sampleB1,WGBS,B,,
-    
+    Read1,Read2,SampleID,ReadType,Treatment,Age
+    sampleB.pe1.fq.gz,sampleB.pe2.fq.gz,sampleB,WGBS,B,10
+    pe1.single.fq.gz,,sampleB1,WGBS,B,5
+
     It returns a dictionary required for the config file.
     """
     sreader = csv.reader(lines, delimiter=',')
@@ -192,6 +192,8 @@ def parse_samples(lines):
     if header[:5] != minimal_header:
         raise Exception("First columns of the input table have to be " +
                         ",".join(minimal_header) + ".")
+    if len(header)>5:
+      header_covariates = header[5:] 
 
     sample_ids = [x[2] for x in rows]
     if len(set(sample_ids)) != len(sample_ids):
@@ -214,6 +216,10 @@ def parse_samples(lines):
         sampleid_dict['files']      = files
         sampleid_dict['fastq_name'] = get_filenames(files)
         sampleid_dict['fastq_ext']  = get_extension(files)
+       
+        if len(header)>5:
+          sampleid_dict['Covariates'] = dict(zip(header_covariates, row[5:]))
+          
         outputdict[row[2]] = sampleid_dict
     return { 'SAMPLES': outputdict }
 

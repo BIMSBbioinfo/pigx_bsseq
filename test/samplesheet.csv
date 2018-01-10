@@ -1,7 +1,5 @@
-Read1,Read2,SampleID,ReadType,Treatment,Age,Sth
-PE_1.fq.gz,PE_2.fq.gz,PEsample,WGBS,0,10,0.1
-SE_techrep1.fq.gz,,SEsample,WGBS,1,2,0.2
-SE_techrep2.fq.gz,,SEsample_v2,WGBS,1,3,0.1
-SE_techrep2.fq.gz,,SEsample_v3,WGBS,1,3,
-SE_techrep2.fq.gz,,SEsample_v4,WGBS,1,3,0.1
-SE_techrep2.fq.gz,,SEsample_v2copy,WGBS,2,4,0.111
+Read1,Read2,SampleID,ReadType,Treatment,Age,Height,CovariateX
+PE_1.fq.gz,PE_2.fq.gz,PEsample,WGBS,0,10,170,50
+SE_techrep1.fq.gz,,SEsample,WGBS,1,2,20,45.7
+SE_techrep2.fq.gz,,SEsample_v2,WGBS,1,3,,80
+SE_techrep2.fq.gz,,SEsample_v2copy,WGBS,2,4,200,3
