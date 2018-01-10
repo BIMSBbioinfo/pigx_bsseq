@@ -152,7 +152,6 @@ selected_targets = config['execution']['target'] or ['final-report','bigwig']
 from itertools import chain
 OUTPUT_FILES = list(chain.from_iterable(chain.from_iterable([targets[name]['files'] for name in selected_targets])))
 
-
 # ==============================================================================================================
 #
 #                                         BEGIN RULES    
@@ -574,6 +573,7 @@ rule diffmeth:
         mincov      = int(config['general']['methylation-calling']['minimum-coverage']),
         context     = "CpG",
         cores       = int(config['general']['differential-methylation']['cores']),
+        covariates = lambda wc: [config["SAMPLES"][sid]['Covariates'] if 'Covariates' in config["SAMPLES"][sid] else "" for sid in get_sampleids_from_treatment(wc.treatment)],
         scripts_dir = DIR_scripts
     log:
         os.path.join(DIR_diffmeth+"{treatment}.sorted_diffmeth.log")

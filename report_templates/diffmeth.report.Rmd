@@ -28,6 +28,7 @@ params:
   workdir: "~/outputdir/"
   scripts_dir: ""
   cores: 2
+  covariates: ""
   sessioninfo: TRUE
   references: TRUE
 ---
@@ -53,6 +54,13 @@ mincov    <- as.numeric(params$mincov)
 context   <- params$context
 workdir   <- params$workdir
 cores     <- as.numeric(params$cores)
+#covariates <- params$covariates
+#covariates <- data.frame(lapply(params$covariates,as.numeric)) # it converts empty strings to NA
+covariates <- if(params$covariates==""){NULL}else{data.frame(lapply(params$covariates,as.numeric))}
+
+# change data.frame of strings to numeric
+#data.frame(lapply(params$covariates,as.numeric))
+saveRDS(covariates, paste0("~/covariates.RDS")) #TODO check what is it when there are no covariates
 
 ```
 
@@ -102,6 +110,9 @@ inputParams <- data.frame(Sample.id=sampleids,
                           Mincov=mincov,
                           Assembly=assembly,
                           stringsAsFactors = FALSE)
+if(!is.null(covariates)){
+  inputParams = cbind(inputParams, covariates)
+}
 
 knitr::kable(inputParams)
 
@@ -147,16 +158,21 @@ difference = 25
 # Cutoff for qvalue of differential methylation statistic
 qvalue = 0.01
 
-
-
 if(nrow(meth.unite)>1){
+
+      # check if covariates+intercept+treatment more than replicates 
+      if(!is.null(covariates)){if(ncol(covariates)+2 >= length(meth.unite@numTs.index)){
+          print("Too many covariates/too few replicates. Running differential methylation without covariates.")}
+          covariates = NULL
+        }
 
       meth.diffmeth <- calculateDiffMeth(meth.unite, 
                                    overdispersion="MN",
                                    adjust = "fdr",
                                    test="Chisq",
+                                   covariates = covariates,
                                    mc.cores=cores) 
-
+      
       # Get differentially methylated bases based on cutoffs  
       methylDiff.obj = getMethylDiff(meth.diffmeth, 
                                difference=difference,
