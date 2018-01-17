@@ -231,5 +231,12 @@ def validate_config(config):
     fasta = glob(os.path.join(config['locations']['genome-dir'], '*.fasta'))
     fa    = glob(os.path.join(config['locations']['genome-dir'], '*.fa'))
 
+    # Check if we have permission to write to the reference-genome directory ourselves
+    if ( not os.access( config['locations']['genome-dir'], os.W_OK) ):
+        # if not, then check if the ref genome has already been converted
+        if ( not path.isdir( path.join( config['locations']['genome-dir'], 'Bisulfite_Genome' )  )  ):
+            bail('ERROR: reference genome has not been bisulfite-converted, and Pigx does not have permission to write to that directory. Please either (a) provide Bisulfite_Genome conversion directory yourself, or (b) enable write permission in ' +config['locations']['genome-dir']+ ' so that pigx can do so on its own.')
+
+
     if not len(fasta) + len(fa) == 1 :
         bail("ERROR: Missing (or ambiguous) reference genome: The number of files ending in either '.fasta' or '.fa' in the following genome directory does not equal one: {}".format(config['locations']['genome-dir']))
