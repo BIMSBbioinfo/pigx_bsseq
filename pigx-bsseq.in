@@ -32,6 +32,7 @@ from snakemake.utils import update_config
 import shutil, filecmp
 from glob import glob
 import subprocess
+import time
 
 description = """\
 PiGx BSseq Pipeline.
@@ -465,7 +466,7 @@ command = [
 
 if config['execution']['submit-to-cluster']:
     cluster_config_file = generate_cluster_configuration()
-    print("Commencing snakemake run submission to cluster", flush=True, file=sys.stderr)
+    print("Commencing snakemake run submission to cluster on " + time.strftime("%c"), flush=True, file=sys.stderr)
 
     if ( ('queue' in config['execution']['cluster'] )  or ( 'queue' in config['execution']['rules']['__default__'] )):
         queue_selection_string = " -q {cluster.queue} "
@@ -500,7 +501,7 @@ if config['execution']['submit-to-cluster']:
         "--latency-wait={}".format(config['execution']['cluster']['missing-file-timeout'])
     ]
 else:
-    print("Commencing snakemake run submission locally", flush=True, file=sys.stderr)
+    print("Commencing snakemake run submission locally on " + time.strftime("%c"), flush=True, file=sys.stderr)
 
 command.append("--rerun-incomplete")
 if args.graph:
@@ -527,3 +528,6 @@ else:
     if args.target and 'help' in args.target:
         command.append("help")
     subprocess.run(command)
+
+print("Snakemake run completed on " + time.strftime("%c"), flush=True, file=sys.stderr)
+
