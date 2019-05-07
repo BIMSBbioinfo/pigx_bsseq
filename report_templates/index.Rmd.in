@@ -378,7 +378,7 @@ if( fetch_refgen_success )
 ```
 
 
-```{r plot_methylation_near_TSSs, results='asis', eval = fetch_refgen_success }
+```{r plot_methylation_near_TSSs, results='asis', eval = FALSE && fetch_refgen_success }
 TSS_plotlength  <- params$TSS_plotlength
 
 cat('Finally, we consider the average methylation over the promoter regions in reference gene set provided. In this case, all CpG sites with coverage above threshold are weighted equally and aligned to the transcription start site (TSS) in the direction of transcription.\n')
@@ -395,7 +395,10 @@ TSS_proximal    <- resize(TSS_exact, width=TSS_plotlength, fix='center')
 # sample_methylome_gr$methfrac <-  sample_methylome_gr$numCs/sample_methylome_gr$coverage
 # TSSprox_scoremat_noweight = genomation::ScoreMatrix( sample_methylome_gr,
 
-TSSprox_scoremat_noweight = genomation::ScoreMatrix( params$bigwigFile,
+## documentation
+print( paste("TSS_proximal = ", as.character(TSS_proximal),", params$bigwigFile = ", as.character(params$bigwigFile)))
+
+TSSprox_scoremat_noweight = genomation::ScoreMatrixBin( params$bigwigFile,
                                                      TSS_proximal,
                                                      strand.aware=TRUE,
                                                      is.noCovNA=TRUE,
