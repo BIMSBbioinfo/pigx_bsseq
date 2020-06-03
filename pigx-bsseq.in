@@ -22,7 +22,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+if 'yes' == '@capture_environment@':
+    import os, sys
+    os.environ["R_LIBS_SITE"] = "@R_LIBS_SITE@"
+    os.environ["PYTHONPATH"] = "@PYTHONPATH@"
+    # Setting PYTHONPATH does not help with dependencies needed for
+    # this script.
+    for directory in "@PYTHONPATH@".split(":"):
+        try:
+            sys.path.index(directory)
+        except ValueError:
+            sys.path.insert(1, directory)
 
 
 import argparse
@@ -291,6 +301,8 @@ def generate_cluster_configuration():
     return cluster_config_file
 
 
+
+def makelink(src, target):
 # Create symbolic links to the inputs and reference genome
 
 # Create links within the output folder that point directly to the
@@ -299,8 +311,6 @@ def generate_cluster_configuration():
 
 # N.B. Any previously existing links will be kept in place, and no
 # warning will be issued if this is the case.
-
-def makelink(src, target):
     if not path.isfile(src):
         bail("Refusing to link non-existent file %s" % src)
     elif not path.isdir(path.dirname(target)):
@@ -326,7 +336,7 @@ def prepare_links():
         contents = path.join(where, 'etc/CONTENTS.txt')
     else:
         contents = path.join(config['locations']['pkgdatadir'], 'CONTENTS.txt')
-    shutil.copy(contents, path.join(config['locations']['output-dir'], 'pigx_work/'))
+    shutil.copyfile(contents, path.join(config['locations']['output-dir'], 'pigx_work/CONTENTS.txt'))
 
     # Link the reference genome
     try:
@@ -465,9 +475,11 @@ command = [
 ]
 
 if config['execution']['submit-to-cluster']:
+# Jobs to be submitted to an SGE cluster:
     cluster_config_file = generate_cluster_configuration()
     print("Commencing snakemake run submission to cluster on " + time.strftime("%c"), flush=True, file=sys.stderr)
 
+    # Check if a particular queue has been specified: 
     if ( ('queue' in config['execution']['cluster'] )  or ( 'queue' in config['execution']['rules']['__default__'] )):
         queue_selection_string = " -q {cluster.queue} "
 	# User has defined queue name(s) --either generally, or rule-specific.
@@ -479,11 +491,14 @@ if config['execution']['submit-to-cluster']:
         queue_selection_string = ""
     # --- done checking if ( queue name(s) supplied by user)
 
+    # check if a contact email has been specified:
     if config['execution']['cluster']['contact-email'].lower() == 'none':
         contact_email_string = ""
     else:
         contact_email_string = "-m a -M %s" % config['execution']['cluster']['contact-email']
 
+
+    # check if machine allows for queue submission at all
     try:
         subprocess.call(["qsub", "-help"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except OSError as e:
@@ -492,25 +507,35 @@ if config['execution']['submit-to-cluster']:
             exit(1)
         else:
             raise
-    qsub = "qsub -V  %s -l h_stack={cluster.h_stack} -l h_vmem={cluster.MEM} %s -b y -pe smp {cluster.nthreads} -cwd" % ( queue_selection_string, contact_email_string)
+
+    # create path for Snakemake e/o logfiles: 
+    os.makedirs(path.join(config['locations']['output-dir'], 'pigx_work/cluster_log_files'), exist_ok=True)
+
+
+    # define qsub command:
+    qsub = "qsub -e pigx_work/cluster_log_files/ -o pigx_work/cluster_log_files/ -v R_LIBS_USER -v PATH -v GUIX_LOCPATH  %s -l h_stack={cluster.h_stack} -l h_vmem={cluster.MEM} %s -b y -pe smp {cluster.nthreads} -cwd" % ( queue_selection_string, contact_email_string)
     if config['execution']['cluster']['args']:
         qsub += " " + config['execution']['cluster']['args']
     command += [
         "--cluster-config={}".format(cluster_config_file),
         "--cluster={}".format(qsub),
+        "--jobscript={}/qsub-template.sh".format(config['locations']['pkglibexecdir']),
         "--latency-wait={}".format(config['execution']['cluster']['missing-file-timeout'])
     ]
 else:
+# Jobs to be submitted on local machine:
     print("Commencing snakemake run submission locally on " + time.strftime("%c"), flush=True, file=sys.stderr)
 
 command.append("--rerun-incomplete")
 if args.graph:
+    # Only output dag graph:
     command.append("--dag")
     with open(args.graph, "w") as outfile:
         p1 = subprocess.Popen(command, stdout=subprocess.PIPE)
         p2 = subprocess.Popen(['dot','-Tpdf'], stdin=p1.stdout, stdout=outfile)
         p2.communicate()
 else:
+    # Check for additional arguments/flags:
     prepare_links()
     display_logo()
     if args.force:
