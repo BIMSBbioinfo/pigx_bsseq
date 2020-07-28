@@ -215,14 +215,11 @@ SETTINGSFILE as inputs.  Use the locations in DIRS to find default
 settings.
     """
     # Load defaults
-    if os.getenv('PIGX_UNINSTALLED'):
-        where = os.getenv('srcdir') if os.getenv('srcdir') else '.'
-        defaults = path.join(where, 'etc/settings.yaml')
-    else:
-        defaults = path.join(dirs['locations']['pkgdatadir'], 'settings.yaml')
+    where = os.getenv('srcdir') if os.getenv('srcdir') else '.'
+    defaults = path.join(where, 'etc/settings.yaml')
 
     if not path.exists(defaults):
-        bail("Could not find default settings.  Did you forget to set PIGX_UNINSTALLED?")
+        bail("Could not find default settings. Looking in etc/settings.yaml; path is relative to folder of exection. ")
 
     settings = yaml.safe_load(open(defaults, 'r'))
 
@@ -330,11 +327,8 @@ def prepare_links():
                 exist_ok=True)
 
     # copy documentation file to the output work directory.
-    if os.getenv('PIGX_UNINSTALLED'):
-        where = os.getenv('srcdir') if os.getenv('srcdir') else '.'
-        contents = path.join(where, 'etc/CONTENTS.txt')
-    else:
-        contents = path.join(config['locations']['pkgdatadir'], 'CONTENTS.txt')
+    where = os.getenv('srcdir') if os.getenv('srcdir') else '.'
+    contents = path.join(where, 'etc/CONTENTS.txt')
     shutil.copyfile(contents, path.join(config['locations']['output-dir'], 'pigx_work/CONTENTS.txt'))
 
     # Link the reference genome
@@ -372,11 +366,8 @@ def prepare_links():
     os.environ['R_LIBS_USER'] = "/dev/null"
 
 def display_logo():
-    if os.getenv('PIGX_UNINSTALLED'):
-        where = os.getenv('srcdir') if os.getenv('srcdir') else '.'
-        pretty = path.join(where, 'etc/pretty.txt')
-    else:
-        pretty = path.join(config['locations']['pkgdatadir'], 'pretty.txt')
+    where  = os.getenv('srcdir') if os.getenv('srcdir') else '.'
+    pretty = path.join(where, 'etc/pretty.txt')
 
     if not os.getenv('PIGX_UGLY'):
         # Ensure that this is printed without errors, even if the user's
@@ -388,42 +379,21 @@ def display_logo():
 
 # Determine locations
 dirs = {}
-if os.getenv('PIGX_UNINSTALLED'):
-    here = os.getenv('srcdir') if os.getenv('srcdir') else os.getcwd()
-    dirs['locations'] = {
-        'prefix'       : here,
-        'exec_prefix'  : here,
-        'libexecdir'   : here,
-        'pkglibexecdir': here,
-        'datarootdir'  : here,
-        'pkgdatadir'   : here
-    }
-else:
-    # Expand and store autoconf directory variables
-    prefix = '@prefix@'
-    exec_prefix = '@exec_prefix@'[1:].format(prefix=prefix)
-    libexecdir = '@libexecdir@'[1:].format(exec_prefix=exec_prefix)
-    pkglibexecdir = '{libexecdir}/@PACKAGE@'.format(libexecdir=libexecdir)
-    datarootdir = '@datarootdir@'[1:].format(prefix=prefix)
-    pkgdatadir = '@datadir@/@PACKAGE@'[1:].format(datarootdir=datarootdir)
-
-    dirs['locations'] = {
-        'prefix'       : '@prefix@',
-        'exec_prefix'  : exec_prefix,
-        'libexecdir'   : libexecdir,
-        'pkglibexecdir': pkglibexecdir,
-        'datarootdir'  : datarootdir,
-        'pkgdatadir'   : pkgdatadir
-    }
+here = os.getenv('srcdir') if os.getenv('srcdir') else os.getcwd()
+dirs['locations'] = {
+    'prefix'       : here,
+    'exec_prefix'  : here,
+    'libexecdir'   : here,
+    'pkglibexecdir': here,
+    'datarootdir'  : here,
+    'pkgdatadir'   : here
+}
 
 # Init?
 if args.init:
     init_settings = False
     init_sample_sheet = False
-    if os.getenv('PIGX_UNINSTALLED'):
-        base = os.getcwd() + '/etc/'
-    else:
-        base = dirs['locations']['pkgdatadir']
+    base = os.getcwd() + '/etc/'
 
     if args.init == 'both':
         init_settings = True
