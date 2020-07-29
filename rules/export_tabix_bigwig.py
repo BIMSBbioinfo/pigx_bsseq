@@ -40,7 +40,7 @@ rule export_tabix_bigwig:
         DIR_bigwig + "{prefix}.{context}.{tool}.export_tbx2bw.log"
     message: fmt("exporting methylation as bigwig for sample {wildcards.prefix}.")
     shell:
-        nice('Rscript', ["{DIR_scripts}/export_tbx2bw.R",
+        nice('Rscript', [ os.path.join(DIR_scripts,"export_tbx2bw.R"),
                          "--filepath={input.filepath}",
                          "--seqlengths_path={input.seqlengths}",
                          "--assembly={params.assembly}",
