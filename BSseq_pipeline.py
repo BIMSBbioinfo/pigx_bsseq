@@ -632,7 +632,6 @@ rule bismark_genome_preparation:
         os.path.join(GENOMEPATH, "Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa")
     params:
         bismark_genome_preparation_args = config['tools']['bismark-genome-preparation']['args'],
-        pathToBowtie = "--path_to_bowtie "+ os.path.dirname(tool('bowtie2')),
         useBowtie2   = "--bowtie2 ",
         verbose      = "--verbose "
     log:
