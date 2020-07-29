@@ -108,8 +108,8 @@ targets = {
     'genome-prep': {
         'description': "Convert reference genome into Bisulfite analogue.",
         'files': [
-            GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
-            GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa"
+            os.path.join(GENOMEPATH, "Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa"),
+            os.path.join(GENOMEPATH, "Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa")
         ]
     },
 
@@ -537,13 +537,13 @@ bismark_cores = str(config['tools']['bismark']['cores'])
 
 rule bismark_align_and_map_se:
     input:
-        refconvert_CT = GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
-	refconvert_GA = GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa",
-        fqfile = DIR_trimmed+"{sample}_trimmed.fq.gz",
-        qc     = DIR_posttrim_QC+"{sample}_trimmed_fastqc.zip"
+        refconvert_CT = os.path.join(GENOMEPATH,"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa"),
+        refconvert_GA = os.path.join(GENOMEPATH,"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa"),
+        fqfile = os.path.join(DIR_trimmed,"{sample}_trimmed.fq.gz"),
+        qc     = os.path.join(DIR_posttrim_QC,"{sample}_trimmed_fastqc.zip")
     output:
-        DIR_mapped+"{sample}_trimmed_bismark_bt2.bam",
-        DIR_mapped+"{sample}_trimmed_bismark_bt2_SE_report.txt"
+        os.path.join(DIR_mapped,"{sample}_trimmed_bismark_bt2.bam"),
+        os.path.join(DIR_mapped,"{sample}_trimmed_bismark_bt2_SE_report.txt")
     params:
         bismark_args = config['tools']['bismark']['args'],
         genomeFolder = "--genome_folder " + GENOMEPATH,
@@ -555,15 +555,15 @@ rule bismark_align_and_map_se:
         tempdir      = "--temp_dir " + DIR_mapped,
         cores = "--multicore " + bismark_cores
     log:
-        DIR_mapped+"{sample}_bismark_se_mapping.log"
+        os.path.join(DIR_mapped,"{sample}_bismark_se_mapping.log")
     message: fmt("Mapping single-end reads to genome {ASSEMBLY}")
     shell:
         nice('bismark', ["{params}", "{input.fqfile}"], "{log}")
 
 rule bismark_align_and_map_pe:
     input:
-        refconvert_CT = GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
-	refconvert_GA = GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa",
+        refconvert_CT = os.path.join(GENOMEPATH, "Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa"),
+        refconvert_GA = os.path.join(GENOMEPATH, "Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa"),
         fin1 = DIR_trimmed+"{sample}_1_val_1.fq.gz",
         fin2 = DIR_trimmed+"{sample}_2_val_2.fq.gz",
         qc   = [ DIR_posttrim_QC+"{sample}_1_val_1_fastqc.zip",
@@ -628,8 +628,8 @@ rule bismark_genome_preparation:
     input:
         ancient(GENOMEPATH)
     output:
-        GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
-        GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa"
+        os.path.join(GENOMEPATH, "Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa"),
+        os.path.join(GENOMEPATH, "Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa")
     params:
         bismark_genome_preparation_args = config['tools']['bismark-genome-preparation']['args'],
         pathToBowtie = "--path_to_bowtie "+ os.path.dirname(tool('bowtie2')),
