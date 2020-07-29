@@ -464,15 +464,15 @@ rule bam_methCall:
 
 rule deduplication_se:
     input:
-        DIR_mapped+"{sample}_trimmed_bismark_bt2.bam"
+        os.path.join(DIR_mapped,"{sample}_trimmed_bismark_bt2.bam")
     output:
-        DIR_sorted+"{sample}_se_bt2.sorted.deduped.bam"
+        os.path.join(DIR_sorted,"{sample}_se_bt2.sorted.deduped.bam")
     params:
         threads=config['execution']['rules']['samblaster_markdup_sort']['threads'],
         memory=config['execution']['rules']['samblaster_markdup_sort']['memory'],
-        tmpdir=DIR_sorted+"{sample}/"
+        tmpdir=os.path.join(DIR_sorted,"{sample}")
     log:
-        DIR_sorted+"{sample}_deduplication.log"
+        os.path.join(DIR_sorted,"{sample}_deduplication.log")
     message: fmt("Deduplicating single-end aligned reads from {input}")
     shell:
         nice("samtools", 
@@ -487,15 +487,15 @@ rule deduplication_se:
 #-----------------------
 rule deduplication_pe:
     input:
-        DIR_mapped+"{sample}_1_val_1_bismark_bt2_pe.bam"
+        os.path.join(DIR_mapped,"{sample}_1_val_1_bismark_bt2_pe.bam")
     output:
-        DIR_sorted+"{sample}_1_val_1_bt2.sorted.deduped.bam"
+        os.path.join(DIR_sorted,"{sample}_1_val_1_bt2.sorted.deduped.bam")
     params:
         threads=config['execution']['rules']['samblaster_markdup_sort']['threads'],
         memory=config['execution']['rules']['samblaster_markdup_sort']['memory'],
-        tmpdir=DIR_sorted+"{sample}/"
+        tmpdir=os.path.join(DIR_sorted,"{sample}/")
     log:
-        DIR_sorted+"{sample}_deduplication.log"
+        os.path.join(DIR_sorted,"{sample}_deduplication.log")
     message: fmt("Deduplicating paired-end aligned reads from {input}")
     shell:
         nice("samtools", 
@@ -512,9 +512,9 @@ rule deduplication_pe:
 
 rule sortbam_se:
     input:
-        DIR_mapped+"{sample}_trimmed_bismark_bt2.bam"
+        os.path.join(DIR_mapped,"{sample}_trimmed_bismark_bt2.bam")
     output:
-        DIR_sorted+"{sample}_se_bt2.sorted.bam"
+        os.path.join(DIR_sorted,"{sample}_se_bt2.sorted.bam")
     message: fmt("Sorting bam file {input}")
     shell:
         nice('samtools', ["sort", "{input}", "-o {output}"])
@@ -522,9 +522,9 @@ rule sortbam_se:
 #-----------------------
 rule sortbam_pe:
     input:
-        DIR_mapped+"{sample}_1_val_1_bismark_bt2_pe.bam"
+        os.path.join(DIR_mapped,"{sample}_1_val_1_bismark_bt2_pe.bam")
     output:
-        DIR_sorted+"{sample}_1_val_1_bt2.sorted.bam"
+        os.path.join(DIR_sorted,"{sample}_1_val_1_bt2.sorted.bam")
     message: fmt("Sorting bam file {input}")
     shell:
         nice('samtools', ["sort -n ", " {input} ", " | ", tool('samtools'), " fixmate -m  - - ", " | ", tool('samtools'), " sort -o {output} " ])
@@ -564,13 +564,13 @@ rule bismark_align_and_map_pe:
     input:
         refconvert_CT = os.path.join(GENOMEPATH, "Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa"),
         refconvert_GA = os.path.join(GENOMEPATH, "Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa"),
-        fin1 = DIR_trimmed+"{sample}_1_val_1.fq.gz",
-        fin2 = DIR_trimmed+"{sample}_2_val_2.fq.gz",
-        qc   = [ DIR_posttrim_QC+"{sample}_1_val_1_fastqc.zip",
-                 DIR_posttrim_QC+"{sample}_2_val_2_fastqc.zip"]
+        fin1 = os.path.join(DIR_trimmed,"{sample}_1_val_1.fq.gz"),
+        fin2 = os.path.join(DIR_trimmed,"{sample}_2_val_2.fq.gz"),
+        qc   = [ os.path.join(DIR_posttrim_QC,"{sample}_1_val_1_fastqc.zip"),
+                 os.path.join(DIR_posttrim_QC,"{sample}_2_val_2_fastqc.zip")]
     output:
-        DIR_mapped+"{sample}_1_val_1_bismark_bt2_pe.bam",
-        DIR_mapped+"{sample}_1_val_1_bismark_bt2_PE_report.txt"
+        os.path.join(DIR_mapped,"{sample}_1_val_1_bismark_bt2_pe.bam"),
+        os.path.join(DIR_mapped,"{sample}_1_val_1_bismark_bt2_PE_report.txt")
     params:
         bismark_args = config['tools']['bismark']['args'],
         genomeFolder = "--genome_folder " + GENOMEPATH,
@@ -582,7 +582,7 @@ rule bismark_align_and_map_pe:
         tempdir      = "--temp_dir "+DIR_mapped,
         cores        = "--multicore "+bismark_cores
     log:
-        DIR_mapped+"{sample}_bismark_pe_mapping.log"
+        os.path.join(DIR_mapped,"{sample}_bismark_pe_mapping.log")
     message: fmt("Mapping paired-end reads to genome {ASSEMBLY}.")
     shell:
         nice('bismark', ["{params}", "-1 {input.fin1}", "-2 {input.fin2}"], "{log}")
@@ -663,31 +663,31 @@ rule tabulate_seqlengths:
 
 rule fastqc_after_trimming_se:
     input:
-        DIR_trimmed+"{sample}_trimmed.fq.gz",
+        os.path.join(DIR_trimmed,"{sample}_trimmed.fq.gz"),
     output:
-        DIR_posttrim_QC+"{sample}_trimmed_fastqc.zip",
-        DIR_posttrim_QC+"{sample}_trimmed_fastqc.html"
+        os.path.join(DIR_posttrim_QC,"{sample}_trimmed_fastqc.zip"),
+        os.path.join(DIR_posttrim_QC,"{sample}_trimmed_fastqc.html")
     params:
         fastqc_args = config['tools']['fastqc']['args'],
         outdir = "--outdir "+DIR_posttrim_QC
     log:
-   	    DIR_posttrim_QC+"{sample}_trimmed_fastqc.log"
+   	    os.path.join(DIR_posttrim_QC,"{sample}_trimmed_fastqc.log")
     message: fmt("Quality checking trimmmed single-end data from sample {{sample}}")
     shell:
         nice('fastqc', ["{params}", "{input}"], "{log}")
 
 rule fastqc_after_trimming_pe:
     input:
-        DIR_trimmed+"{sample}_1_val_1.fq.gz",
-        DIR_trimmed+"{sample}_2_val_2.fq.gz"
+        os.path.join(DIR_trimmed,"{sample}_1_val_1.fq.gz"),
+        os.path.join(DIR_trimmed,"{sample}_2_val_2.fq.gz")
     output:
-    	DIR_posttrim_QC+"{sample}_1_val_1_fastqc.zip",
-    	DIR_posttrim_QC+"{sample}_2_val_2_fastqc.zip"
+    	os.path.join(DIR_posttrim_QC,"{sample}_1_val_1_fastqc.zip"),
+    	os.path.join(DIR_posttrim_QC,"{sample}_2_val_2_fastqc.zip")
     params:
         fastqc_args = config['tools']['fastqc']['args'],
         outdir = "--outdir "+DIR_posttrim_QC
     log:
-   	    DIR_posttrim_QC+"{sample}_trimmed_fastqc.log"
+   	    os.path.join(DIR_posttrim_QC,"{sample}_trimmed_fastqc.log")
     message: fmt("Quality checking trimmmed paired-end data from sample {{sample}}")
     shell:
         nice('fastqc', ["{params}", "{input}"], "{log}")
@@ -698,9 +698,9 @@ rule fastqc_after_trimming_pe:
 
 rule trim_reads_se:
     input:
-       file = PATHIN+"{sample}.fq.gz"
+       file = os.path.join(PATHIN,"{sample}.fq.gz")
     output:
-       DIR_trimmed+"{sample}_trimmed.fq.gz" #---- this ALWAYS outputs .fq.qz format.
+       os.path.join(DIR_trimmed,"{sample}_trimmed.fq.gz") #---- this ALWAYS outputs .fq.qz format.
     params:
        extra      = config['tools']['trim-galore']['args'],
        outdir     = "--output_dir "+DIR_trimmed,
@@ -708,18 +708,18 @@ rule trim_reads_se:
        gz         = "--gzip",
        cutadapt   = "--path_to_cutadapt " + tool('cutadapt'),
     log:
-       DIR_trimmed+"{sample}.trimgalore.log"
+       os.path.join(DIR_trimmed,"{sample}.trimgalore.log")
     message: fmt("Trimming raw single-end read data from sample {{sample}}")
     shell:
        nice('trim-galore', ["{params}", "{input.file}"], "{log}")
 
 rule trim_reads_pe:
     input:
-        files = [ PATHIN+"{sample}_1.fq.gz",
-                  PATHIN+"{sample}_2.fq.gz"]
+        files = [ os.path.join(PATHIN,"{sample}_1.fq.gz"),
+                  os.path.join(PATHIN,"{sample}_2.fq.gz")]
     output:
-        DIR_trimmed+"{sample}_1_val_1.fq.gz", #---- this ALWAYS outputs .fq.qz format.
-        DIR_trimmed+"{sample}_2_val_2.fq.gz",
+        os.path.join(DIR_trimmed,"{sample}_1_val_1.fq.gz"), #---- this ALWAYS outputs .fq.qz format.
+        os.path.join(DIR_trimmed,"{sample}_2_val_2.fq.gz"),
     params:
         extra          = config['tools']['trim-galore']['args'],
         outdir         = "--output_dir "+DIR_trimmed,
@@ -728,7 +728,7 @@ rule trim_reads_pe:
         cutadapt       = "--path_to_cutadapt " + tool('cutadapt'),
         paired         = "--paired"
     log:
-        DIR_trimmed+"{sample}.trimgalore.log"
+        os.path.join(DIR_trimmed,"{sample}.trimgalore.log")
     message:
         fmt("Trimming raw paired-end read data from sample {{sample}}")
     shell:
@@ -740,14 +740,14 @@ rule trim_reads_pe:
 
 rule fastqc_raw: #----only need one: covers BOTH pe and se cases.
     input:
-        PATHIN+"{sample}.fq.gz"
+        os.path.join(PATHIN,"{sample}.fq.gz")
     output:
-        DIR_rawqc+"{sample}_fastqc.zip"
+        os.path.join(DIR_rawqc,"{sample}_fastqc.zip")
     params:
         fastqc_args = config['tools']['fastqc']['args'],
         outdir      = "--outdir "+ DIR_rawqc     # usually pass params as strings instead of wildcards.
     log:
-        DIR_rawqc+"{sample}_fastqc.log"
+        os.path.join(DIR_rawqc,"{sample}_fastqc.log")
     message: fmt("Quality checking raw read data from sample {{sample}}")
     shell:
         nice('fastqc', ["{params}", "{input}"], "{log}")
