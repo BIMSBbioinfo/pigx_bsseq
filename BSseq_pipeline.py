@@ -85,10 +85,6 @@ elif WEBFETCH:
   
   
 
-#--- CHOOSE PIPELINE BRANCH
-USEBWAMETH = TrueOrFalse(config['general']['use_bwameth'])
-USEBISMARK = TrueOrFalse(config['general']['use_bismark'])
-
 
 #--- LIST THE OUTPUT FILES TO BE PRODUCED: 
 
@@ -249,6 +245,10 @@ targets = {
 # if USEBWAMETH: 
 #     d_targets.append('bwameth-mapping-stats')
 
+#--- CHOOSE PIPELINE BRANCH
+USEBWAMETH = TrueOrFalse(config['general']['use_bwameth'])
+USEBISMARK = TrueOrFalse(config['general']['use_bismark'])
+
 selected_targets_default = [] 
 
 if USEBISMARK:
@@ -285,7 +285,7 @@ from itertools import chain
 OUTPUT_FILES = list(chain.from_iterable(chain.from_iterable([targets[name]['files'] for name in selected_targets])))
 
 
-# ==============================================================================================================
+#==============================================================================================================
 #
 #                                         BEGIN RULES
 #
