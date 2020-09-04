@@ -1,7 +1,7 @@
 locations:
   input-dir: in/
   output-dir: out/
-  genome-fasta: genome/sample.fasta
+  genome-fasta: genome/hg19_segment.fasta
 
 general:
   assembly: hg19
@@ -28,14 +28,6 @@ DManalyses:
     # If multiple sample names are provided, they must be separated by comma.
     treatment_sample_groups: "MED1"
     control_sample_groups: "H2O"
-
-  multipleTreat:
-    treatment_sample_groups: "MED2,MED1"
-    control_sample_groups: "H2O"
-    
-  withinGroup:
-    treatment_sample_groups: "MED2,MED1,H2O"
-    control_sample_groups: "MED2,MED1,H2O"
 
 execution:
   submit-to-cluster: no
