@@ -21,6 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import csv
 from datetime import datetime
 from glob import glob
 
@@ -48,6 +49,7 @@ def toolArgs(name):
         return config['tools'][name]['args']
     else:
         return ""
+
 
 # sample sheet accessor functions
 def samplesheet(name, item=None):
@@ -93,6 +95,102 @@ def TrueOrFalse(value):
         answer = False
     return(answer)
 
+def makelink(src, target):
+# Create symbolic links to the inputs and reference genome
+
+# Create links within the output folder that point directly to the
+# reference genome, as well as to each sample input file so that it's
+# clear where the source data came from.
+
+# N.B. Any previously existing links will be kept in place, and no
+# warning will be issued if this is the case.
+    if not os.path.isfile(src):
+        bail("Refusing to link non-existent file %s" % src)
+    elif not os.path.isdir(os.path.dirname(target)):
+        bail("%s or subdirectory does not exist for linking %s" % config['locations']['output-dir'], target)
+    else:
+        try:
+            os.symlink(src, target)
+        except FileExistsError:
+            pass
+
+# --------------------------------------
+# sample sheet parsing 
+# --------------------------------------
+
+def get_filenames(mylist):
+    return list(map(lambda x: splitext_fqgz(x)[0], mylist))
+
+def fq_suffix(filename):
+    return any(filename.endswith(ext) for ext in [".fq", ".fastq", ".fasta"])
+
+def is_zipped(filename):
+    return any(filename.endswith(ext) for ext in [".gz", ".bz2"])
+
+def splitext_fqgz(string):
+
+    if is_zipped(string):
+        string, zipext = os.path.splitext(string)
+    else:
+        zipext = ""
+    if fq_suffix(string):
+        base, ext = os.path.splitext(string)
+        return (base, ext + zipext)
+    else:
+        bail("Input files are not fastq files!")
+
+def parse_samples(lines):
+    """
+    Parse csv table with information about samples, eg:
+    
+    Read1,Read2,SampleID,ReadType,Treatment
+    sampleB.pe1.fq.gz,sampleB.pe2.fq.gz,sampleB,WGBS,B,,
+    pe1.single.fq.gz,,sampleB1,WGBS,B,,
+    
+    It returns a dictionary required for the config file.
+    """
+    sreader = csv.reader(lines, delimiter=',')
+    all_rows = [row for row in sreader if row]
+  
+    header = list(map(lambda x: x.strip(), all_rows[0] ))
+    rows   = all_rows[1:]
+    minimal_header = ['Read1', 'Read2', 'SampleID', 'Protocol', 'Treatment']
+  
+    if header[:5] != minimal_header:
+        raise Exception("First columns of the input table have to be " +
+                        ",".join(minimal_header) + ".")
+
+    sample_ids = [x[2] for x in rows]
+    if len(set(sample_ids)) != len(sample_ids):
+        raise Exception("Column 'SampleID' has non-unique values.")
+
+    # Create a dictionary with all params, keys are samples ids
+    outputdict = {}
+    for row in rows:
+        if ( len(row) != 5 ):
+            bail("Invalid row format in Samplesheet. Each row should have five columns.")
+        row = list(map(lambda x: x.strip(), row))
+        files = list(filter(None, row[0:2]))
+        if not files:
+            raise Exception("Each sample has to have an entry in at least one of the columns 'Read1' or 'Read2'.")
+
+        sampleid_dict = {}
+        for idx in range(len(header[2:])):
+            try:
+                sampleid_dict[header[2:][idx]] = row[2:][idx]
+            except IndexError:
+                raise Exception("Number of columns in row " + idx + " doesn't match number of elements in header.")
+
+        sampleid_dict['files']      = files
+        sampleid_dict['fastq_name'] = get_filenames(files)
+        outputdict[row[2]] = sampleid_dict
+    return { 'SAMPLES': outputdict }
+
+
+
+# --------------------------------------
+# Validation
+# --------------------------------------
 
 # check for common input/configuration errors:
 def validate_config(config):
@@ -101,6 +199,26 @@ def validate_config(config):
         if ( (not loc == 'output-dir') and (not (os.path.isdir(config['locations'][loc]) or os.path.isfile(config['locations'][loc])))):
             bail("ERROR: The following necessary directory/file does not exist: {} ({})".format(
                 config['locations'][loc], loc))
+    
+    # Load sample sheet as dict
+    with open(config['locations']['sample-sheet'], 'r') as f:
+        lines = f.read().splitlines()
+    config.update(parse_samples(lines))
+
+    # Create file links
+    for sample in config['SAMPLES']:
+        flist = config['SAMPLES'][sample]['files']
+        single_end = len(flist) == 1
+
+        for idx, f in enumerate(flist):
+            if not f.endswith(".gz"):
+                # FIXME: Future versions should handle unzipped .fq or .bz2.
+                bail("Input files must be gzipped: %s." % f)
+
+            tag = "" if single_end else '_' + str(idx + 1)
+            linkname = config['SAMPLES'][sample]['SampleID'] + tag + ".fq.gz"
+            makelink(os.path.join(config['locations']['input-dir'], f),
+                     os.path.join(config['locations']['output-dir'], "pigx_work/input/", linkname))
 
     # Check that all of the requested differential methylation
     # treatment values are found in the sample sheet.
@@ -140,6 +258,8 @@ def validate_config(config):
     fa    = glob(os.path.join(genome_dir, '*.fa'))
     if not len(fasta) + len(fa) == 1 :
         bail("ERROR: Missing (or ambiguous) reference genome: The number of files ending in either '.fasta' or '.fa' in the following genome directory does not equal one: {}".format(genome_dir))
+
+
 
 
 # --------------------------------------
