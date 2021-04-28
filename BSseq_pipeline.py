@@ -284,7 +284,6 @@ for target in selected_targets:
 from itertools import chain
 OUTPUT_FILES = list(chain.from_iterable(chain.from_iterable([targets[name]['files'] for name in selected_targets])))
 
-
 # ==============================================================================================================
 #
 #                                         BEGIN RULES
@@ -667,7 +666,8 @@ rule fastqc_after_trimming_se:
     input:
         DIR_trimmed+"{sample}_trimmed.fq.gz",
     output:
-    	DIR_posttrim_QC+"{sample}_trimmed_fastqc.zip"
+        DIR_posttrim_QC+"{sample}_trimmed_fastqc.zip",
+        DIR_posttrim_QC+"{sample}_trimmed_fastqc.html"
     params:
         fastqc_args = config['tools']['fastqc']['args'],
         outdir = "--outdir "+DIR_posttrim_QC
