@@ -81,7 +81,7 @@ AX_R_PACKAGE([ggrepel])
 AX_R_PACKAGE([reshape2])
 AX_R_PACKAGE([matrixStats])
 AX_R_PACKAGE([data.table])
-AX_R_PACKAGE([rmarkdown], [1.5])
+AX_R_PACKAGE([rmarkdown], [2.5])
   ])
 
 find_or_override_prog([SAMBLASTER],       [samblaster])
