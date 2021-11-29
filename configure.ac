@@ -38,6 +38,16 @@ find_or_override_prog([CUT],             [cut])
 find_or_override_prog([GNUBASH],         [bash])
 find_or_override_prog([SNAKEMAKE],       [snakemake])
 find_or_override_prog([PANDOC],          [pandoc])
+AC_ARG_ENABLE([pandoc-version-check],
+  AS_HELP_STRING([--disable-pandoc-version-check], [Do not check the Pandoc version.]),
+  [AC_MSG_NOTICE([Skipping Pandoc version check.  Be careful!])],
+  [dnl
+PANDOC_VERSION_MIN=2.11
+PANDOC_VERSION=$([$PANDOC --version | $SED 's/^pandoc //;q'])
+AX_COMPARE_VERSION([$PANDOC_VERSION], [lt], [$PANDOC_VERSION_MIN],
+      [AC_MSG_ERROR([Please install Pandoc $PANDOC_VERSION_MIN.])])
+  ])
+
 find_or_override_prog([FASTQC],          [fastqc])
 find_or_override_prog([MULTIQC],         [multiqc])
 find_or_override_prog([TRIMGALORE],      [trim_galore])
@@ -47,7 +57,8 @@ find_or_override_prog([BOWTIE2],         [bowtie2])
 find_or_override_prog([BOWTIE2_INSPECT], [bowtie2-inspect])
 find_or_override_prog([CUTADAPT],        [cutadapt])
 find_or_override_prog([BISMARK],         [bismark])
-find_or_override_prog([BISMARK_GENOME_PREPARATION], [bismark_genome_preparation])
+find_or_override_prog([BISMARK_GENOME_PREPARATION], 
+                      [bismark_genome_preparation])
 find_or_override_prog([DEDUPLICATE_BISMARK], [deduplicate_bismark])
 find_or_override_prog([METHYLDACKEL], [MethylDackel])
 
