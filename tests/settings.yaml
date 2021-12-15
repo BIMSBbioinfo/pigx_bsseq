@@ -2,6 +2,8 @@ locations:
   input-dir: in/
   output-dir: out/
   genome-fasta: genome/sample.fasta
+  cpgIsland-bedfile: genome/cpgIslandExt.hg19.bed.gz 
+  refGenes-bedfile: genome/refGene.hg19.bed.gz
 
 general:
   assembly: hg19
@@ -16,9 +18,7 @@ general:
     cores: 1
     qvalue: 0.05
     annotation:
-      cpgIsland-bedfile: pigx_work/refGenome/cpgIslandExt.hg19.bed.gz 
-      refGenes-bedfile: pigx_work/refGenome/refGene.hg19.bed.gz
-      webfetch:   no
+      webfetch: no
 
 DManalyses:
   # The names of analyses can be anything but they have to be unique
