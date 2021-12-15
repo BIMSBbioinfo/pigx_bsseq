@@ -491,7 +491,7 @@ cat('## Finding Regions of Differential Methylation\n\n')
 
 cat('We use the `methSeg()` function to perform an unsupervised segmentation of the methylation differences calculated from `calculateDiffMeth()`. Then we classify hyper and hypo methylated segments based on the methylation difference threshold and join neighbouring segments with the same class. For details about the segmentation see [Wreczycka, et al (2017)](https://www.sciencedirect.com/science/article/pii/S0168165617315936). ')
 
-cat('To aggregate the region level statistics we use Stouffer’s weighted Z-method as done by  [methcp](https://github.com/boyinggong/methcp), for details see [Gong and Purdom  (2018)](https://www.biorxiv.org/content/10.1101/265116v2). ')
+cat("To aggregate the region level statistics we use Stouffer's weighted Z-method as done by  [methcp](https://github.com/boyinggong/methcp), for details see [Gong and Purdom  (2018)](https://www.biorxiv.org/content/10.1101/265116v2). ")
 
 
 ```
@@ -1141,11 +1141,11 @@ if( (fetch_refgen_success) & length(GRanges.dmr)!=0){
   
   if( length(GRanges.dmr.hypo)!=0 & length(GRanges.dmr.hyper)!=0){
   
-  annot.dmr.gene.hyper <- annotateWithGeneParts(target = GRanges.dmr.hyper,
+  annot.dmr.gene.hyper <- genomation::annotateWithGeneParts(target = GRanges.dmr.hyper,
                                          feature = refgenes.grl,
                                          intersect.chr = TRUE)
   
-  annot.dmr.gene.hypo <- annotateWithGeneParts(target = GRanges.dmr.hypo,
+  annot.dmr.gene.hypo <- genomation::annotateWithGeneParts(target = GRanges.dmr.hypo,
                                          feature = refgenes.grl,
                                          intersect.chr = TRUE)
   }
@@ -1261,19 +1261,19 @@ if( (fetch_refgen_success) & length(GRanges.dmr)!=0){
 if( (fetch_cpgi_success) & length(GRanges.dmr)!=0){
 
   # convert methylDiff object to GRanges and annotate
-  diffCpGann.dmr=annotateWithFeatureFlank(target = GRanges.dmr,
+  diffCpGann.dmr=genomation::annotateWithFeatureFlank(target = GRanges.dmr,
                                       feature = cpg.obj$CpGi, 
                                       flank = cpg.obj$shores,
                                       feature.name="CpGi",flank.name="shores")
   
   if( length(GRanges.dmr.hypo)!=0 & length(GRanges.dmr.hyper)!=0){
     
-      diffCpGann.dmr.hypo=annotateWithFeatureFlank(target = GRanges.dmr.hypo,
+      diffCpGann.dmr.hypo=genomation::annotateWithFeatureFlank(target = GRanges.dmr.hypo,
                                           feature = cpg.obj$CpGi, 
                                           flank = cpg.obj$shores,
                                           feature.name="CpGi",flank.name="shores")
       
-      diffCpGann.dmr.hyper=annotateWithFeatureFlank(target = GRanges.dmr.hyper,
+      diffCpGann.dmr.hyper=genomation::annotateWithFeatureFlank(target = GRanges.dmr.hyper,
                                           feature = cpg.obj$CpGi, 
                                           flank = cpg.obj$shores,
                                           feature.name="CpGi",flank.name="shores")
