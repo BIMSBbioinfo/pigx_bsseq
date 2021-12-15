@@ -25,7 +25,8 @@ include   : os.path.join(config['locations']['pkglibexecdir'], 'scripts/func_def
 validate_config(config)
 
 #--- DEFINE OUTPUT DIRECTORIES TO BE PRODUCED 
-OUTDIR = config['locations']['output-dir']                      #--- current work dir (important for rmarkdown)
+
+OUTDIR = config['locations']['output-dir']
 
 DIR_scripts   = os.path.join(config['locations']['pkglibexecdir'], 'scripts/')
 DIR_templates = os.path.join(config['locations']['pkgdatadir'], 'report_templates/')
@@ -53,8 +54,10 @@ else:
 
 BIBTEXPATH  = os.path.join(config['locations']['pkgdatadir'], "report_templates/reports.bib")
 
-PATHIN     = os.path.join(OUTDIR, "pigx_work/input/")           # location of the data files to be imported (script creates symbolic link)
-GENOMEFILE = config['locations']['genome-fasta']    # where the reference genome being mapped to is stored
+# location of the data files to be imported (script creates symbolic link)
+PATHIN     = os.path.join(OUTDIR, "pigx_work/input/")           
+# where the reference genome being mapped to is stored
+GENOMEFILE = config['locations']['genome-fasta']    
 GENOMEPATH = os.path.dirname(GENOMEFILE) + "/"
 ASSEMBLY   = config['general']['assembly'] # version of the genome being mapped to
 CPGISLAND_BEDFILE = config['locations']['cpgIsland-bedfile']
@@ -226,18 +229,17 @@ targets = {
 #     d_targets.append('bwameth-mapping-stats')
 
 selected_targets_default = [] 
-do_DManalyses = "DManalyses" in config.keys()
 
 if USEBISMARK:
     # Should we perform differential analysis?
-    if do_DManalyses:
+    if "DManalyses" in config.keys():
       selected_targets_default += ['final-report', 'diffmeth-report', 'bigwig', 'multiqc']
     else:
       selected_targets_default += ['final-report', 'bigwig','multiqc']
 
 if USEBWAMETH:
     # Should we perform differential analysis?
-    if do_DManalyses:
+    if "DManalyses" in config.keys():
       selected_targets_default += ['final-report-bwameth', 'diffmeth-report-bwameth', 'bigwig-bwameth', 'multiqc-bwameth']
     else:
       selected_targets_default += ['final-report-bwameth', 'bigwig-bwameth','multiqc-bwameth']
