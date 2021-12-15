@@ -448,7 +448,6 @@ rule deduplication_se:
     params:
         threads=config['execution']['rules']['samblaster_markdup_sort']['threads'],
         memory=config['execution']['rules']['samblaster_markdup_sort']['memory'],
-        tmpdir=DIR_sorted+"{sample}/"
     log:
         DIR_sorted+"{sample}_deduplication.log"
     message: fmt("Deduplicating single-end aligned reads from {input}")
@@ -456,7 +455,7 @@ rule deduplication_se:
         nice("samtools", 
         ["view -h {input}"," | ", 
         tool("samblaster"),"-r",toolArgs("samblaster"),"2> {log}","|",
-        tool("samtools"),"sort","-T={params.tmpdir}",
+        tool("samtools"),"sort",
          "-o {output}", "-@ {params.threads}", 
          "-m {params.memory}", "-l 9","2> {log}",";",
          tool("samtools"),"index {output}"],("{log}"))
@@ -471,7 +470,6 @@ rule deduplication_pe:
     params:
         threads=config['execution']['rules']['samblaster_markdup_sort']['threads'],
         memory=config['execution']['rules']['samblaster_markdup_sort']['memory'],
-        tmpdir=DIR_sorted+"{sample}/"
     log:
         DIR_sorted+"{sample}_deduplication.log"
     message: fmt("Deduplicating paired-end aligned reads from {input}")
@@ -479,7 +477,7 @@ rule deduplication_pe:
         nice("samtools", 
         ["view -h {input}"," | ", 
         tool("samblaster"),"-r",toolArgs("samblaster"),"2> {log}","|",
-        tool("samtools"),"sort","-T={params.tmpdir}",
+        tool("samtools"),"sort",
          "-o {output}", "-@ {params.threads}", 
          "-m {params.memory}", "-l 9","2> {log}",";",
          tool("samtools"),"index {output}"],("{log}"))
