@@ -29,16 +29,13 @@ params:
   methSegPng: ''
   scripts_dir: ''
   refGenes_bedfile:   ''
-  webfetch:     ''
   
   prefix:                 ''
   workdir:                ''
   logo:                   ''
   
   MethCall: TRUE
-  AnnotateDiffMeth: TRUE
-  AnnotateSegments: TRUE
-  DiffMeth: TRUE
+  Annotation: TRUE
   Segmentation: TRUE
 ---
 
@@ -81,11 +78,7 @@ AnnotateSegments  <- params$AnnotateSegments
 inBam <- params$inBam
 bigwigFile <- params$bigwigFile
 
-
 refGenes_bedfile        <- params$refGenes_bedfile
-webfetch                <- tolower(params$webfetch) %in% c("true", "yes")
-
-
 
 scripts_dir  <- params$scripts_dir
 
@@ -242,7 +235,6 @@ if( methsegempty )
    {
    Segmentation         <- FALSE;
    AnnotateSegments     <- FALSE;
-   fetch_refgen_success <- FALSE;
    }
 ```
 
@@ -280,7 +272,24 @@ cat('- **Methylation Segments BED file**:\n',methSegBed ,'\n')
 
 ```
 
-```{r AnnotateSegmentsHeader, results='asis', eval= AnnotateSegments }
+```{r Annotation.readRefGene,  results='asis', eval= Annotation }
+
+require(genomation,quietly = TRUE)
+## now we parse the gene features
+refgenes.grl <- tryCatch( 
+                         expr = readTranscriptFeatures(refGenes_bedfile),
+                         error = function (msg) {
+                             message(paste0("Error while reading transcript features: ", msg))
+                             return(NULL)
+                         })
+
+if( is.null(refgenes.grl) ) {
+    Annotation <- FALSE
+  cat( paste(" In this particular execution of the pipeline, PiGx failed to find the load the gene annotation file ", refGenes_bedfile, ". Thus, the corresponding section was omitted.") )
+  }
+```
+
+```{r AnnotationHeader, results='asis', eval= Annotation }
 cat('## Annotation of Segments\n')
 
 cat('The annotation of the identified regions with genomic features allows for a better understanding and characterization of detected regions.\n')
@@ -293,56 +302,16 @@ cat('Pigx first searches for a reference gene set for the given genome assembly 
 Upon acquiring the reference genes, we can determine different features (e.g. promoter, exon, intron)  intrinsic to each gene,  using the `readTranscriptFeatures()` function from [genomation](http://bioinformatics.mdc-berlin.de/genomation/) [@genomation2014] --likewise, for CpG islands and shores.\n')
 ```
 
-```{r AnnotateSegments.load_libraries, results='hide', include=FALSE, eval= AnnotateSegments }
-
-    library("genomation")
-    library("GenomicRanges")
-
-```
-
-
-```{r AnnotateSegments.fetchRefgene, eval= AnnotateSegments }
-originally_present_refgen = file.exists(refGenes_bedfile)
-source(paste0(scripts_dir, "fetch_procedures.R"))
-fetched.refgenes <- lookupBedFile(type      = "refGene",
-                                  filename  = refGenes_bedfile,
-                                  assembly  = assembly,
-                                  webfetch  = webfetch )
-fetch_refgen_success <- ( fetched.refgenes != '')
-```
-
-```{r AnnotateSegments.readRefGene,  results='asis', eval= AnnotateSegments }
-
-## now we parse the gene features
-if( fetch_refgen_success ) {
-  cat( paste( "In this particular execution of the pipeline, the reference gene set was obtained, while the option webfetch was set to =", webfetch) )
-  if( !webfetch )
-    {cat('; this implies that the .bed file was found locally on the machine.') }
-  if( webfetch && !originally_present_refgen)
-    { cat('\n since the reference gene file was not originally present, this implies that it was downloaded remotely from the UCSC server.') }
-  refgenes.grl <- readTranscriptFeatures(fetched.refgenes)
-  } else { 
-  cat( paste(" In this particular execution of the pipeline, PiGx failed to find the reference gene file ", refGenes_bedfile, ", while the option webfetch was set to =", webfetch, ". Thus, the corresponding section was omitted.") )
-  }
-```
-
-```{r AnnotateSegments.loadSegments, eval= AnnotateSegments }
 
 # now load segments 
 segments.gr <- readBed(file = methSegBed,
                       track.line = "auto")
-
 # split according
 segments.grl <- GenomicRanges::split(x = segments.gr,f = segments.gr$name)
-
 # and detect overlaps 
-
-if( fetch_refgen_success )
-  { 
-  annot.gene.list <- annotateWithGeneParts(target = segments.grl,
-                                           feature = refgenes.grl,
-                                           intersect.chr = TRUE)
-  }
+annot.gene.list <- annotateWithGeneParts(target = segments.grl,
+                                         feature = refgenes.grl,
+                                         intersect.chr = TRUE)
 ```
 
 ```{r AnnotateSegments.text2, results='asis', eval= AnnotateSegments }
@@ -352,26 +321,19 @@ cat('Here, we plot the average methylation per segment group and the overlap wit
 ```{r AnnotateSegments.plot,  eval= AnnotateSegments }
 ## percentage of target features overlapping with annotation:
 ## (with promoter > exon > intron precedence)
-if( fetch_refgen_success )
-  { 
-  annot.gene.mat <- as.matrix(sapply(annot.gene.list, function(x) x@precedence))
-  }
+annot.gene.mat <- as.matrix(sapply(annot.gene.list, function(x) x@precedence))
 
   par(mfrow=c(1,2))
 boxplot(sapply(split(x = segments.gr,f = segments.gr$name),FUN = function(x) x$score),
         ylab = "Methylation (%)",
         xlab = "Segment")
 
-if( fetch_refgen_success )
-  { 
-  # plot the target overlap for each segemnt type
-  # barplot(annot.gene.mat,legend.text = TRUE)
-  barplot(annot.gene.mat,
-          ylab = "Overlap (%)",
-          xlab = "Segment")
-  legend("bottomright",legend = rownames(annot.gene.mat),fill = grey(seq.int(0,1,length.out = ncol(annot.gene.mat))))
-  }
-
+# plot the target overlap for each segemnt type
+# barplot(annot.gene.mat,legend.text = TRUE)
+barplot(annot.gene.mat,
+        ylab = "Overlap (%)",
+        xlab = "Segment")
+legend("bottomright",legend = rownames(annot.gene.mat),fill = grey(seq.int(0,1,length.out = ncol(annot.gene.mat))))
 ```
 
 
