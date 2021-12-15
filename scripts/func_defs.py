@@ -96,9 +96,30 @@ def TrueOrFalse(value):
 
 # check for common input/configuration errors:
 def validate_config(config):
+    # Catch old variants of the settings file:
+    # 'genome-dir' has been changed to 'genome-fasta' in v0.1.2
+    if 'genome-dir' in config['locations']:
+        bail("ERROR: The specification of the genome file has changed.\n"+
+                "The location 'genome-dir' has been changed to 'genome-fasta' in v0.1.2.\n"+
+                "Please retrieve the new default settings layout with 'pigx-bsseq --init settings'.\n")
+    # bwameth aligner was added in v0.1.2
+    if not ('use_bwameth' in config['general'] and 'use_bismark' in config['general']):
+        bail("ERROR: Please enable one or both bisulfite aligners at general::use_bwameth/use_bismark.\n"+
+                "Please retrieve the new settings layout with 'pigx-bsseq --init settings'.\n")
+    # 'annotation' files moved to locations in v0.1.7
+    if 'annotation' in config['general']['differential-methylation']:
+        bail("ERROR: The specification of annotation files has changed.\n"+
+                "The BED files for cpgIslands and refGenes are now specified as locations.\n"+  
+                "Please retrieve the new default settings layout with 'pigx-bsseq --init settings'.\n")
+
+        
     # Check that all locations exist
     for loc in config['locations']:
-        if ( (not loc == 'output-dir') and (not (os.path.isdir(config['locations'][loc]) or os.path.isfile(config['locations'][loc])))):
+        if ( loc == 'refGenes-bedfile') or ( loc == 'cpgIsland-bedfile'):
+            if ( (config['locations'][loc]) and (not (os.path.isdir(config['locations'][loc]) or os.path.isfile(config['locations'][loc])))):
+                bail("ERROR: The following necessary directory/file does not exist: {} ({})".format(
+                    config['locations'][loc], loc))
+        elif ( (not loc == 'output-dir') and (not (os.path.isdir(config['locations'][loc]) or os.path.isfile(config['locations'][loc])))):
             bail("ERROR: The following necessary directory/file does not exist: {} ({})".format(
                 config['locations'][loc], loc))
 
