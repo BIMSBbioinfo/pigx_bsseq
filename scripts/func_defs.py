@@ -157,7 +157,7 @@ def validate_config(config):
     genome_dir = os.path.dirname(config['locations']['genome-fasta'])
     if (not os.access(genome_dir, os.W_OK) and
             not os.path.isdir(os.path.join(genome_dir, 'Bisulfite_Genome'))):
-        bail("ERROR: reference genome has not been bisulfite-converted, and PiGx does not have permission to write to that directory. Please either (a) provide Bisulfite_Genome conversion directory yourself, or (b) enable write permission in {} so that PiGx can do so on its own.".format(
+        bail("ERROR: The reference genome has not been bisulfite-converted, and PiGx does not have permission to write to that directory. Please either (a) provide Bisulfite_Genome conversion directory yourself, or (b) enable write permission in {} so that PiGx can do so on its own.".format(
             genome_dir))
 
     # Check for a genome fasta file
@@ -493,7 +493,6 @@ def diffmeth_input_function(treatments):
     inputfiles = list(sum(inputfiles, []))
     return(inputfiles)
 
-# FIXME: create named treatment groups in settings file
 def files_for_treatment(proc):
     if "DManalyses" in config.keys():
         treatment_groups = config['DManalyses']
