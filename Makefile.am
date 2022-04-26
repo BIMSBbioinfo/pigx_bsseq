@@ -67,7 +67,7 @@ TESTS = \
 
 EXTRA_DIST += $(TESTS)
 
-EXTRA_DIST += META.in
+EXTRA_DIST += META.in VERSION
 
 clean-local:
 	-rm -rf .snakemake
