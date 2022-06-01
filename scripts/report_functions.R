@@ -3,7 +3,7 @@
 # Copyright © 2017 Bren Osberg <brendan.osberg@mdc-berlin.de>
 # Copyright © 2017, 2018 Alexander Gosdschan <alexander.gosdschan@mdc-berlin.de>
 # Copyright © 2017 Katarzyna Wreczycka <katwre@gmail.com>
-# Copyright © 2017 Ricardo Wurmus <ricardo.wurmus@mdc-berlin.de>
+# Copyright © 2017, 2022 Ricardo Wurmus <ricardo.wurmus@mdc-berlin.de>
 #
 # This file is part of the PiGx BSseq Pipeline.
 #
@@ -30,7 +30,10 @@ render2HTML <- function(reportFile,
                             self.contained=TRUE,
                             logFile = NULL)
 {
-  
+
+  # knitr 1.39 changed the default behavior.
+  options(knitr.graphics.rel_path = FALSE)
+
   output_format = rmarkdown::all_output_formats(reportFile, 'UTF-8')
   
   if(!dir.exists(finalReportDir)) dir.create(finalReportDir, recursive = TRUE)

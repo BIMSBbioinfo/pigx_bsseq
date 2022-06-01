@@ -4,7 +4,7 @@
 # Copyright © 2017, 2018 Alexander Gosdschan <alexander.gosdschan@mdc-berlin.de>
 # Copyright © 2017, 2018, 2019 Alexander Blume <alexander.blume@mdc-berlin.de>
 # Copyright © 2017 Katarzyna Wreczycka <katwre@gmail.com>
-# Copyright © 2017 Ricardo Wurmus <ricardo.wurmus@mdc-berlin.de>
+# Copyright © 2017, 2022 Ricardo Wurmus <ricardo.wurmus@mdc-berlin.de>
 #
 # This file is part of the PiGx BSseq Pipeline.
 #
@@ -62,6 +62,9 @@ render2HTML <- function(reportFile,
   
   ## render single report
   message("rendering report from template: ", reportFile)
+
+  # knitr 1.39 changed the default behavior.
+  options(knitr.graphics.rel_path = FALSE)
 
   htmlwidgets::setWidgetIdSeed(1234)
   rmarkdown::render(
