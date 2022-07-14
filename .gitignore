@@ -6,6 +6,10 @@
 # Emacs backup files
 *~
 
+# vim backup files
+*.swp
+*.swn
+
 # autoconf generated files
 META
 qsub-template.sh
@@ -26,6 +30,10 @@ share/
 # releases
 pigx_bsseq-*.tar.gz
 pigx_bsseq-*.tar.gz.sig
+pigx_bsseq-*/
+
+# git patches
+*.patch
 
 # dev
 dev/guix/.guix-profile*
@@ -54,6 +62,7 @@ cluster_conf.json
 
 # ignore on all machines 
 report_templates/pigx_bsseq_logo.html
+report_templates/*.html
 
 # ignore on my (alex) machine
 .snakemake/
@@ -72,3 +81,17 @@ tmp
 config2.json
 local_install/
 .vscode/settings.json
+/.envrc
+*.sublime-*
+*.code-workspace
+.guix-profile*
+Session.vim
+.vim
+rules/deduplicate_sambamba.py
+rules/duplicate_picard.py
+scripts/debug_report.R
+scripts/patched_render.R
+bench.txt
+bench
+debug_*.R
+example_debug_*.R
