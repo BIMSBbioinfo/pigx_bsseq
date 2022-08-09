@@ -6,6 +6,12 @@ First clone the upstream repository from GitHub:
 git clone https://github.com/BIMSBbioinfo/pigx_bsseq.git
 ```
 
+Some code that is common to all PiGx pipelines is fetched as submodule:
+
+```sh
+git submodule update --init
+```
+
 ## Configure
 
 PiGx uses the GNU build system.  Developers need to bootstrap the
