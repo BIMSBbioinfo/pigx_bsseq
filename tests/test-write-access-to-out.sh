@@ -3,26 +3,29 @@
 set -e
 set -u
 
-test_name=`basename $0`
-dir=$(mktemp -d "/tmp/pigx.XXXX")
+test_name=$(basename $0)
+dir=$(mktemp --tmpdir -d "pigx.XXXX")
+testdir="${dir}/${test_name}"
 mkdir -p ${dir}/${test_name}
 cd ${dir}/${test_name}
+
+echo "TEST: $test_name"
+echo "DIRECTORY: $dir"
 
 # create test data
 mkdir -p in
 mkdir -p genome
-touch genome/foo.fasta
+touch genome/sample.fasta
 
-cat <<EOF > settings.yaml
+cat <<EOF >settings.yaml
 locations:
-  input-dir: in/
-  output-dir: out/
-  genome-dir: genome/
+  input-dir: ${testdir}/in/
+  output-dir: ${testdir}/out/
+  genome-fasta: ${testdir}/genome/sample.fasta
 general:
-  differential-methylation:
-    treatment-groups: []
+  assembly: hg19
 EOF
-cat <<EOF > samplesheet.csv
+cat <<EOF >samplesheet.csv
 Read1,Read2,SampleID,Protocol,Treatment
 EOF
 
@@ -35,7 +38,8 @@ export PIGX_UNINSTALLED=1
 # directory.
 chmod -w genome
 
-${builddir}/pigx-bsseq --target=genome-prep -s $PWD/settings.yaml $PWD/samplesheet.csv 2>&1 >/dev/null | grep "ERROR"
+${builddir}/pigx-bsseq --target=genome-prep -s settings.yaml samplesheet.csv 2>&1 |
+  grep "ERROR: reference genome has not been bisulfite-converted, and PiGx does not have permission to write to that directory."
 
 chmod +w genome
 rm -rf ${dir}
