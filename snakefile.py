@@ -61,33 +61,9 @@ PATHIN     = os.path.join(OUTDIR, "pigx_work/input/")           # location of th
 GENOMEFILE = config['locations']['genome-fasta']    # where the reference genome being mapped to is stored
 GENOMEPATH = os.path.dirname(GENOMEFILE) + "/"
 ASSEMBLY   = config['general']['assembly'] # version of the genome being mapped to
+CPGISLAND_BEDFILE = config['locations']['cpgIsland-bedfile']
+REFGENES_BEDFILE  = config['locations']['refGenes-bedfile']
 
-# FIXME: lookup and fetch now done in diffmethreport, but should they get their own rule ??
-## should we do fetching at all? would be maybe more stable if we require people to download themselves.
-WEBFETCH = TrueOrFalse(config['general']['differential-methylation']['annotation']['webfetch'])
-CPGISLAND_BEDFILE = config['general']['differential-methylation']['annotation']['cpgIsland-bedfile']
-REFGENES_BEDFILE  = config['general']['differential-methylation']['annotation']['refGenes-bedfile']
-
-if CPGISLAND_BEDFILE and os.path.isfile(CPGISLAND_BEDFILE):
-  # make path absolute
-  CPGISLAND_BEDFILE = os.path.abspath(CPGISLAND_BEDFILE)
-  
-elif WEBFETCH:
-    CPGISLAND_BEDFILE = os.path.join(OUTDIR, 'pigx_work','refGenome',"cpgIslandExt."+ASSEMBLY+".bed.gz")
-    print("WARNING: Parameter 'general::differential-methylation::annotation::cpgIsland-bedfile' was not set to a valid file.\n",
-    "Updating to "+CPGISLAND_BEDFILE+" since webfetch was set.\n")
-    
-
-if REFGENES_BEDFILE and os.path.isfile(REFGENES_BEDFILE):
-  # make path absolute
-  REFGENES_BEDFILE = os.path.abspath(REFGENES_BEDFILE)
-  
-elif WEBFETCH:
-  REFGENES_BEDFILE = os.path.join(OUTDIR, 'pigx_work','refGenome',"knownGene."+ASSEMBLY+".bed.gz")
-  print("WARNING: Parameter 'general::differential-methylation::annotation::refGenes-bedfile' was not set to a valid file.\n",
-  "Updating to "+REFGENES_BEDFILE+" since webfetch was set.\n")
-  
-  
 
 #--- CHOOSE PIPELINE BRANCH
 USEBWAMETH = TrueOrFalse(config['general']['use_bwameth'])
@@ -364,7 +340,6 @@ rule final_report:
         methSegPng                   = os.path.join(DIR_seg,"{prefix}_{context}_{tool}.meth_segments.png"),
         scripts_dir                  = DIR_scripts,
         refGene_bedfile              = REFGENES_BEDFILE,
-        webfetch                     = WEBFETCH,
         # required for any report
         bibTexFile                   = BIBTEXPATH,
         prefix                       = "{prefix}_{context}_{tool}_{assembly}_{tool}",
@@ -404,7 +379,6 @@ rule final_report:
                                '"scripts_dir":"{params.scripts_dir}"',
                                
                                '"refGenes_bedfile":"{params.refGene_bedfile}"',
-                               '"webfetch":"{params.webfetch}"'
                            ])+"}}'",
                            "--logFile={log}"], "{log}", 
                            "echo '' ")
