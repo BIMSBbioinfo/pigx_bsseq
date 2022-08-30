@@ -103,7 +103,8 @@ the release process.
 - Once the tests pass and you are sure to make the release, create a
   new signed tag with `git tag --sign v$(cat VERSION)`.
 
-- Sign the release tarball with GPG to create a detached signature.
+- Sign the release tarball with GPG to create a detached signature with 
+  `gpg --detach-sign pigx_*-$(cat VERSION).tar.gz`
 
 - Push the tag to Github, and then upload the tarball and the detached
   signature to https://github.com/BIMSBbioinfo/pigx_bsseq/releases
