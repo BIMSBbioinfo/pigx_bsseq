@@ -1,15 +1,3 @@
-.Rproj.user
-.Rhistory
-.RData
-.Ruserdata
-
-# Emacs backup files
-*~
-
-# vim backup files
-*.swp
-*.swn
-
 # autoconf generated files
 META
 qsub-template.sh
@@ -22,6 +10,7 @@ autom4te.cache/
 etc/settings.yaml
 test.sh
 report_templates/*.Rmd
+report_templates/*.html
 
 # on install generated
 libexec/
@@ -32,9 +21,6 @@ pigx_bsseq-*.tar.gz
 pigx_bsseq-*.tar.gz.sig
 pigx_bsseq-*/
 
-# git patches
-*.patch
-
 # dev
 dev/guix/.guix-profile*
 dev/guix/load_env.sh
@@ -44,54 +30,12 @@ dev/guix/init_env.sh
 test.sh.trs
 tests/*
 
-# pipeline generated files
-*.log
-snakemakeObj.RData
-report_templates/*.md
-report_templates/*.nb.html
-cluster_conf.json
-
 # ignore all folders, except for:
-#*/
+*/
+.*/
+.*
 !scripts/
 !images/
 !report_templates/
 !rules/
 !tests/
-!test_dataset/sample_bam_files/
-
-# ignore on all machines 
-report_templates/pigx_bsseq_logo.html
-report_templates/*.html
-
-# ignore on my (alex) machine
-.snakemake/
-annotation/
-methylation_calls/
-segmentation/
-bam_files/
-new.config.json
-config.json
-*.Rproj
-*.DS_Store
-scripts/.snakemake*
-test_dataset/TableSheet_test.csv
-test_dataset/PROGS.json
-tmp
-config2.json
-local_install/
-.vscode/settings.json
-/.envrc
-*.sublime-*
-*.code-workspace
-.guix-profile*
-Session.vim
-.vim
-rules/deduplicate_sambamba.py
-rules/duplicate_picard.py
-scripts/debug_report.R
-scripts/patched_render.R
-bench.txt
-bench
-debug_*.R
-example_debug_*.R
