@@ -95,57 +95,6 @@ def TrueOrFalse(value):
     return(answer)
 
 
-# check for common input/configuration errors:
-def validate_config(config):
-    # Check that all locations exist
-    for loc in config['locations']:
-        if ( (not loc == 'output-dir') and (not (os.path.isdir(config['locations'][loc]) or os.path.isfile(config['locations'][loc])))):
-            bail("ERROR: The following necessary directory/file does not exist: {} ({})".format(
-                config['locations'][loc], loc))
-
-    # Check that all of the requested differential methylation
-    # treatment values are found in the sample sheet.
-    treatments = set([config["SAMPLES"][sample]["Treatment"]
-                      for sample in config["SAMPLES"]])
-    if 'DManalyses' in config:
-        if config['DManalyses']:
-            for analysis in config['DManalyses']:
-                    for group in config['DManalyses'][analysis]['treatment_sample_groups'].split(",") + config['DManalyses'][analysis]['control_sample_groups'].split(","):
-                        group = group.strip() #remove any leading/trailing whitespaces in the sample group names
-                        if not any(treat == group for treat in treatments):
-                            bail("ERROR: Invalid treatment group '{}' in analysis '{}'".format(
-                            group, analysis))
-        else:
-            bail("ERROR: The config file contains empty 'DManalyses' section, please consider removing or commenting out this section.\n")
-            
-                        
-    if 'treatment-groups' in config['general']['differential-methylation']:
-        bail("ERROR: The specification of treatment groups and differential analysis has changed.\n"+
-        "Please retrieve the new default settings layout with 'pigx-bsseq --init settings'.\n")
-
-    # Check for a any Assembly string
-    if not config['general']['assembly']:
-            bail("ERROR: Please set a genome assembly string in the settings file at general::assembly.")
-
-    # Check for a any Assembly string
-    if not (config['general']['use_bwameth'] or config['general']['use_bismark']):
-            bail("ERROR: Please enable one or both bisulfite aligners at general::use_bwameth/use_bismark.")
-    
-
-    # Check if we have permission to write to the reference-genome directory ourselves
-    # if not, then check if the ref genome has already been converted
-    genome_dir = os.path.dirname(config['locations']['genome-fasta'])
-    if (not os.access(genome_dir, os.W_OK) and
-            not os.path.isdir(os.path.join(genome_dir, 'Bisulfite_Genome'))):
-        bail("ERROR: reference genome has not been bisulfite-converted, and PiGx does not have permission to write to that directory. Please either (a) provide Bisulfite_Genome conversion directory yourself, or (b) enable write permission in {} so that PiGx can do so on its own.".format(
-            genome_dir))
-
-    # Check for a genome fasta file
-    fasta = glob(os.path.join(genome_dir, '*.fasta'))
-    fa    = glob(os.path.join(genome_dir, '*.fa'))
-    if not len(fasta) + len(fa) == 1 :
-        bail("ERROR: Missing (or ambiguous) reference genome: The number of files ending in either '.fasta' or '.fa' in the following genome directory does not equal one: {}".format(genome_dir))
-
 
 # --------------------------------------
 # sample related      
