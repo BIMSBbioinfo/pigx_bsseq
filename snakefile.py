@@ -22,7 +22,11 @@ import os
 
 # include function definitions and extra rules
 include   : os.path.join(config['locations']['pkglibexecdir'], 'scripts/func_defs.py')
+include   : os.path.join(config['locations']['pkglibexecdir'], 'scripts/update_pigx_work.py')
+include   : os.path.join(config['locations']['pkglibexecdir'], 'scripts/validate_config.py')
+
 validate_config(config)
+update_pigx_work(config)
 
 #--- DEFINE OUTPUT DIRECTORIES TO BE PRODUCED 
 OUTDIR = config['locations']['output-dir']                      #--- current work dir (important for rmarkdown)
