@@ -12,6 +12,8 @@ dist_pkglibexec_scripts_SCRIPTS =	\
   scripts/generate_report.R			\
   scripts/fetch_procedures.R		\
   scripts/func_defs.py				\
+  scripts/update_pigx_work.py				\
+  scripts/validate_config.py				\
   scripts/ideoDMC.R					\
   scripts/export_tbx2bw.R         	\
   scripts/methCall.R          		\
