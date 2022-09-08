@@ -1,0 +1,8 @@
+locations:
+  input-dir: sample_data/reads/
+  output-dir: out/
+  genome-fasta: sample_data/genome/sample.fasta
+
+general:
+  assembly: hg19
+
