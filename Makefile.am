@@ -69,7 +69,10 @@ AM_TESTS_ENVIRONMENT = srcdir="$(abs_top_srcdir)" builddir="$(abs_top_builddir)"
 TESTS = \
   test.sh											\
   tests/test_fastqc/test.sh					\
+  tests/test_trimmming/test.sh						\
   tests/test_posttrim_QC/test.sh					\
+  tests/test_mapping_bwameth/test.sh				\
+  tests/test_mapping_bismark/test.sh				\
   tests/test-check-sample_sheet-header.sh			\
   tests/test-write-access-to-out.sh
 
