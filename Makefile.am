@@ -50,9 +50,13 @@ dist_doc_DATA = 					\
   README.md
 
 EXTRA_DIST =										\
-  tests/genome/sample.fasta	\
-  tests/genome/refGene.hg19.bed.gz                       \
-  tests/genome/cpgIslandExt.hg19.bed.gz                  \
+  tests/sample_data/reads/PE_1.fq.gz	\
+  tests/sample_data/reads/PE_2.fq.gz	\
+  tests/sample_data/reads/SE_techrep1.fq.gz	\
+  tests/sample_data/reads/SE_techrep2.fq.gz	\
+  tests/sample_data/genome/sample.fasta	\
+  tests/sample_data/genome/refGene.hg19.bed.gz                       \
+  tests/sample_data/genome/cpgIslandExt.hg19.bed.gz                  \
   tests/in/PE_1.fq.gz								\
   tests/in/PE_2.fq.gz								\
   tests/in/SE_techrep1.fq.gz							\
@@ -64,6 +68,8 @@ AM_TESTS_ENVIRONMENT = srcdir="$(abs_top_srcdir)" builddir="$(abs_top_builddir)"
 
 TESTS = \
   test.sh											\
+  tests/test_fastqc/test.sh					\
+  tests/test_posttrim_QC/test.sh					\
   tests/test-check-sample_sheet-header.sh			\
   tests/test-write-access-to-out.sh
 
