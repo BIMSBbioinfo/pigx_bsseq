@@ -97,7 +97,7 @@ rule methyldackel_extract_methylKit_deduped:
                       ['methylation-calling']['minimum-quality'])
     log:
         DIR_methcall + "{sample}.deduped.methyldackel_calls.log"
-    message: fmt("Extract methylation calls from bam file using MethylDackel for sample {{sample}} and protocol {params.protocol}")
+    message: fmt("Extract methylation calls from bam file using MethylDackel for sample {wildcards.sample} and protocol {params.protocol}")
     shell:
         nice("methyldackel",
              ["extract", "{input.genome}", "{input.bamfile}",

@@ -453,7 +453,7 @@ rule bam_methCall:
         context         = "{context}"
     log:
         os.path.join(DIR_methcall,"{prefix}_{context}_meth_calls.log")
-    message: fmt("Extract methylation calls from bam file.")
+    message: fmt("Extract methylation calls from bam file {wildcards.prefix} for context {wildcards.context}.")
     shell:
         nice('Rscript', ["{DIR_scripts}/methCall.R",
                          "--inBam={input.bamfile}",
