@@ -424,7 +424,7 @@ def diffmeth_input_function(treatments):
 
 # FIXME: create named treatment groups in settings file
 def files_for_treatment(proc):
-    if "DManalyses" in config.keys():
+    if config.get('DManalyses', {}):
         treatment_groups = config['DManalyses']
         if treatment_groups:
             return [expand(proc(comparison)) for comparison in treatment_groups if comparison]

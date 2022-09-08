@@ -258,14 +258,14 @@ do_DManalyses = "DManalyses" in config.keys()
 
 if USEBISMARK:
     # Should we perform differential analysis?
-    if do_DManalyses:
+    if config.get('DManalyses', {}):
       selected_targets_default += ['final-report', 'diffmeth-report', 'bigwig', 'multiqc']
     else:
       selected_targets_default += ['final-report', 'bigwig','multiqc']
 
 if USEBWAMETH:
     # Should we perform differential analysis?
-    if do_DManalyses:
+    if config.get('DManalyses',{}):
       selected_targets_default += ['final-report-bwameth', 'diffmeth-report-bwameth', 'bigwig-bwameth', 'multiqc-bwameth']
     else:
       selected_targets_default += ['final-report-bwameth', 'bigwig-bwameth','multiqc-bwameth']
