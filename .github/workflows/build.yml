@@ -23,6 +23,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: true
+      - name: Build Environment
+        run: guix shell -D -f guix.scm
       - name: Bootstrap
         run: guix shell -D -f guix.scm -- ./bootstrap.sh
       - name: Configure
