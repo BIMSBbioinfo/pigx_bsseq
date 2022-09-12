@@ -18,7 +18,9 @@ jobs:
           restore-keys: |
             guix-cache-
       - name: Install GNU Guix
-        uses: PromyLOPh/guix-install-action@v1.2.2
+        uses: PromyLOPh/guix-install-action@v1
+        with:
+          pullAfterInstall: false
       - name: Checkout
         uses: actions/checkout@v3
         with:
