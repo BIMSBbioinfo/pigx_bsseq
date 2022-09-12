@@ -57,12 +57,23 @@ EXTRA_DIST =										\
   tests/sample_data/genome/sample.fasta	\
   tests/sample_data/genome/refGene.hg19.bed.gz                       \
   tests/sample_data/genome/cpgIslandExt.hg19.bed.gz                  \
-  tests/in/PE_1.fq.gz								\
-  tests/in/PE_2.fq.gz								\
-  tests/in/SE_techrep1.fq.gz							\
-  tests/in/SE_techrep2.fq.gz							\
-  tests/sample_sheet.csv								\
-  tests/settings.yaml
+	tests/sample_data/preprocessed/02_trimming/PEsample_rrbs_2.fq.gz_trimming_report.txt	\
+	tests/sample_data/preprocessed/02_trimming/SEsample_v2_trimmed.fq.gz	\
+	tests/sample_data/preprocessed/02_trimming/SEsample_v2.fq.gz_trimming_report.txt	\
+	tests/sample_data/preprocessed/02_trimming/SEsample.fq.gz_trimming_report.txt	\
+	tests/sample_data/preprocessed/02_trimming/PEsample_rrbs_2_val_2.fq.gz	\
+	tests/sample_data/preprocessed/02_trimming/PEsample_rrbs_1.fq.gz_trimming_report.txt	\
+	tests/sample_data/preprocessed/02_trimming/PEsample_rrbs_1_val_1.fq.gz	\
+	tests/sample_data/preprocessed/03_posttrimming_QC/PEsample_rrbs_2_val_2_fastqc.zip	\
+	tests/sample_data/preprocessed/03_posttrimming_QC/PEsample_wgbs_2_val_2_fastqc.zip	\
+	tests/sample_data/preprocessed/03_posttrimming_QC/SEsample_v2_trimmed_fastqc.zip	\
+	tests/sample_data/preprocessed/03_posttrimming_QC/SEsample_trimmed_fastqc.zip	\
+	tests/sample_data/preprocessed/03_posttrimming_QC/SEsample_v2copy_trimmed_fastqc.zip	\
+	tests/sample_data/preprocessed/03_posttrimming_QC/PEsample_rrbs_1_val_1_fastqc.zip	\
+	tests/sample_data/preprocessed/03_posttrimming_QC/PEsample_wgbs_1_val_1_fastqc.zip	\
+  tests/sample_sheet.csv                 \
+  tests/settings.yaml                 \
+  tests/settings_no_de.yaml
 
 AM_TESTS_ENVIRONMENT = srcdir="$(abs_top_srcdir)" builddir="$(abs_top_builddir)"
 
