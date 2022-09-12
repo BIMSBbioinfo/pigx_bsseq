@@ -1,0 +1,43 @@
+#!/bin/sh
+
+set -e
+set -u
+
+root=$(mktemp --tmpdir -d "pigx.XXXX")
+testfolder=${root}/tests/test_fastqc
+mkdir -p ${testfolder}
+
+echo "TEST FOLDER: ${testfolder}"
+
+# copy necessary input files to the test folder
+# we copy them to avoid re-creating these files when testing the pipeline
+cp -r ${srcdir}/tests/sample_data/reads/ ${testfolder}
+
+# make these copies writable
+chmod +w -R ${testfolder}
+
+# prepare temporary sample sheet and settings files
+settings=${srcdir}/tests/settings_no_de.yaml
+tmp_settings="${testfolder}/settings.yaml"
+sed -e "s,input-dir: ,input-dir: ${srcdir}/tests/,g" \
+	    -e "s,genome-fasta: ,genome-fasta: ${srcdir}/tests/,g" \
+				    -e "s,output-dir:.*,output-dir: ${testfolder},g" \
+					    ${settings} > ${tmp_settings}
+
+#create links to already preprocessed sample data
+samplesheet=${srcdir}/tests/sample_sheet.csv
+tmp_samplesheet="${testfolder}/sample_sheet.csv"
+head -n 2 ${samplesheet} > ${tmp_samplesheet}
+
+${builddir}/pigx-bsseq -s ${tmp_settings} --target raw-qc ${tmp_samplesheet}
+
+rm ${tmp_settings} ${tmp_samplesheet}
+
+rm -rf ${testfolder}/reads/
+
+if ! test -f ${testfolder}/01_raw_QC/PEsample_wgbs_1_fastqc.zip
+then
+	  echo "ERROR: failed to create raw FASTQC report"
+	    exit 1
+	fi
+
