@@ -29,7 +29,7 @@ jobs:
           submodules: true
       - name: Build Guix environment
         if: steps.guix-cache.outputs.cache-hit != 'true'
-        run:
+        run: |
           mkdir -p ~/.cache/guix
           guix archive --generate-key
           guix environment -l guix.scm --root=env -- echo done
@@ -37,7 +37,7 @@ jobs:
           cp /etc/guix/signing-key.pub ~/.cache/guix/
       - name: Import Guix environment
         if: steps.guix-cache.outputs.cache-hit == 'true'
-        run:
+        run: |
           guix archive --authorize < ~/.cache/guix/signing-key.pub
           guix archive --import < ~/.cache/guix/env
       - name: Bootstrap
