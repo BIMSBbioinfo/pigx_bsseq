@@ -34,10 +34,15 @@ jobs:
           guix environment -l guix.scm --root=env -- echo done
           guix archive --export --recursive $(readlink -f env) > ~/.cache/guix/env
           cp /etc/guix/signing-key.pub ~/.cache/guix/
-      - name: Import Guix environment
+      - name: Authorize cached signing key
         if: steps.guix-cache.outputs.cache-hit == 'true'
         run: |
           cat ~/.cache/guix/signing-key.pub | sudo guix archive --authorize
+      - name: Import Guix environment
+        if: steps.guix-cache.outputs.cache-hit == 'true'
+        run: |
+          du -sh ~/.cache/guix/env
+          cat ~/.cache/guix/env | guix archive -t
           cat ~/.cache/guix/env | sudo guix archive --import
       - name: Bootstrap
         run: guix shell -D -f guix.scm -- ./bootstrap.sh
