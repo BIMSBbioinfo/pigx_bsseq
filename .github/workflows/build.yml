@@ -30,6 +30,7 @@ jobs:
       - name: Build Guix environment
         if: steps.guix-cache.outputs.cache-hit != 'true'
         run:
+          mkdir -p ~/.cache/guix
           guix archive --generate-key
           guix environment -l guix.scm --root=env -- echo done
           guix archive --export --recursive $(readlink -f env) > ~/.cache/guix/env
