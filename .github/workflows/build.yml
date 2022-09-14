@@ -42,7 +42,6 @@ jobs:
         if: steps.guix-cache.outputs.cache-hit == 'true'
         run: |
           du -sh ~/.cache/guix/env
-          cat ~/.cache/guix/env | guix archive -t
           cat ~/.cache/guix/env | sudo guix archive --import
       - name: Bootstrap
         run: guix shell -D -f guix.scm -- ./bootstrap.sh
