@@ -27,6 +27,10 @@ jobs:
           submodules: true
       - name: Build Environment
         run: guix shell -D -f guix.scm
+      - name: Capture Version
+        run: |
+          cat VERSION
+          echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
       - name: Bootstrap
         run: guix shell -D -f guix.scm -- ./bootstrap.sh
       - name: Configure
