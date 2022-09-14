@@ -30,7 +30,7 @@ jobs:
       - name: Capture Version
         run: |
           cat VERSION
-          echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+          echo "version=$(cat VERSION)" >> $GITHUB_ENV
       - name: Bootstrap
         run: guix shell -D -f guix.scm -- ./bootstrap.sh
       - name: Configure
