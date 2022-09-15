@@ -114,3 +114,5 @@ methRawDB = processBismarkAln(location = input,
 
 message("Tabix saved to: \n\t",getDBPath(methRawDB))
 
+## remove uncompressed txt file
+unlink(file.path(save_folder, paste0(sample_id, ".txt")))
