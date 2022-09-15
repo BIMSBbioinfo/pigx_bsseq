@@ -58,3 +58,6 @@ jobs:
         run: guix shell -D -f guix.scm -- make -j
       - name: Distcheck
         run: guix shell -D -f guix.scm -- make distcheck
+      - name: Print Test Suite Log
+        if: ${{ failure() }}
+        run: cat ./test-suite.log
