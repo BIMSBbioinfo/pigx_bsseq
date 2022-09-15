@@ -54,7 +54,8 @@ def splitext_fqgz(string):
     else:
         bail("Input files are not fastq files!")
 
-def parse_samples(lines):
+
+def parse_sample_sheet(path):
     """
     Parse csv table with information about samples, eg:
 
