@@ -117,21 +117,6 @@ rule methyldackel_extract_methylKit_deduped:
              ("{log}"))
 
 
-        protocol = lambda wc: protocol(wc),
-        keepDups = lambda wc: keepDups(protocol(wc)),
-        minqual = int(config['general']
-                      ['methylation-calling']['minimum-quality'])
-    log:
-        DIR_methcall + "{sample}.deduped.methyldackel_calls.log"
-    message: fmt("Extract methylation calls from bam file using MethylDackel for sample {{sample}} and protocol {params.protocol}")
-    shell:
-        nice("methyldackel",
-             ["extract", "{input.genome}", "{input.bamfile}",
-              "-o {params.prefix}", "-@ {params.threads}", "{params.keepDups}",
-              "--methylKit", "--CHH", "--CHG", "-q {params.minqual}"],
-             ("{log}"))
-
-
 # ==========================================================================================
 # Extract methylation bias with methylDackel
 
@@ -175,34 +160,6 @@ rule methyldackel_mbias:
               "-@ {params.threads}", "--txt",
               "-q {params.minqual}", "> {output.txt}",
               "2> {log}"])
-
-
-# ==========================================================================================
-# Extract methylation bias with methylDackel
-#
-
-rule methyldackel_cytosine_report:
-    input:
-        bamfile = DIR_sorted + "{sample}.bwameth.sorted.markdup.bam",
-        genome = GENOMEFILE
-    output:
-        DIR_methcall + "methylDackel/" + "{sample}_methyldackel.cytosine_report.txt"
-    params:
-        threads = config['execution']['rules']['methyldackel_extract']['threads'],
-        prefix = DIR_methcall + "methylDackel/" + "{sample}_methyldackel",
-        protocol = lambda wc: protocol(wc),
-        keepDups = keepDups("{params.protocol}"),
-        minqual = int(config['general']
-                      ['methylation-calling']['minimum-quality'])
-    log:
-        DIR_methcall + "{sample}.methyldackel_cytosine_report.log"
-    message: fmt("Extract cytosine report from bam file using MethylDackel for sample {{sample}} and context {params.context}")
-    shell:
-        nice("methyldackel",
-             ["extract", "{input.genome}", "{input.bamfile}",
-              "-o {params.prefix}", "{params.keepDups}", "-@ {params.threads}",
-              "--cytosine_report", "--CHH", "--CHG", "-q {params.minqual}"],
-             ("{log}"))
 
 
 # ==========================================================================================
