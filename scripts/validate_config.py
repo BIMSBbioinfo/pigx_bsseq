@@ -151,10 +151,8 @@ def validate_config(config):
                 config['locations'][loc], loc))
 
 
-        # Load parameters specific to samples
-    with open(config['locations']['sample-sheet'], 'r') as f:
-            lines = f.read().splitlines()
-    sample_params = parse_samples(lines)
+    # Load parameters specific to samples
+    sample_params = parse_sample_sheet(config["locations"]["sample-sheet"])
     config.update(sample_params)
 
     # Check that all of the requested differential methylation
