@@ -1,10 +1,8 @@
 # ---------------------------------------------------------------------------- #
 
-from itertools import chain
-
 def multiqc_files(branch):
     files = files_for_sample(list_files_rawQC)
-    files += files_for_sample(list_files_TG) 
+    files += files_for_sample(list_files_TG)
     files += files_for_sample(list_files_posttrim_QC) 
     if branch == "bismark":
        files += files_for_sample(list_files_bismark)
@@ -12,6 +10,7 @@ def multiqc_files(branch):
     elif branch == "bwameth":
         files += files_for_sample(list_files_bwameth)
         files += files_for_sample(list_files_bwamethMappingStats)
+        files += files_for_sample(list_files_markdup)
         files += files_for_sample(list_files_methyldackel_mbias_bwameth)
     files = list(chain.from_iterable(files))
     return(files)
