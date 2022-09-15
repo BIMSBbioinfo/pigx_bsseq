@@ -647,22 +647,30 @@ rule bismark_genome_preparation:
         nice('bismark-genome-preparation', ["{params}", "{input.path}"], "{log}")
 
 
-
 # ==========================================================================================
 # Create a csv file tabulating the lengths of the chromosomes in the reference genome:
 
 rule tabulate_seqlengths:
     input:
-        GENOMEFILE
+        index       = GENOMEFILE+".fai"
     output:
-        index       = GENOMEFILE+".fai",
         chrom_seqlengths  = os.path.join(DIR_mapped,ASSEMBLY+"_chromlengths.csv")
     message: fmt("Tabulating chromosome lengths in genome: {ASSEMBLY} for later reference.")
     shell:
-        nice('samtools', 
-        ['faidx {input}',";",
-        tool('cut'),"-f1,2","{output.index}","> {output.chrom_seqlengths}"])
+        nice('cut', ["-f1,2","{input.index}","> {output.chrom_seqlengths}"])
 
+
+# ==========================================================================================
+# Index reference genome fasta file:
+
+rule index_genome_fasta:
+    input:
+        GENOMEFILE
+    output:
+        index       = GENOMEFILE+".fai"
+    message: fmt("Index reference genome fasta file for assembly {ASSEMBLY}.")
+    shell:
+        nice('samtools', ['faidx {input}'])
 
 # ==========================================================================================
 # Carry out post-trimming quality control
