@@ -65,12 +65,13 @@ def parse_sample_sheet(path):
 
     It returns a dictionary required for the config file.
     """
-    sreader = csv.reader(lines, delimiter=',')
-    all_rows = [row for row in sreader if row]
+    with open(path, "r") as f:
+        all_rows = [row for row in csv.reader(f, delimiter=",") if row]
 
-    header = list(map(lambda x: x.strip(), all_rows[0] ))
-    rows   = all_rows[1:]
-    minimal_header = ['Read1', 'Read2', 'SampleID', 'Protocol', 'Treatment']
+    # in both cases we need to strip leading or trailing whitespaces
+    rows = [list(map(str.strip, row)) for row in all_rows]
+    header = rows[0]
+    rows = rows[1:]
 
     if header[:5] != minimal_header:
         raise Exception("First columns of the input table have to be " +
