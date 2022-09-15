@@ -37,7 +37,7 @@ rule export_tabix_bigwig:
         assembly = ASSEMBLY,
         destrand = lambda wc: destrand(wc.context)
     log:
-        DIR_bigwig + "{prefix}.{context}.{tool}.export_tbx2bw.log"
+        DIR_bigwig + "{prefix}.{context}_{tool}.export_tbx2bw.log"
     message: fmt("exporting methylation as bigwig for sample {wildcards.prefix}.")
     shell:
         nice('Rscript', ["{DIR_scripts}/export_tbx2bw.R",
@@ -60,7 +60,7 @@ rule export_tabix_bigwig_destrand:
         assembly = ASSEMBLY,
         destrand = lambda wc: destrand(wc.context)
     log:
-        DIR_bigwig + "{prefix}.{context}.{tool}.export_tbx2bw.log"
+        DIR_bigwig + "{prefix}.{context}_destranded_{tool}.export_tbx2bw.log"
     message: fmt("exporting methylation as bigwig for sample {wildcards.prefix}.")
     shell:
         nice('Rscript', ["{DIR_scripts}/export_tbx2bw.R",
