@@ -197,7 +197,7 @@ rule methyldackel_cytosine_report:
 
 rule tabix_methyldackelfile:
     input:
-        DIR_methcall + "methylDackel/" + "{prefix}_methyldackel_{context}.methylKit",
+        DIR_methcall + "methylDackel/" + "{prefix}_methyldackel_{context}.methylKit.gz",
     output:
         DIR_methcall + "methylDackel/" + "tabix_{context}/{prefix}_{context}.txt.bgz",
         DIR_methcall + "methylDackel/" + "tabix_{context}/{prefix}_{context}.txt.bgz.tbi"
