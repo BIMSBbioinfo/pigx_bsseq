@@ -316,10 +316,16 @@ if( fetch_refgen_success ) {
 segments.gr <- readBed(file = methSegBed,
                       track.line = "auto")
 
-# split according
-segments.grl <- GenomicRanges::split(x = segments.gr,f = segments.gr$name)
+# intersect by overlaping chroms
+shared_chroms <- intersect(seqlevels(segments.gr), seqlevels(refgenes.grl))
+dropped_chroms <- setdiff(seqlevels(segments.gr), shared_chroms)
+overlapping_segments.gr <- segments.gr[seqnames(segments.gr) %in% shared_chroms]
 
-# and detect overlaps 
+# split by segment groups
+segments.grl <- GenomicRanges::split(
+  x = overlapping_segments.gr,
+  f = overlapping_segments.gr$name
+)
 
 if( fetch_refgen_success )
   { 
@@ -342,8 +348,8 @@ if( fetch_refgen_success )
   }
 
   par(mfrow=c(1,2))
-boxplot(sapply(split(x = segments.gr,f = segments.gr$name),FUN = function(x) x$score),
-        ylab = "Methylation (%)",
+boxplot(sapply(split(x = overlapping_segments.gr,f = overlapping_segments.gr$name),FUN = function(x) x$score),
+        ylab = "Methylation (%)", 
         xlab = "Segment")
 
 if( fetch_refgen_success )
