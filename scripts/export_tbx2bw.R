@@ -132,13 +132,16 @@ methList <- lapply(SinfoList,
                 dt[,score := numCs/coverage]
                 dt[,c("coverage","numCs","numTs") := NULL] 
                 return(dt)    
-                })
+              }
+            )
+
+            if(length(dt) == 0) { return(NULL) }
             return(GenomicRanges::makeGRangesFromDataFrame(
               dt,seqinfo = Sinfo,  keep.extra.columns=TRUE)
               )
         })
 
-methList <- unlist(GRangesList(methList))
+methList <- unlist(GRangesList(methList[!sapply(methList,is.null)]))
 
 rtracklayer::export.bw( object = methList, con = out_path )
 
