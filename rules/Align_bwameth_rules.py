@@ -44,12 +44,12 @@ rule bwameth_genome_preparation:
     input:
         ancient(GENOMEFILE)
     output:
-        GENOMEFILE+".bwameth.c2t.sa",
-        GENOMEFILE+".bwameth.c2t.amb",
-        GENOMEFILE+".bwameth.c2t.ann",
-        GENOMEFILE+".bwameth.c2t.pac",
-        GENOMEFILE+".bwameth.c2t.bwt",
-        GENOMEFILE+".bwameth.c2t"
+        protected(GENOMEFILE+".bwameth.c2t.sa"),
+        protected(GENOMEFILE+".bwameth.c2t.amb"),
+        protected(GENOMEFILE+".bwameth.c2t.ann"),
+        protected(GENOMEFILE+".bwameth.c2t.pac"),
+        protected(GENOMEFILE+".bwameth.c2t.bwt"),
+        protected(GENOMEFILE+".bwameth.c2t")
     log:
         os.path.join(GENOMEPATH,'bwameth_genome_preparation.output_'+ASSEMBLY+'.log')
     message: "Converting {ASSEMBLY} Genome into Bisulfite analogue with bwa-meth"
