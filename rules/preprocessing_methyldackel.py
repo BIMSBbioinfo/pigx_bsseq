@@ -105,7 +105,7 @@ rule methyldackel_extract_methylKit_deduped:
         minqual = int(config['general']
                       ['methylation-calling']['minimum-quality'])
     log:
-        DIR_methcall + "{sample}.deduped.methyldackel_{context}_calls.log"
+        DIR_methcall + "methylDackel/" +"{sample}.deduped.methyldackel_{context}_calls.log"
     message: fmt("Calling methylation for {wildcards.context} context in sample {wildcards.sample} according to protocol {params.protocol}.")
     shell:
         nice("methyldackel",
