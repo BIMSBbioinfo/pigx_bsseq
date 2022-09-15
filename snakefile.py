@@ -591,6 +591,13 @@ rule bismark_align_and_map_pe:
     shell:
         nice('bismark', ["{params}", "-1 {input.fin1}", "-2 {input.fin2}"], "{log}")
 
+
+# ==========================================================================================
+# Merging replicates, marking duplicates and sorting bam files in one go without writing
+# intermediate files
+
+include: './rules/mergeMarkdupSort.py'
+
 
 # ==========================================================================================
 # Align and map reads to the reference genome using bwa-meth:
