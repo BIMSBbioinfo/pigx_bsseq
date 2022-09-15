@@ -30,7 +30,7 @@ jobs:
       - name: Capture Version
         run: |
           cat VERSION
-          echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+          echo "version=$(cat VERSION)" >> $GITHUB_ENV
       - name: Build Guix environment
         if: steps.guix-cache.outputs.cache-hit != 'true'
         run: |
