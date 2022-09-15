@@ -93,6 +93,14 @@ rule bwameth_align_trimmed:
         DIR_mapped+"{sample}_bwameth_mapping.log"
     message: fmt("Mapping reads to genome using bwa-meth for sample {wildcards.sample}.")
     shell:
-      nice("bwameth",["--reference {GENOMEFILE}","-t {params.threads}",
-          "{input.files}","2> {log}","|",
-          tool('samtools'), "view -bS - > {output.bam}"])
+      nice("bwameth",
+      ["--reference {GENOMEFILE}",
+      "-t {params.threads}",
+      "{input.files}","2>> {log}",
+      "|", 
+      tool('samtools'), 
+      "view -bS - -o {output.bam}",
+      "2>> {log}"],
+      "{log}")
+
+
