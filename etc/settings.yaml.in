@@ -141,9 +141,6 @@ tools:
   samtools:
     executable: @SAMTOOLS@
     args: ""
-  samblaster:
-    executable: @SAMBLASTER@
-    args: ""
   methyldackel:
     executable: @METHYLDACKEL@
     args: ""

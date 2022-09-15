@@ -73,7 +73,6 @@ AX_R_PACKAGE([data.table])
 AX_R_PACKAGE([rmarkdown], [1.5])
   ])
 
-find_or_override_prog([SAMBLASTER],       [samblaster])
 find_or_override_prog([SAMTOOLS],         [samtools])
 AC_ARG_ENABLE([samtools-version-check],
   AS_HELP_STRING([--disable-samtools-version-check], [Do not check the Samtools version.]),

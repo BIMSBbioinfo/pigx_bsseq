@@ -26,7 +26,7 @@ dist_pkglibexec_scripts_SCRIPTS =	\
 pkglibexec_rulesdir = $(pkglibexecdir)/rules
 dist_pkglibexec_rules_SCRIPTS =			\
   rules/Align_bwameth_rules.py 			\
-  rules/deduplicate_samblaster.py 		\
+  rules/deduplicate_picard.py 		\
   rules/preprocessing_methyldackel.py 	\
   rules/mapping_stats.py 				\
   rules/multiqc.py 						\

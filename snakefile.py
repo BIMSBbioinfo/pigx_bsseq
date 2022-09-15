@@ -598,9 +598,9 @@ rule bismark_align_and_map_pe:
 include: './rules/Align_bwameth_rules.py'
 
 # ==========================================================================================
-# Mark duplicate reads from bwa-meth alignment using picard-markduplicates like algo:
+# Mark duplicate reads from bwa-meth alignment using picard-markduplicates:
 
-include: './rules/deduplicate_samblaster.py'
+include: './rules/deduplicate_picard.py'
 
 # ==========================================================================================
 # extract mapping statistics like duplicate numbers and flagstats using samtools:
