@@ -85,7 +85,11 @@ def parse_sample_sheet(path):
 
     sample_ids = [x[2] for x in rows]
     if len(set(sample_ids)) != len(sample_ids):
-        raise Exception("Column 'SampleID' has non-unique values.")
+        if not (replicate_col in header):
+            bail(
+                "ERROR: Column 'SampleID' has non-unique values. "
+                + f"Please add a {replicate_col} column, if you want to merge technical replicates."
+            )
 
     # Create a dictionary with all params, keys are samples ids
     outputdict = {}
