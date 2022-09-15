@@ -84,7 +84,9 @@ rule mergeMarkdupSort_bam:
         nice(
             "samtools",
             [
-                "merge -o -u - {input}",
+                "merge -u",
+                "-o -",
+                "{input}",
                 "2>> {log}",
                 " | ",
                 "{params.runFixmate}",
