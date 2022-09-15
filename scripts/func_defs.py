@@ -29,7 +29,7 @@ from glob import glob
 #
 #                                       HELPER FUNCTIONS
 #
-# put here helper functions that are used within more than one rule   
+# put here helper functions that are used within more than one rule
 # ==============================================================================
 
 
@@ -37,18 +37,22 @@ from glob import glob
 # general purpose
 # --------------------------------------
 
+
 def fmt(message):
     """Format the MESSAGE string."""
     return "----------  " + message + "  ----------"
 
+
 def tool(name):
-    return config['tools'][name]['executable']
+    return config["tools"][name]["executable"]
+
 
 def toolArgs(name):
-    if 'args' in config['tools'][name]:
-        return config['tools'][name]['args']
+    if "args" in config["tools"][name]:
+        return config["tools"][name]["args"]
     else:
         return ""
+
 
 # sample sheet accessor functions
 def samplesheet(name, item=None):
@@ -58,25 +62,33 @@ def samplesheet(name, item=None):
     else:
         config["SAMPLES"][name]
 
+
 # print datetime next to a message
 def log_time(text):
     time = '$(date +"[%Y-%m-%d %T]")'
-    log = '{} {}'.format(time, text)
-    return(fmt(log))
+    log = "{} {}".format(time, text)
+    return fmt(log)
+
 
 # Generate a command line string that can be passed to snakemake's
 # "shell".  The string is prefixed with an invocation of "nice".
 def nice(cmd, args, log=None, fallback=None):
     executable = tool(cmd)
-    line = ["nice -" + str(config['execution']['nice']),
-            executable] + [toolArgs(cmd)] + args
+    line = (
+        [
+            "nice -" + str(config["execution"]["nice"]),
+            executable,
+        ]
+        + [toolArgs(cmd)]
+        + args
+    )
     if log:
-        line.insert(0, "echo {} > {};".format(log_time("Starting Now"),log))
+        line.insert(0, "echo {} > {};".format(log_time("Starting Now"), log))
         line.append(">> {} 2>&1".format(log))
     if fallback:
         line.append(" || {} ".format(fallback))
     if log:
-        line.append("; echo {} >> {};".format(log_time("Done"),log)) 
+        line.append(";echo {} >> {};".format(log_time("Done"), log))
     return " ".join(line)
 
 
@@ -86,20 +98,21 @@ def bail(msg):
     print(msg, file=sys.stderr)
     exit(1)
 
+
 def TrueOrFalse(value):
     value = repr(value)
     if value:
-        answer = value.lower() in ["true","yes"]
+        answer = value.lower() in ["true", "yes"]
     else:
         answer = False
-    return(answer)
-
+    return answer
 
 
 # --------------------------------------
-# sample related      
+# sample related
 # --------------------------------------
-        
+
+
 def dedupe_tag(protocol):
     if protocol.upper() == "WGBS":
         return ".deduped"
@@ -111,22 +124,24 @@ def dedupe_tag(protocol):
 
 def get_fastq_name(full_name):
     # single end
-    find_se_inx = full_name.find('_se_bt2')
+    find_se_inx = full_name.find("_se_bt2")
     # paired-end
-    find_pe_inx = full_name.find('_1_val_1_bt2')
+    find_pe_inx = full_name.find("_1_val_1_bt2")
 
-    if(find_se_inx >= 0):
+    if find_se_inx >= 0:
         output = full_name[:find_se_inx]
-    elif(find_pe_inx >= 0):
+    elif find_pe_inx >= 0:
         output = full_name[:find_pe_inx]
     else:
-        bail("Unable to infer sample fastq name; cannot find trimming string in filename. \nHave the files been trimmed for adapter sequence and quality?")
+        bail(
+            "Unable to infer sample fastq name; cannot find trimming string in filename. \nHave the files been trimmed for adapter sequence and quality?"
+        )
 
-    return(output)
+    return output
 
 
 # --------------------------------------
-# context related      
+# context related
 # --------------------------------------
 def destrand(context):
     return config["general"]["export-bigwig"]["context"][context.lower()]["destrand"]
@@ -175,14 +190,21 @@ def getSamplesPerMergeRep(mergeRep, samples_dict):
 
 
 # --------------------------------------
-# generate dynamic output files per rule     
+# generate dynamic output files per rule
 # --------------------------------------
 
+
 def files_for_sample(proc):
-    return [expand(proc(config['SAMPLES'][sample]['files'],
-                        config['SAMPLES'][sample]['SampleID'],
-                        config['SAMPLES'][sample]['Protocol']))
-            for sample in config['SAMPLES']]
+    return [
+        expand(
+            proc(
+                config["SAMPLES"][sample]["files"],
+                config["SAMPLES"][sample]["SampleID"],
+                config["SAMPLES"][sample]["Protocol"],
+            )
+        )
+        for sample in config["SAMPLES"]
+    ]
 
 
 def list_files_rawQC(files, sampleID, protocol):
@@ -283,8 +305,6 @@ def list_files_methyldackel_mbias_bwameth(files, sampleID, protocol):
     sampleID = getMergeRepPerSample(sample=sampleID, samples_dict=config["SAMPLES"])
     prefix = PATH + sampleID + ".bwameth.sorted.markdup"
     return [
-        # NOTE: this should be rewritten with snakemakes expand()
-            # NOTE: this should be rewritten with snakemakes expand()  
         # NOTE: this should be rewritten with snakemakes expand()
         f"{prefix}_methylDackel_mbias_{context}{ext}"
         for ext in [".txt", "_OB.svg", "_OT.svg"]
