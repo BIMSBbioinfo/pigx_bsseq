@@ -132,6 +132,11 @@ def destrand(context):
     return config["general"]["export-bigwig"]["context"][context.lower()]["destrand"]
 
 
+def formatContext(context):
+    contexts = {'cpg': 'CpG', 'chg': 'CHG', 'chh': 'CHH'}
+    return contexts.get(context)
+
+
 # --------------------------------------
 # merging samples
 # --------------------------------------
