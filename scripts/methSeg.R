@@ -22,12 +22,12 @@
 args <- commandArgs(TRUE)
 
 ## Default setting when no arguments passed
-if(length(args) < 1) {
+if (length(args) < 1) {
   args <- c("--help")
 }
 
 ## Help section
-if("--help" %in% args) {
+if ("--help" %in% args) {
   cat("
       Segment methylation profile using methylKit
 
@@ -39,11 +39,11 @@ if("--help" %in% args) {
       --assembly  genome assembly
       --logFile   file to print the logs to
       --help              - print this text
-      
+
       Example:
       ./test.R --arg1=1 --arg2='output.txt' --arg3=TRUE \n\n")
-  
-  q(save="no")
+
+  q(save = "no")
 }
 
 ## Parse arguments (we expect the form --arg=value)
@@ -56,10 +56,13 @@ names(argsL) <- argsDF$V1
 
 ## catch output and messages into log file
 out <- file(argsL$logFile, open = "at")
-sink(out,type = "output")
+sink(out, type = "output")
 sink(out, type = "message")
 
 
+message("========= Given Arguments ==========")
+print(argsL)
+message("====================================")
 
 # Run Functions -----------------------------------------------------------
 
@@ -68,56 +71,50 @@ sink(out, type = "message")
 ## load methylKit
 suppressPackageStartupMessages(library("methylKit"))
 
-input     <- argsL$tabix
-output    <- argsL$outBed
-pngFile   <- argsL$png
+input <- argsL$tabix
+output <- argsL$outBed
+pngFile <- argsL$png
 sample.id <- argsL$sample.id
-assembly  <- argsL$assembly
+assembly <- argsL$assembly
 
 
 message("Reading tabix file.")
 ## read input tabix to methylRawDB
-methRawDB <- methRead(location=input,
-                      sample.id =sample.id,
-                      assembly = assembly,
-                      dbtype ="tabix")
+methRawDB <- methRead(
+  location = input,
+  sample.id = sample.id,
+  assembly = assembly,
+  dbtype = "tabix"
+)
 
-# ## catch a possible error and touch empty files
-# ## to trigger successful run
-# err <- tryCatch(
-#   expr = {
-    ## try to run the code
-    png(filename = pngFile,
-        units = "in",width = 8,
-        height = 4.5,res=300)
-    
-    message("Performing segmentation...")
-    ### Segmentation of methylation profile
-    res.gr = methSeg(methRawDB,
-                     diagnostic.plot=TRUE)
-    
-    dev.off()
+png(
+  filename = pngFile,
+  units = "in", width = 8,
+  height = 4.5, res = 300
+)
 
-    ### Export
+message("Performing segmentation...")
+### Segmentation of methylation profile
+res.gr <- methSeg(methRawDB,
+  diagnostic.plot = TRUE
+)
 
-    message("Exporting segmentation...")
-    ## export segments to bed file
-    methSeg2bed(segments = res.gr,
-                trackLine = paste0("track name='meth segments ' ",
-                                   "description='meth segments of ",
-                                   methRawDB@sample.id,
-                                   " mapped to ",
-                                   methRawDB@assembly,
-                                   "' itemRgb=On"),
-                colramp=colorRamp(c("gray","green", "darkgreen")),
-                filename = output)
-#   },
-#   error = function(x) {
-#     ## if it fails still generate empty output
-#     file.create(output)
-#     message(paste("error occured!!",x))
-#   }
-# )
+dev.off()
 
+### Export
 
-
+message("Exporting segmentation...")
+## export segments to bed file
+methSeg2bed(
+  segments = res.gr,
+  trackLine = paste0(
+    "track name='meth segments ' ",
+    "description='meth segments of ",
+    methRawDB@sample.id,
+    " mapped to ",
+    methRawDB@assembly,
+    "' itemRgb=On"
+  ),
+  colramp = colorRamp(c("gray", "green", "darkgreen")),
+  filename = output
+)
