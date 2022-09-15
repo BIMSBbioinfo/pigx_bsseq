@@ -129,7 +129,44 @@ def get_fastq_name(full_name):
 # context related      
 # --------------------------------------
 def destrand(context):
-    return config['general']['export-bigwig']['context'][context.lower()]['destrand']
+    return config["general"]["export-bigwig"]["context"][context.lower()]["destrand"]
+
+
+# --------------------------------------
+# merging samples
+# --------------------------------------
+def getMergeRepPerSample(sample, samples_dict):
+    """
+    Extract the values of 'MergeReplicates' from dictionary 'samples_dict'
+    for a given 'sample' (SampleID).
+
+    Returns given 'sample' if column 'MergeReplicates' is empty or not found
+    """
+    mergeReps = (
+        samples_dict[sample]["MergeReplicates"]
+        if ("MergeReplicates" in samples_dict[sample])
+        and (samples_dict[sample]["MergeReplicates"])
+        else sample
+    )
+    # samples_dict[sample]["MergeReplicates"]
+    # if not mergeReps: mergeReps = sample
+    return mergeReps
+
+
+def getSamplesPerMergeRep(mergeRep, samples_dict):
+    """
+    Extract the values of 'SampleID' from dictionary 'samples_dict'
+    for a given 'mergeRep' (MergeReplicates).
+
+    Returns given 'mergeRep' if column 'MergeReplicates' is empty or not found
+    """
+    samples = [
+        sample
+        for sample in samples_dict
+        if ("MergeReplicates" in samples_dict[sample])
+        and (samples_dict[sample]["MergeReplicates"] == mergeRep)
+    ]
+    return samples
 
 
 # --------------------------------------
