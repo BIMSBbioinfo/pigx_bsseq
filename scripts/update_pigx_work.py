@@ -42,7 +42,7 @@ def makelink(src, target):
     elif not path.isdir(path.dirname(target)):
         bail(
             "%s or subdirectory does not exist for linking %s"
-            % config["locations"]["output-dir"],
+            % path.dirname(target),
             target,
         )
     else:
