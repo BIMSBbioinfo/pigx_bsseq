@@ -96,3 +96,5 @@ methRaw = methylKit::methRead(location = location,
                     dbtype = 'tabix',
                     dbdir = dbdir)
 
+## remove uncompressed txt file
+unlink(file.path(dbdir,paste0(sample.id,".txt")))
