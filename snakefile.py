@@ -19,6 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from itertools import chain
 
 # include function definitions and extra rules
 include   : os.path.join(config['locations']['pkglibexecdir'], 'scripts/func_defs.py')
@@ -293,7 +294,6 @@ for target in selected_targets:
 
 # FIXME: the list of files must be flattened twice(!).  We should make
 # sure that the targets really just return simple lists.
-from itertools import chain
 OUTPUT_FILES = list(chain.from_iterable(chain.from_iterable([targets[name]['files'] for name in selected_targets])))
 
 
