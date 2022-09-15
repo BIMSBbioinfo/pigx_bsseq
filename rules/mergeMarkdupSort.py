@@ -41,8 +41,8 @@ def runFixmate(sample, log="", samples_dict=config["SAMPLES"]):
         cmd = f" ".join(
             [
                 tool("samtools"),
-                "collate -u -O",
-                "2>> {log}",
+                "collate -u -O -",
+                f"2>> {log}",
                 "|",
                 tool("samtools"),
                 "fixmate -m -u - - ",
