@@ -187,261 +187,187 @@ def files_for_sample(proc):
 
 def list_files_rawQC(files, sampleID, protocol):
     PATH = DIR_rawqc
-    if len(files) == 1:
-        return [PATH+sampleID+"_fastqc.zip"]  # ---- single end
-    elif len(files) == 2:
-        # ---- paired end
-        return [PATH+sampleID+"_1_fastqc.zip", PATH+sampleID+"_2_fastqc.zip"]
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    infix = ["_fastqc"] if len(files) == 1 else ["_1_fastqc", "_2_fastqc"]
+    return [os.path.join(PATH, f"{sampleID}{inf}.zip") for inf in infix]
 
 
 def list_files_TG(files, sampleID, protocol):
     PATH = DIR_trimmed
-    if len(files) == 1:
-        return [PATH+sampleID+"_trimmed.fq.gz"]  # ---- single end
-    elif len(files) == 2:
-        # ---- paired end
-        return [PATH+sampleID+"_1_val_1.fq.gz", PATH+sampleID+"_2_val_2.fq.gz"]
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    infix = ["_trimmed"] if len(files) == 1 else ["1_val_1", "_2_val_2"]
+    return [os.path.join(PATH, f"{sampleID}{inf}.fq.gz") for inf in infix]
 
 
 def list_files_posttrim_QC(files, sampleID, protocol):
     PATH = DIR_posttrim_QC
-    if len(files) == 1:
-        return [PATH+sampleID+"_trimmed_fastqc.zip"]  # ---- single end
-    elif len(files) == 2:
-        # ---- paired end
-        return [PATH+sampleID+"_1_val_1_fastqc.zip", PATH+sampleID+"_2_val_2_fastqc.zip"]
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    infix = ["_trimmed"] if len(files) == 1 else ["1_val_1", "_2_val_2"]
+    return [os.path.join(PATH, f"{sampleID}{inf}_fastqc.zip") for inf in infix]
 
 
 def list_files_bismark(files, sampleID, protocol):
     PATH = DIR_mapped
-    if len(files) == 1:
-        return [PATH+sampleID+"_trimmed_bismark_bt2_SE_report.txt",
-                PATH+sampleID+"_trimmed_bismark_bt2.bam"]  # ---- single end
-    elif len(files) == 2:
-        return [PATH+sampleID+"_1_val_1_bismark_bt2_PE_report.txt",
-                PATH+sampleID+"_1_val_1_bismark_bt2_pe.bam"]  # ---- paired end
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    infix = "_trimmed" if len(files) == 1 else "_1_val_1"
+    suffix = (
+        ["_SE_report.txt", ".bam"] if len(files) == 1 else ["_PE_report.txt", "_pe.bam"]
+    )
+    return [os.path.join(PATH, f"{sampleID}{infix}_bismark_bt2{suf}") for suf in suffix]
 
 
 def list_files_bwameth(files, sampleID, protocol):
     PATH = DIR_mapped
-    if len(files) == 1:
-        return [PATH+sampleID+".bwameth.bam"]  # ---- single end
-    elif len(files) == 2:
-        return [PATH+sampleID+".bwameth.bam"]  # ---- paired end
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
-
-
+    return [os.path.join(PATH, f"{sampleID}.bwameth.bam")]
 
 
 def list_files_dedupe(files, sampleID, protocol):
     PATH = DIR_sorted
-    if len(files) == 1:
-        # ---- single end
-        return [PATH+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + ".bam"]
-    elif len(files) == 2:
-        # ---- paired end
-        return [PATH+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + ".bam"]
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    infix = "_se" if len(files) == 1 else "_1_val_1"
+    return [os.path.join(PATH, f"{sampleID}{infix}.sorted{dedupe_tag(protocol)}.bam")]
 
 
 def list_files_markdup(files, sampleID, protocol):
     PATH = DIR_sorted
-    if len(files) == 1:
-        return [PATH+sampleID+".bwameth.sorted.markdup.bam"]  # ---- single end
-    elif len(files) == 2:
-        return [PATH+sampleID+".bwameth.sorted.markdup.bam"]  # ---- paired end
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    sampleID = getMergeRepPerSample(sample=sampleID, samples_dict=config["SAMPLES"])
+    return [
+        PATH + sampleID + ".bwameth.sorted.markdup.bam",
+        PATH + sampleID + ".bwameth.sorted.picard_MarkDuplicates.metrics.txt",
+    ]
 
 
 def list_files_bwamethMappingStats(files, sampleID, protocol):
     PATH = DIR_sorted
-    if len(files) == 1:
-        return [PATH+sampleID+".bwameth.sorted.markdup.idxstats.txt",
-                PATH+sampleID+".bwameth.sorted.markdup.stats.txt",
-                PATH+sampleID+".bwameth.sorted.markdup.flagstat.txt"]  # ---- single end
-    elif len(files) == 2:
-        return [PATH+sampleID+".bwameth.sorted.markdup.idxstats.txt",
-                PATH+sampleID+".bwameth.sorted.markdup.stats.txt",
-                PATH+sampleID+".bwameth.sorted.markdup.flagstat.txt"]  # ---- paired end
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    sampleID = getMergeRepPerSample(sample=sampleID, samples_dict=config["SAMPLES"])
+    return [
+        PATH + sampleID + ".bwameth.sorted.markdup.idxstats.txt",
+        PATH + sampleID + ".bwameth.sorted.markdup.stats.txt",
+        PATH + sampleID + ".bwameth.sorted.markdup.flagstat.txt",
+    ]
 
 
-
-# FIXME: contexts should be generate output based on settings file
 def bam_processing(files, sampleID, protocol):
-    PATH = DIR_methcall+ "methylKit/"
-    if len(files) == 1:
-        # ---- single end
-        return [PATH+"tabix_cpg/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_cpg.txt.bgz",
-                PATH+"tabix_cpg/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_cpg.txt.bgz.tbi",
-                # PATH+"tabix_chg/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_chg.txt.bgz",
-                # PATH+"tabix_chg/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_chg.txt.bgz.tbi",
-                # PATH+"tabix_chh/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_chh.txt.bgz",
-                # PATH+"tabix_chh/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_chh.txt.bgz.tbi"
-                ]
-    elif len(files) == 2:
-        # ---- paired end
-        return [PATH+"tabix_cpg/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_cpg.txt.bgz",
-                PATH+"tabix_cpg/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_cpg.txt.bgz.tbi",
-                # PATH+"tabix_chg/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_chg.txt.bgz",
-                # PATH+"tabix_chg/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_chg.txt.bgz.tbi",
-                # PATH+"tabix_chh/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_chh.txt.bgz",
-                # PATH+"tabix_chh/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_chh.txt.bgz.tbi"
-                ]
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
-                
-# FIXME: contexts should be generate output based on settings file
+    PATH = DIR_methcall + "methylDackel/"
+    # ---- change based on single or paired end
+    mapper_suffix = "_se_bt2.sorted" if len(files) == 1 else "_1_val_1_bt2.sorted"
+    prefix = PATH + sampleID + mapper_suffix + dedupe_tag(protocol)
+    return [
+        # contexts are cpg, chg, chh
+        f"{prefix}_{context}.txt.bgz{ext}"
+        for ext in ["", ".tbi"]
+        for context in METH_CONTEXTS
+    ]
+
+
 def list_files_methyldackel_extract(files, sampleID, protocol):
     PATH = DIR_methcall + "methylDackel/"
-    return [PATH+sampleID+dedupe_tag(protocol)+"_methyldackel_CpG.methylKit",
-            PATH+sampleID+dedupe_tag(protocol)+"_methyldackel_CHG.methylKit",
-            PATH+sampleID+dedupe_tag(protocol)+"_methyldackel_CHH.methylKit",
-            # PATH+sampleID+"_mbias_methyldackel.txt",
-            # PATH+sampleID+"_mbias_OB.svg",
-            # PATH+sampleID+"_mbias_OT.svg",
-            # PATH+sampleID+"_methyldackel.cytosine_report.txt"
-            ]
+    sampleID = getMergeRepPerSample(sample=sampleID, samples_dict=config["SAMPLES"])
+    prefix = PATH + sampleID + dedupe_tag(protocol)
+    return [
+        # contexts are CpG, CHG, CHH
+        f"{prefix}_methyldackel_{formatContext(context)}.methylKit.gz"
+        for context in METH_CONTEXTS
+    ]
 
 
-# FIXME: contexts should be generate output based on settings file
 def list_files_methyldackel_mbias_bismark(files, sampleID, protocol):
     PATH = DIR_methcall + "methylDackel/"
     # ---- change based on single or paired end
     mapper_suffix = "_se_bt2.sorted" if len(files) == 1 else "_1_val_1_bt2.sorted"
     prefix = PATH + sampleID + mapper_suffix + dedupe_tag(protocol)
-    suffices = [
-        f"_methylDackel_mbias_{context}{ext}"
+    return [
+        f"{prefix}_methylDackel_mbias_{context}{ext}"
         for ext in [".txt", "_OB.svg", "_OT.svg"]
         for context in METH_CONTEXTS
     ]
-    return [prefix + suffix for suffix in suffices]
 
 
 def list_files_methyldackel_mbias_bwameth(files, sampleID, protocol):
     PATH = DIR_methcall + "methylDackel/"
     sampleID = getMergeRepPerSample(sample=sampleID, samples_dict=config["SAMPLES"])
-    prefix = PATH + sampleID + ".bwameth.sorted.markdup" 
-    suffices = [
+    prefix = PATH + sampleID + ".bwameth.sorted.markdup"
+    return [
+        # NOTE: this should be rewritten with snakemakes expand()
             # NOTE: this should be rewritten with snakemakes expand()  
-            f"_methylDackel_mbias_{context}{ext}"
-            for ext in [".txt", "_OB.svg", "_OT.svg"]
-            for context in METH_CONTEXTS
-        ]
-    return [ prefix + suffix for suffix in suffices ]
+        # NOTE: this should be rewritten with snakemakes expand()
+        f"{prefix}_methylDackel_mbias_{context}{ext}"
+        for ext in [".txt", "_OB.svg", "_OT.svg"]
+        for context in METH_CONTEXTS
+    ]
+
 
 # FIXME: contexts should be generate output based on settings file
 def list_files_maketabix_methyldackel(files, sampleID, protocol):
     PATH = DIR_methcall + "methylDackel/"
+    # ---- change based on single or paired end
+    prefix = sampleID + dedupe_tag(protocol)
     return [
-            PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz",
-            PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz.tbi",
-            PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz",
-            PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz.tbi",
-            PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz",
-            PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz.tbi"
-            ]
+        # contexts are CpG, CHG, CHH
+        os.path.join(
+            PATH, f"tabix_{formatContext(context)}", f"{prefix}_{context}.txt.bgz{ext}"
+        )
+        for ext in ["", ".tbi"]
+        for context in METH_CONTEXTS
+    ]
 
-# FIXME: contexts should be generate output based on settings file
+
 def bigwig_exporting_bismark(files, sampleID, protocol):
     PATH = DIR_bigwig
     DESTRAND = "_destranded" if destrand("cpg") else ""
-    if len(files) == 1:
-        # ---- single end
-        return PATH+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + ".cpg" + DESTRAND + "_methylKit"+ ".bw"
-    elif len(files) == 2:
-        # ---- paired end
-        return [PATH+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + ".cpg" + DESTRAND +  "_methylKit" + ".bw"]
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    # ---- change based on single or paired end
+    mapper_suffix = "_se_bt2.sorted" if len(files) == 1 else "_1_val_1_bt2.sorted"
+    prefix = PATH + sampleID + mapper_suffix + dedupe_tag(protocol)
+    return [f"{prefix}.{context}{DESTRAND}_methylKit.bw" for context in METH_CONTEXTS]
+
 
 # FIXME: contexts should be generate output based on settings file
 def bigwig_exporting_bwameth(files, sampleID, protocol):
     PATH = DIR_bigwig
+    sampleID = getMergeRepPerSample(sample=sampleID, samples_dict=config["SAMPLES"])
     DESTRAND = "_destranded" if destrand("cpg") else ""
-    if len(files) == 1:
-        # ---- single end
-        return [PATH+sampleID+dedupe_tag(protocol) + ".CpG" + DESTRAND + "_methylDackel" + ".bw"]
-    elif len(files) == 2:
-        # ---- paired end
-        return [PATH+sampleID+dedupe_tag(protocol) + ".CpG" + DESTRAND + "_methylDackel" + ".bw"]
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    prefix = PATH + sampleID + dedupe_tag(protocol)
+    return [
+        f"{prefix}.{formatContext(context)}{DESTRAND}_methylDackel.bw"
+        for context in METH_CONTEXTS
+    ]
+
 
 def methSeg_bismark(files, sampleID, protocol):
     PATH = DIR_seg
-    if len(files) == 1:
-        # ---- single end
-        return PATH+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_cpg" + "_methylKit" +".meth_segments.bed"
-    elif len(files) == 2:
-        # ---- paired end
-        return [PATH+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_cpg" + "_methylKit" +".meth_segments.bed"]
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    # ---- change based on single or paired end
+    mapper_suffix = "_se_bt2.sorted" if len(files) == 1 else "_1_val_1_bt2.sorted"
+    prefix = PATH + sampleID + mapper_suffix + dedupe_tag(protocol)
+    return [
+        f"{prefix}_{context}_methylKit.meth_segments.bed" for context in METH_CONTEXTS
+    ]
+
 
 def methSeg_bwameth(files, sampleID, protocol):
     PATH = DIR_seg
-    if len(files) == 1:
-        # ---- single end
-        return []
-    elif len(files) == 2:
-        # ---- paired end
-        return [PATH+sampleID+dedupe_tag(protocol) + "_CpG" + "_methylDackel" +".meth_segments.bed"]
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    sampleID = getMergeRepPerSample(sample=sampleID, samples_dict=config["SAMPLES"])
+    prefix = PATH + sampleID + dedupe_tag(protocol)
+    return [
+        f"{prefix}_{formatContext(context)}_methylDackel.meth_segments.bed"
+        for context in METH_CONTEXTS
+    ]
+
 
 def list_final_reports_bwameth(files, sampleID, protocol):
-    SUFFIX = "CpG_methylDackel_{}".format(ASSEMBLY) 
-    PATH = os.path.join(DIR_final,"sample_reports/" )
-    if len(files) == 1:
-        # ---- single end
-        # return [PATH+sampleID+dedupe_tag(protocol) + ".CpG" + DESTRAND + "_methylDackel" + ".bw"]
-        return [PATH+sampleID+dedupe_tag(protocol) + "_"+ SUFFIX+ "_final.html"]
-    elif len(files) == 2:
-        # ---- paired end
-        return [PATH+sampleID+dedupe_tag(protocol) + "_"+ SUFFIX+ "_final.html"]
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    SUFFIX = "CpG_methylDackel_{}".format(ASSEMBLY)
+    PATH = os.path.join(DIR_final, "sample_reports/")
+    sampleID = getMergeRepPerSample(sample=sampleID, samples_dict=config["SAMPLES"])
+    prefix = PATH + sampleID + dedupe_tag(protocol)
+    return [
+        f"{prefix}_{formatContext(context)}_methylDackel_{ASSEMBLY}_final.html"
+        for context in METH_CONTEXTS
+    ]
+
 
 def list_final_reports_bismark(files, sampleID, protocol):
-    SUFFIX = "cpg_methylKit_{}".format(ASSEMBLY) 
-    PATH = os.path.join(DIR_final,"sample_reports/" )
-    if len(files) == 1:
-        # ---- single end
-        return PATH+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_"+ SUFFIX+ "_final.html"
-    elif len(files) == 2:
-        # ---- paired end
-        return [PATH+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_"+SUFFIX+"_final.html"]
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
-
+    PATH = os.path.join(DIR_final, "sample_reports/")
+    mapper_suffix = "_se_bt2.sorted" if len(files) == 1 else "_1_val_1_bt2.sorted"
+    prefix = PATH + sampleID + mapper_suffix + dedupe_tag(protocol)
+    return [
+        f"{prefix}_{context}_methylKit_{ASSEMBLY}_final.html"
+        for context in METH_CONTEXTS
+    ]
+
 
 # --------------------------------------
 # diffmeth related
@@ -449,24 +375,21 @@ def list_final_reports_bismark(files, sampleID, protocol):
 def get_sampleids_from_treatment(treatment):
     """Get SampleIDs from treatment string."""
     sample_ids = list(config["SAMPLES"].keys())
-    sample_treatments = [samplesheet(s,"Treatment") for s in sample_ids]
+    sample_treatments = [samplesheet(s, "Treatment") for s in sample_ids]
+    sampleids_list = [
+        sample_ids[i] for i, x in enumerate(sample_treatments) if x == treatment
+    ]
+    return sampleids_list
 
-    sampleids_list = [sample_ids[i]
-                 for i, x in enumerate(sample_treatments) if x == treatment]
-
-    return(sampleids_list)
-    
 
 def get_sampleids_from_analysis(analysis):
     """Get SampleIDs for each Analysis group."""
     sampleids_list = []
-    for group in config['DManalyses'][analysis]:
-        for treatment in config['DManalyses'][analysis][group].split(","):
+    for group in config["DManalyses"][analysis]:
+        for treatment in config["DManalyses"][analysis][group].split(","):
             sampleids_list += get_sampleids_from_treatment(treatment)
-            
-    return(sampleids_list)
-    
 
+    return sampleids_list
 
 
 def makeDiffMethPath(path, suffix, treatment):
@@ -478,27 +401,34 @@ def diffmeth_input_function(treatments):
 
     inputfiles = []
     for sampleid in sampleids:
-        fqname = config["SAMPLES"][sampleid]['fastq_name']
-        protocol = config["SAMPLES"][sampleid]['Protocol']
-        if len(fqname) == 1:
-            inputfile = [os.path.join(
-                DIR_methcall, sampleid+"_se_bt2.sorted" + dedupe_tag(protocol) + "_methylRaw.RDS")]
-        elif len(fqname) == 2:
-            inputfile = [os.path.join(
-                DIR_methcall, sampleid+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_methylRaw.RDS")]
+        files = config["SAMPLES"][sampleid]["fastq_name"]
+        protocol = config["SAMPLES"][sampleid]["Protocol"]
+        infix = "_se" if len(files) == 1 else "_1_val_1"
+        inputfile = [
+            os.path.join(
+                DIR_methcall,
+                f"{sampleid}{infix}_bt2.sorted{dedupe_tag(protocol)}_methylRaw.RDS",
+            )
+        ]
         inputfiles.append(inputfile)
 
     inputfiles = list(sum(inputfiles, []))
-    return(inputfiles)
 
-# FIXME: create named treatment groups in settings file
+    return inputfiles
+
+
 def files_for_treatment(proc):
     if "DManalyses" in config.keys():
-        treatment_groups = config['DManalyses']
+        treatment_groups = config["DManalyses"]
+        files = []
         if treatment_groups:
-            return [expand(proc(comparison)) for comparison in treatment_groups if comparison]
-        else:
-            return []
+            files = [
+                expand(proc(comparison))
+                for comparison in treatment_groups
+                if comparison
+            ]
+        return files
+
 
 # FIXME: create files dependend on context
 def list_files_unite_bismark(treatment):
