@@ -96,7 +96,7 @@ execution:
     samtools_sort_bam:
       threads: 12
       memory: 12G
-    samblaster_markdup_sort:
+    mergeMarkdupSort_bam:
       threads: 12
       memory: 12G
     bwameth_align_trimmed:
