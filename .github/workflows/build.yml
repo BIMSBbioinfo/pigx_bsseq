@@ -64,7 +64,7 @@ jobs:
         run: guix shell -D -f guix.scm -- make distcheck
       - name: Print Test Suite Log
         if: ${{ failure() }}
-        run: cat ${{ github.workspace }}/pigx_bsseq-${{ env.version }}/_build/sub/test-suite.log" 
+        run: cat ${{ github.workspace }}/pigx_bsseq-${{ env.version }}/_build/sub/test-suite.log 
       - name: Upload Test Suite Log
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
