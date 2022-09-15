@@ -5,7 +5,7 @@ def multiqc_files(branch):
     files += files_for_sample(list_files_TG)
     files += files_for_sample(list_files_posttrim_QC) 
     if branch == "bismark":
-       files += files_for_sample(list_files_bismark)
+        files += files_for_sample(list_files_bismark)
         files += files_for_sample(list_files_methyldackel_mbias_bismark)
     elif branch == "bwameth":
         files += files_for_sample(list_files_bwameth)
