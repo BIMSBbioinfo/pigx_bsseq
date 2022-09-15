@@ -26,8 +26,6 @@
 # Copyright © 2018 Katarzyna Wreczycka katarzyna.wreczycka@mdc-berlin.de
 # This pipeline is heavily based on the PiGx BSseq pipeline github.com/BIMSBbioinfo/pigx_bsseq
 
-from scripts.func_defs import getSampsPerMergeRep
-
 # # # ==========================================================================================
 # # # Mapping bisulfite reads with bwa-meth:
 # # 
