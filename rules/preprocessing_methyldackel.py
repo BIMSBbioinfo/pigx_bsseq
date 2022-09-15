@@ -178,8 +178,6 @@ rule tabix_methyldackelfile:
     params:
         sampleid = "{prefix}_{context}",
         assembly = ASSEMBLY,
-        treatment = lambda wc: samplesheet(
-            wc.prefix.replace(".deduped", ""), 'Treatment'),
         context = "{context}",
         dbdir = DIR_methcall + "methylDackel/" + "/tabix_{context}/",
         mincov = int(config['general']['methylation-calling']
@@ -192,7 +190,6 @@ rule tabix_methyldackelfile:
                          "--location={input}",
                          "--sample.id={params.sampleid}",
                          "--assembly={params.assembly}",
-                         "--treatment={params.treatment}",
                          "--context={params.context}",
                          "--mincov={params.mincov}",
                          "--dbdir={params.dbdir}",

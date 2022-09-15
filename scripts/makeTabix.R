@@ -35,7 +35,6 @@ if ("--help" %in% args) {
       --location location of input file
       --sample.id unique name of input sample
       --assembly assembly used to map the reads
-      --treatment treatment of input sample
       --context context of methylation
       --mincov minimum coverage (default: 10)
       --dbdir name of the output folder
@@ -82,7 +81,6 @@ message("====================================")
 location <- argsL$location
 sample.id <- argsL$sample.id
 assembly <- argsL$assembly
-treatment <- argsL$treatment
 context <- argsL$context
 mincov <- as.numeric(argsL$mincov)
 dbdir <- argsL$dbdir
@@ -94,7 +92,6 @@ methRaw <- methylKit::methRead(
   location = location,
   sample.id = sample.id,
   assembly = assembly,
-  treatment = treatment,
   mincov = mincov,
   context = context,
   dbtype = "tabix",
