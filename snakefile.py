@@ -665,7 +665,7 @@ rule tabulate_seqlengths:
 
 rule index_genome_fasta:
     input:
-        GENOMEFILE
+        ancient(GENOMEFILE)
     output:
         index       = GENOMEFILE+".fai"
     message: fmt("Index reference genome fasta file for assembly {ASSEMBLY}.")
