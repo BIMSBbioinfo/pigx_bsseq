@@ -17,7 +17,7 @@
 ;;; This environment file was developed for Guix version
 ;;; 1614862
 
-(use-modules (guix packages) (gnu packages))
+(use-modules (guix packages) (gnu packages) (gnu packages java) )
 
 (define %pigx-bsseq-version
   (symbol->string (with-input-from-file "VERSION" read)))
@@ -28,6 +28,8 @@
     (source (string-append (getcwd) "/pigx_bsseq-" version ".tar.gz"))
     (native-inputs
      `(("autoconf" ,(specification->package "autoconf"))
-       ("automake" ,(specification->package "automake"))))))
+       ("automake" ,(specification->package "automake"))
+       ("java" ,(specification->package "icedtea"))
+       ("picard" ,(specification->package "java-picard"))))))
 
 pigx-bsseq-development

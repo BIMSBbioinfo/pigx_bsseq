@@ -59,7 +59,8 @@ of all variables and options.
  - bwa-meth
  - bwa
  - methyldackel
- - samblaster
+ - picard
+ - java
  - multiqc
  - samtools [>=1.3]
  - snakemake
@@ -95,6 +96,12 @@ command spawns a sub-shell in which all dependencies are available:
 ```sh
 guix environment -l guix.scm
 ```
+
+Please note, that for this branch we are using picard for marking duplicate reads. Thus to facilitate a proper configuration you have to specify to location of the picard jar with:
+```
+export PICARDJAR=$GUIX_ENVIRONMENT/share/java/picard.jar
+```
+
 
 # Getting started
 

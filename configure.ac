@@ -10,6 +10,12 @@ dnl We need sed for version checks and for the pipeline
 AC_PROG_SED
 AC_PROG_GREP
 
+dnl Check for Picard first, because that's likely going to fail.
+AC_ARG_VAR([PICARDJAR], [specify location of picard.jar])
+AS_IF([test -z "$PICARDJAR"],dnl
+      AC_MSG_ERROR([Please provide the location of picard.jar with the PICARDJAR variable.]),dnl
+      AC_MSG_NOTICE([Using PICARDJAR.]))
+
 dnl Load Python support for Automake and ensure we have a Python
 dnl interpreter for at least version 3.5.  This sets the "PYTHON"
 dnl variable.
@@ -50,6 +56,8 @@ find_or_override_prog([BISMARK],         [bismark])
 find_or_override_prog([BISMARK_GENOME_PREPARATION], [bismark_genome_preparation])
 find_or_override_prog([DEDUPLICATE_BISMARK], [deduplicate_bismark])
 find_or_override_prog([METHYLDACKEL], [MethylDackel])
+
+find_or_override_prog([JAVA], [java])
 
 find_or_override_prog([R],               [R])
 find_or_override_prog([RSCRIPT],         [Rscript])

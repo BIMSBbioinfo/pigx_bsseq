@@ -166,3 +166,9 @@ tools:
   grep:
     executable: @GREP@
     args: ""
+  java:
+    executable: @JAVA@
+    args: "-Xmx10G"
+  picard:
+    executable: @PICARDJAR@
+    args: ""
