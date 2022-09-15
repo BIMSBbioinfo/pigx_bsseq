@@ -32,7 +32,7 @@ rule samblaster_markdup_sort:
         threads=config['execution']['rules']['samblaster_markdup_sort']['threads'],
         memory=config['execution']['rules']['samblaster_markdup_sort']['memory']
     log:
-        DIR_sorted+"{sample}_markdups.log"
+        DIR_sorted+"{sample}.bwameth.sorted.markdup.log"
     message: fmt("Deduplicating reads with samblaster for sample {wildcards.sample}")
     shell:
         nice("samtools", 
