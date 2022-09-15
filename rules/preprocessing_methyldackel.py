@@ -27,7 +27,19 @@
 
 # ==========================================================================================
 # Extract methylation counts with methylDackel
-#
+
+
+def getContextArg(wc):
+    ## dependent on context we may return a combination of the following args
+    ## ""                         Ouptut only CpG context (returned by default)
+    ## "--noCpG --CHG"            Output only CHG context methylation metrics
+    ## "--noCpG --CHH"            Output only CHH context methylation metrics
+    contextRequest =  str(wc.context).upper()
+    contextArg = "" 
+    if contextRequest != "CPG":
+        contextArg = f"--noCpG --{contextRequest}"
+    return contextArg
+
 
 
 def protocol(wc):
@@ -46,51 +58,63 @@ def keepDups(protocol):
     return keepDups
 
 
-## TODO: compress methylKit files  
-## TODO: make extraction of chg and chh files optional?? 
-rule methyldackel_extract_methylKit:
+rule methyldackel_extract_methylKit_by_context:
     input:
         bamfile = DIR_sorted + "{sample}.bwameth.sorted.markdup.bam",
         genome = GENOMEFILE
     output:
-        cpgCallFile = DIR_methcall + "methylDackel/" +"{sample}_methyldackel_CpG.methylKit",
-        chgCallFile = DIR_methcall + "methylDackel/" + "{sample}_methyldackel_CHG.methylKit",
-        chhCallFile = DIR_methcall + "methylDackel/" + "{sample}_methyldackel_CHH.methylKit"
+        contextCallFile = DIR_methcall + "methylDackel/" + "{sample}_methyldackel_{context}.methylKit.gz"
     wildcard_constraints:
         sample=".+(?<!deduped)"
     params:
         threads = config['execution']['rules']['methyldackel_extract']['threads'],
         prefix = DIR_methcall + "methylDackel/" + "{sample}_methyldackel",
+        context = lambda wc: getContextArg(wc),
         protocol = lambda wc: protocol(wc),
         keepDups = lambda wc: keepDups(protocol(wc)),
         minqual = int(config['general']
                       ['methylation-calling']['minimum-quality'])
     log:
-        DIR_methcall + "{sample}.methyldackel_calls.log"
-    message: fmt("Extract methylation calls from bam file using MethylDackel for sample {wildcards.sample} and protocol {params.protocol}")
+        DIR_methcall + "{sample}.methyldackel_{context}_calls.log"
+    message: fmt("Calling methylation for {wildcards.context} context in sample {wildcards.sample} according to protocol {params.protocol}.")
     shell:
         nice("methyldackel",
              ["extract", "{input.genome}", "{input.bamfile}",
               "-o {params.prefix}", "-@ {params.threads}", "{params.keepDups}",
-              "--methylKit", "--CHH", "--CHG", "-q {params.minqual}"],
+              "--methylKit", "{params.context}", "-q {params.minqual}",
+              ">> {log} 2>&1", ";\n", 
+              "gzip", "{params.prefix}_{wildcards.context}.methylKit"],
              ("{log}"))
 
 
-## TODO: compress methylKit files  
 rule methyldackel_extract_methylKit_deduped:
     input:
         bamfile = DIR_sorted + "{sample}.bwameth.sorted.markdup.bam",
         genome = GENOMEFILE
     output:
-        cpgCallFile = DIR_methcall + "methylDackel/" + \
-            "{sample}.deduped_methyldackel_CpG.methylKit",
-        chgCallFile = DIR_methcall + "methylDackel/" + \
-            "{sample}.deduped_methyldackel_CHG.methylKit",
-        chhCallFile = DIR_methcall + "methylDackel/" + \
-            "{sample}.deduped_methyldackel_CHH.methylKit"
+        contextCallFile = DIR_methcall+"methylDackel/"+ \
+            "{sample}.deduped_methyldackel_{context}.methylKit.gz"
     params:
         threads = config['execution']['rules']['methyldackel_extract']['threads'],
         prefix = DIR_methcall + "methylDackel/" + "{sample}.deduped_methyldackel",
+        context = lambda wc: getContextArg(wc),
+        protocol = lambda wc: protocol(wc),
+        keepDups = lambda wc: keepDups(protocol(wc)),
+        minqual = int(config['general']
+                      ['methylation-calling']['minimum-quality'])
+    log:
+        DIR_methcall + "{sample}.deduped.methyldackel_{context}_calls.log"
+    message: fmt("Calling methylation for {wildcards.context} context in sample {wildcards.sample} according to protocol {params.protocol}.")
+    shell:
+        nice("methyldackel",
+             ["extract", "{input.genome}", "{input.bamfile}",
+              "-o {params.prefix}", "-@ {params.threads}", "{params.keepDups}",
+              "--methylKit", "{params.context}", "-q {params.minqual}",
+              ">> {log} 2>&1", ";\n", 
+              "gzip", "{params.prefix}_{wildcards.context}.methylKit"],
+             ("{log}"))
+
+
         protocol = lambda wc: protocol(wc),
         keepDups = lambda wc: keepDups(protocol(wc)),
         minqual = int(config['general']
