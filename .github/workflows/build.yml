@@ -45,10 +45,15 @@ jobs:
           cat ~/.cache/guix/env | sudo guix archive --import
       - name: Bootstrap
         run: guix shell -D -f guix.scm -- ./bootstrap.sh
+      - name: Set PICARDJAR
+        id: set_picardjar
+        run: |
+          eval "$(guix shell --search-paths)"
+          export PICARDJAR=$GUIX_ENVIRONMENT/share/java/picard.jar
+          echo "PICARDJAR=$PICARDJAR" >> $GITHUB_ENV
       - name: Configure
         run: | 
-          guix shell -D -f guix.scm -- \
-          export PICARDJAR=$GUIX_ENVIRONMENT/share/java/picard.jar ; ./configure
+          guix shell -D -f guix.scm -- ./configure
       - name: Build
         run: guix shell -D -f guix.scm -- make -j
       - name: Distcheck
