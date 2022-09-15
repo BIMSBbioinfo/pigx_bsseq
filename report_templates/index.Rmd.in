@@ -34,12 +34,6 @@ params:
   prefix:                 ''
   workdir:                ''
   logo:                   ''
-  
-  MethCall: TRUE
-  AnnotateDiffMeth: TRUE
-  AnnotateSegments: TRUE
-  DiffMeth: TRUE
-  Segmentation: TRUE
 ---
 
 <style>
@@ -74,9 +68,9 @@ knitr::opts_knit$set(progress = FALSE)
 ```
 
 ```{r chunk_eval_options}
-MethCall          <- params$MethCall
-Segmentation      <- params$Segmentation
-AnnotateSegments  <- params$AnnotateSegments
+MethCall          <- TRUE
+Segmentation      <- TRUE
+AnnotateSegments  <- TRUE
 
 inBam <- params$inBam
 bigwigFile <- params$bigwigFile
