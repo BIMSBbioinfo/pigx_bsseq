@@ -20,13 +20,12 @@
 import os
 import csv
 from glob import glob
-from func_defs import bail
 
 # ==============================================================================
 #
 #                                       VALIDATION FUNCTIONS
 #
-# functions used to verify the integrity of sample sheet and settings file   
+# functions used to verify the integrity of sample sheet and settings file
 # ==============================================================================
 
 
@@ -34,8 +33,10 @@ from func_defs import bail
 # validation of sample sheet
 # --------------------------------------
 
+
 def get_filenames(mylist):
     return list(map(lambda x: splitext_fqgz(x)[0], mylist))
+
 
 def splitext_fqgz(string):
     def fq_suffix(filename):
@@ -101,17 +102,23 @@ def parse_sample_sheet(path):
         row = list(map(lambda x: x.strip(), row))
         files = list(filter(None, row[0:2]))
         if not files:
-            raise Exception("Each sample has to have an entry in at least one of the columns 'Read1' or 'Read2'.")
+            bail(
+                "ERROR: Each sample has to have an entry in at least one of the columns 'Read1' or 'Read2'."
+            )
 
         sampleid_dict = {}
         for idx in range(len(header[2:])):
             try:
                 sampleid_dict[header[2:][idx]] = row[2:][idx]
             except IndexError:
-                raise Exception("Number of columns in row " + idx + " doesn't match number of elements in header.")
+                bail(
+                    "ERROR: Number of columns in row "
+                    + idx
+                    + " doesn't match number of elements in header."
+                )
 
-        sampleid_dict['files']      = files
-        sampleid_dict['fastq_name'] = get_filenames(files)
+        sampleid_dict["files"] = files
+        sampleid_dict["fastq_name"] = get_filenames(files)
         outputdict[row[2]] = sampleid_dict
 
     # verify intigrity of sample sheet values for technical replicates
@@ -138,18 +145,25 @@ def parse_sample_sheet(path):
 
 
 # --------------------------------------
-# validation of Config 
+# validation of Config
 # --------------------------------------
 
 
 # check for common input/configuration errors:
 def validate_config(config):
     # Check that all locations exist
-    for loc in config['locations']:
-        if ( (not loc == 'output-dir') and (not (os.path.isdir(config['locations'][loc]) or os.path.isfile(config['locations'][loc])))):
-            bail("ERROR: The following necessary directory/file does not exist: {} ({})".format(
-                config['locations'][loc], loc))
-
+    for loc in config["locations"]:
+        if (not loc == "output-dir") and (
+            not (
+                os.path.isdir(config["locations"][loc])
+                or os.path.isfile(config["locations"][loc])
+            )
+        ):
+            bail(
+                "ERROR: The following necessary directory/file does not exist: {} ({})".format(
+                    config["locations"][loc], loc
+                )
+            )
 
     # Load parameters specific to samples
     sample_params = parse_sample_sheet(config["locations"]["sample-sheet"])
@@ -184,32 +198,46 @@ def validate_config(config):
                             )
                         )
         else:
-            bail("ERROR: The config file contains empty 'DManalyses' section, please consider removing or commenting out this section.\n")
-            
-                        
-    if 'treatment-groups' in config['general']['differential-methylation']:
-        bail("ERROR: The specification of treatment groups and differential analysis has changed.\n"+
-        "Please retrieve the new default settings layout with 'pigx-bsseq --init settings'.\n")
+            bail(
+                "ERROR: The config file contains empty 'DManalyses' section, please consider removing or commenting out this section.\n"
+            )
+
+    if "treatment-groups" in config["general"]["differential-methylation"]:
+        bail(
+            "ERROR: The specification of treatment groups and differential analysis has changed.\n"
+            + "Please retrieve the new default settings layout with 'pigx-bsseq --init settings'.\n"
+        )
 
     # Check for a any Assembly string
-    if not config['general']['assembly']:
-            bail("ERROR: Please set a genome assembly string in the settings file at general::assembly.")
+    if not config["general"]["assembly"]:
+        bail(
+            "ERROR: Please set a genome assembly string in the settings file at general::assembly."
+        )
 
     # Check for a any Assembly string
-    if not (config['general']['use_bwameth'] or config['general']['use_bismark']):
-            bail("ERROR: Please enable one or both bisulfite aligners at general::use_bwameth/use_bismark.")
-    
+    if not (config["general"]["use_bwameth"] or config["general"]["use_bismark"]):
+        bail(
+            "ERROR: Please enable one or both bisulfite aligners at general::use_bwameth/use_bismark."
+        )
 
     # Check if we have permission to write to the reference-genome directory ourselves
     # if not, then check if the ref genome has already been converted
-    genome_dir = os.path.dirname(config['locations']['genome-fasta'])
-    if (not os.access(genome_dir, os.W_OK) and
-            not os.path.isdir(os.path.join(genome_dir, 'Bisulfite_Genome'))):
-        bail("ERROR: reference genome has not been bisulfite-converted, and PiGx does not have permission to write to that directory. Please either (a) provide Bisulfite_Genome conversion directory yourself, or (b) enable write permission in {} so that PiGx can do so on its own.".format(
-            genome_dir))
+    genome_dir = os.path.dirname(config["locations"]["genome-fasta"])
+    if not os.access(genome_dir, os.W_OK) and not os.path.isdir(
+        os.path.join(genome_dir, "Bisulfite_Genome")
+    ):
+        bail(
+            "ERROR: reference genome has not been bisulfite-converted, and PiGx does not have permission to write to that directory. Please either (a) provide Bisulfite_Genome conversion directory yourself, or (b) enable write permission in {} so that PiGx can do so on its own.".format(
+                genome_dir
+            )
+        )
 
     # Check for a genome fasta file
-    fasta = glob(os.path.join(genome_dir, '*.fasta'))
-    fa    = glob(os.path.join(genome_dir, '*.fa'))
-    if not len(fasta) + len(fa) == 1 :
-        bail("ERROR: Missing (or ambiguous) reference genome: The number of files ending in either '.fasta' or '.fa' in the following genome directory does not equal one: {}".format(genome_dir))
+    fasta = glob(os.path.join(genome_dir, "*.fasta"))
+    fa = glob(os.path.join(genome_dir, "*.fa"))
+    if not len(fasta) + len(fa) == 1:
+        bail(
+            "ERROR: Missing (or ambiguous) reference genome: The number of files ending in either '.fasta' or '.fa' in the following genome directory does not equal one: {}".format(
+                genome_dir
+            )
+        )
