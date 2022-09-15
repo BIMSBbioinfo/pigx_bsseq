@@ -94,6 +94,13 @@ USEBWAMETH = TrueOrFalse(config['general']['use_bwameth'])
 USEBISMARK = TrueOrFalse(config['general']['use_bismark'])
 
 
+#--- EXTRACT METHYLATION CONTEXT
+
+METH_CONTEXTS = [x.strip().lower() for x in config['general']['methylation-calling']['context'].split(',')]
+if not METH_CONTEXTS:
+   bail("ERROR: No methylation context specified in 'general::methylation-calling::context'.\n")
+
+
 #--- LIST THE OUTPUT FILES TO BE PRODUCED: 
 
 # Below is a mapping of rule names to the expected output files they
