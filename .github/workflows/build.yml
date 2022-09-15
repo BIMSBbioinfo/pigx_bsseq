@@ -46,7 +46,9 @@ jobs:
       - name: Bootstrap
         run: guix shell -D -f guix.scm -- ./bootstrap.sh
       - name: Configure
-        run: guix shell -D -f guix.scm -- ./configure
+        run: | 
+          guix shell -D -f guix.scm -- \
+          export PICARDJAR=$GUIX_ENVIRONMENT/share/java/picard.jar ; ./configure
       - name: Build
         run: guix shell -D -f guix.scm -- make -j
       - name: Distcheck
