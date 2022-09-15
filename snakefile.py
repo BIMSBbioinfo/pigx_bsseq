@@ -598,7 +598,7 @@ rule bismark_align_and_map_pe:
 include: './rules/Align_bwameth_rules.py'
 
 # ==========================================================================================
-# Mark duplicate reads from bwa-meth alignment using picard-markduplicates:
+# Mark duplicate reads from bwa-meth alignment using picard-markduplicates :
 
 include: './rules/deduplicate_picard.py'
 
