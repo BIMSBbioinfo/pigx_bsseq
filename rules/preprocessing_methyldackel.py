@@ -29,12 +29,12 @@
 # Extract methylation counts with methylDackel
 
 
-def getContextArg(wc):
+def getContextArg(context):
     ## dependent on context we may return a combination of the following args
     ## ""                         Ouptut only CpG context (returned by default)
     ## "--noCpG --CHG"            Output only CHG context methylation metrics
     ## "--noCpG --CHH"            Output only CHH context methylation metrics
-    contextRequest =  str(wc.context).upper()
+    contextRequest =  str(context).upper()
     contextArg = "" 
     if contextRequest != "CPG":
         contextArg = f"--noCpG --{contextRequest}"
@@ -42,8 +42,8 @@ def getContextArg(wc):
 
 
 
-def protocol(wc):
-    samples = getSamplesPerMergeRep(wc.sample,config["SAMPLES"])
+def protocol(sample):
+    samples = getSamplesPerMergeRep(sample,config["SAMPLES"])
     protocol = [config["SAMPLES"][sample]['Protocol'].upper() for sample in samples]
     return str(set(protocol)).upper()
 
@@ -71,13 +71,13 @@ rule methyldackel_extract_methylKit_by_context:
     params:
         threads = config['execution']['rules']['methyldackel_extract']['threads'],
         prefix = DIR_methcall + "methylDackel/" + "{sample}_methyldackel",
-        context = lambda wc: getContextArg(wc),
-        protocol = lambda wc: protocol(wc),
-        keepDups = lambda wc: keepDups(protocol(wc)),
+        context = lambda wc: getContextArg(wc.context),
+        protocol = lambda wc: protocol(wc.sample),
+        keepDups = lambda wc: keepDups(protocol(wc.sample)),
         minqual = int(config['general']
                       ['methylation-calling']['minimum-quality'])
     log:
-        DIR_methcall + "{sample}.methyldackel_{context}_calls.log"
+        DIR_methcall + "methylDackel/" + "{sample}.methyldackel_{context}_calls.log"
     message: fmt("Calling methylation for {wildcards.context} context in sample {wildcards.sample} according to protocol {params.protocol}.")
     shell:
         nice("methyldackel",
@@ -99,9 +99,9 @@ rule methyldackel_extract_methylKit_deduped:
     params:
         threads = config['execution']['rules']['methyldackel_extract']['threads'],
         prefix = DIR_methcall + "methylDackel/" + "{sample}.deduped_methyldackel",
-        context = lambda wc: getContextArg(wc),
-        protocol = lambda wc: protocol(wc),
-        keepDups = lambda wc: keepDups(protocol(wc)),
+        context = lambda wc: getContextArg(wc.context),
+        protocol = lambda wc: protocol(wc.sample),
+        keepDups = lambda wc: keepDups(protocol(wc.sample)),
         minqual = int(config['general']
                       ['methylation-calling']['minimum-quality'])
     log:
