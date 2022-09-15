@@ -159,16 +159,32 @@ def validate_config(config):
 
     # Check that all of the requested differential methylation
     # treatment values are found in the sample sheet.
-    treatments = set([config["SAMPLES"][sample]["Treatment"]
-                      for sample in config["SAMPLES"]])
-    if 'DManalyses' in config:
-        if config['DManalyses']:
-            for analysis in config['DManalyses']:
-                    for group in config['DManalyses'][analysis]['treatment_sample_groups'].split(",") + config['DManalyses'][analysis]['control_sample_groups'].split(","):
-                        group = group.strip() #remove any leading/trailing whitespaces in the sample group names
-                        if not any(treat == group for treat in treatments):
-                            bail("ERROR: Invalid treatment group '{}' in analysis '{}'".format(
-                            group, analysis))
+    treatments = list(set(
+        (config["SAMPLES"][sample].get("Treatment","") for sample in config["SAMPLES"])
+    ))
+    if "DManalyses" in config:
+        if config["DManalyses"]:
+            if not treatments[0]:
+                bail(
+                "ERROR: The config file contains a 'DManalyses' section, but there are not treatments defined in the sample-sheet. Please consider removing or commenting out this section.\n"
+                )
+            for analysis in config["DManalyses"]:
+                for group in config["DManalyses"][analysis][
+                    "treatment_sample_groups"
+                ].split(",") + config["DManalyses"][analysis][
+                    "control_sample_groups"
+                ].split(
+                    ","
+                ):
+                    group = (
+                        group.strip()
+                    )  # remove any leading/trailing whitespaces in the sample group names
+                    if not any(treat == group for treat in treatments):
+                        bail(
+                            "ERROR: Invalid treatment group '{}' in analysis '{}'".format(
+                                group, analysis
+                            )
+                        )
         else:
             bail("ERROR: The config file contains empty 'DManalyses' section, please consider removing or commenting out this section.\n")
             
