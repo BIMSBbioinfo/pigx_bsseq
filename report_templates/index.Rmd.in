@@ -67,6 +67,13 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, fig.height
 knitr::opts_knit$set(progress = FALSE)
 ```
 
+```{r load_libraries, results='hide', include=FALSE}
+  library("genomation")
+  library("methylKit")
+  library("GenomicRanges")
+  library("DT")
+```
+
 ```{r chunk_eval_options}
 MethCall          <- TRUE
 Segmentation      <- TRUE
@@ -132,11 +139,6 @@ knitr::kable(basic_inputParams)
 ```{r MethCallHeader, results='asis', eval=MethCall} 
 cat('## Methylation Calling\n')
 cat('The following table(s) lists some of the basic parameters under which the pipeline calculations were performed as well as output files that may be of interest to the user for further analysis.')
-```
-
-```{r MethCall.load_libraries, results='hide', include=FALSE, eval=MethCall}
-  library("genomation")
-  library("methylKit")
 ```
 
 ```{r MethCall.eval_params, eval=MethCall}
@@ -240,12 +242,7 @@ if( methsegempty )
    }
 ```
 
-```{r Segmentation.load_libraries, results='hide', include=FALSE, eval= Segmentation }
 
-  ## load methylKit
-  library("methylKit")
-  library("DT")
-```
 
 ```{r SegmentationDescription, results='asis', eval= Segmentation } 
 cat('### Segmentation of Methylation Profile\n')
@@ -285,13 +282,6 @@ cat('The annotation of the identified regions with genomic features allows for a
 
 cat('Pigx first searches for a reference gene set for the given genome assembly in the path specified in the settings file. Upon failure to find such a file in this location, Pigx allows the user to query the UCSC table browser directly to fetch the reference gene set using the [rtracklayer](http://bioconductor.org/packages/release/bioc/html/rtracklayer.html) Package [@rtracklayer2009], when the option `webfetch` (in the settings file) is set to `True` -or, equivalently, `yes`. When this option is set to `False` --or `no`--, and the reference gene files are not found, the corresponding sections are simply omitted from this report. 
 Upon acquiring the reference genes, we can determine different features (e.g. promoter, exon, intron)  intrinsic to each gene,  using the `readTranscriptFeatures()` function from [genomation](http://bioinformatics.mdc-berlin.de/genomation/) [@genomation2014] --likewise, for CpG islands and shores.\n')
-```
-
-```{r AnnotateSegments.load_libraries, results='hide', include=FALSE, eval= AnnotateSegments }
-
-    library("genomation")
-    library("GenomicRanges")
-
 ```
 
 
