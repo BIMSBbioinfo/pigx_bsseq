@@ -221,7 +221,7 @@ def list_files_TG(files, sampleID, protocol):
 
 def list_files_posttrim_QC(files, sampleID, protocol):
     PATH = DIR_posttrim_QC
-    infix = ["_trimmed"] if len(files) == 1 else ["1_val_1", "_2_val_2"]
+    infix = ["_trimmed"] if len(files) == 1 else ["_1_val_1", "_2_val_2"]
     return [os.path.join(PATH, f"{sampleID}{inf}_fastqc.zip") for inf in infix]
 
 
