@@ -43,7 +43,9 @@ def getContextArg(wc):
 
 
 def protocol(wc):
-    return config["SAMPLES"][wc.sample]['Protocol'].upper()
+    samples = getSamplesPerMergeRep(wc.sample,config["SAMPLES"])
+    protocol = [config["SAMPLES"][sample]['Protocol'].upper() for sample in samples]
+    return str(set(protocol)).upper()
 
 
 def keepDups(protocol):
