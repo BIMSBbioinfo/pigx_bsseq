@@ -94,8 +94,10 @@ def parse_sample_sheet(path):
     # Create a dictionary with all params, keys are samples ids
     outputdict = {}
     for row in rows:
-        if ( len(row) != 5 ):
-            bail("Invalid row format in Samplesheet. Each row should have five columns.")
+        if len(row) < 4:
+            bail(
+                "ERROR: Invalid row format in Samplesheet. Each row should have at least four columns."
+            )
         row = list(map(lambda x: x.strip(), row))
         files = list(filter(None, row[0:2]))
         if not files:
