@@ -21,6 +21,8 @@
 import os
 from itertools import chain
 
+from scripts.func_defs import list_files_methyldackel_mbias_bwameth
+
 # include function definitions and extra rules
 include   : os.path.join(config['locations']['pkglibexecdir'], 'scripts/func_defs.py')
 include   : os.path.join(config['locations']['pkglibexecdir'], 'scripts/update_pigx_work.py')
@@ -173,6 +175,16 @@ targets = {
     'methyl-extraction': {
         'description': "Process bwameth bam files using methylDackel.",
         'files': files_for_sample(list_files_methyldackel_extract)
+    },
+
+    'mbias': {
+        'description': "Process bismark bam files using methylDackel.",
+        'files': files_for_sample(list_files_methyldackel_mbias_bismark)
+    },
+
+    'mbias-bwameth': {
+        'description': "Process bwameth bam files using methylDackel.",
+        'files': files_for_sample(list_files_methyldackel_mbias_bwameth)
     },
 
      # TODO: had to add this part to call bam_methCall for diff meth rule

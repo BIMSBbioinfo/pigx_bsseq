@@ -134,30 +134,44 @@ rule methyldackel_extract_methylKit_deduped:
 
 # ==========================================================================================
 # Extract methylation bias with methylDackel
-#
+
+def removeMapperSuffix(prefix):
+    mapper_suffix = [".bwameth.sorted.markdup"]  # bwameth
+    mapper_suffix += [
+        "_1_val_1_bt2.sorted",
+        "_se_bt2.sorted",
+        "_1_val_1_bt2.sorted.deduped",
+        "_se_bt2.sorted.deduped",
+    ] # bismark
+    for suffix in mapper_suffix:
+        if prefix.endswith(suffix):
+            return prefix[:-len(suffix)]
+        
 
 rule methyldackel_mbias:
     input:
-        bamfile = DIR_sorted + "{sample}.bwameth.sorted.markdup.bam",
-        genome = GENOMEFILE
+        bamfile = DIR_sorted + "{prefix}.bam",
+        genome = ancient(GENOMEFILE)
     output:
-        txt = DIR_methcall + "methylDackel/" + "{sample}_mbias_methyldackel.txt",
-        p1 = DIR_methcall + "methylDackel/"+ "{sample}_mbias_OB.svg",
-        p2 = DIR_methcall + "methylDackel/" + "{sample}_mbias_OT.svg"
+        txt = DIR_methcall + "methylDackel/" + "{prefix}_methylDackel_mbias_{context}.txt",
+        p1 = DIR_methcall + "methylDackel/"+ "{prefix}_methylDackel_mbias_{context}_OB.svg",
+        p2 = DIR_methcall + "methylDackel/" + "{prefix}_methylDackel_mbias_{context}_OT.svg"
     params:
         threads = config['execution']['rules']['methyldackel_extract']['threads'],
-        prefix = DIR_methcall + "methylDackel/" + "{sample}_mbias",
-        protocol = lambda wc: protocol(wc),
+        prefix = DIR_methcall + "methylDackel/" + "{prefix}_methylDackel_mbias_{context}",
+        sample = lambda wc: removeMapperSuffix(wc.prefix),
+        context = lambda wc: getContextArg(wc.context),
+        protocol = protocol("{params.sample}"),
         keepDups = keepDups("{params.protocol}"),
         minqual = int(config['general']
                       ['methylation-calling']['minimum-quality'])
     log:
-        DIR_methcall + "{sample}.methyldackel_mbias.log"
-    message: fmt("Calculate methylation bias using MethylDackel for sample {{sample}}.")
+        DIR_methcall + "methylDackel/" + "{prefix}_methylDackel_mbias_{context}.log"
+    message: fmt("Calculate methylation bias for context {wildcards.context} using MethylDackel for sample  with prefix {wildcards.prefix}")
     shell:
         nice("methyldackel",
              ["mbias", "{input.genome}", "{input.bamfile}",
-              "{params.prefix}", "{params.keepDups}",
+              "{params.prefix}", "{params.keepDups}", "{params.context}",
               "-@ {params.threads}", "--txt",
               "-q {params.minqual}", "> {output.txt}",
               "2> {log}"])

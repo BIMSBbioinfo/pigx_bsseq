@@ -319,6 +319,33 @@ def list_files_methyldackel_extract(files, sampleID, protocol):
             # PATH+sampleID+"_methyldackel.cytosine_report.txt"
             ]
 
+
+# FIXME: contexts should be generate output based on settings file
+def list_files_methyldackel_mbias_bismark(files, sampleID, protocol):
+    PATH = DIR_methcall + "methylDackel/"
+    # ---- change based on single or paired end
+    mapper_suffix = "_se_bt2.sorted" if len(files) == 1 else "_1_val_1_bt2.sorted"
+    prefix = PATH + sampleID + mapper_suffix + dedupe_tag(protocol)
+    suffices = [
+        f"_methylDackel_mbias_{context}{ext}"
+        for ext in [".txt", "_OB.svg", "_OT.svg"]
+        for context in METH_CONTEXTS
+    ]
+    return [prefix + suffix for suffix in suffices]
+
+
+def list_files_methyldackel_mbias_bwameth(files, sampleID, protocol):
+    PATH = DIR_methcall + "methylDackel/"
+    sampleID = getMergeRepPerSample(sample=sampleID, samples_dict=config["SAMPLES"])
+    prefix = PATH + sampleID + ".bwameth.sorted.markdup" 
+    suffices = [
+            # NOTE: this should be rewritten with snakemakes expand()  
+            f"_methylDackel_mbias_{context}{ext}"
+            for ext in [".txt", "_OB.svg", "_OT.svg"]
+            for context in METH_CONTEXTS
+        ]
+    return [ prefix + suffix for suffix in suffices ]
+
 # FIXME: contexts should be generate output based on settings file
 def list_files_maketabix_methyldackel(files, sampleID, protocol):
     PATH = DIR_methcall + "methylDackel/"
