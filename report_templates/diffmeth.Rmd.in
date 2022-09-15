@@ -689,7 +689,7 @@ stats.df$variable <- factor(gsub("number.of.","",stats.df$variable),
 ```{r AnnotateDiffMeth.num_of_dmcs.plot, eval=ExtractDiffMeth,fig.width=8,fig.height=8}
 p <- ggplot(stats.df, aes(x = chr, y = perc, fill = variable)) + 
   scale_fill_manual(values = c(hypo.col,hyper.col)) +
-  geom_bar(stat = "identity",position = "stack", color = "black") +
+  ggplot2::geom_bar(stat = "identity",position = "stack", color = "black") +
   geom_text_repel(aes(label = count), position = position_stack(vjust = 0.5),
             hjust = 0.1,size = 5) +
   ggtitle(label = "Differentially methylated Cytosines per Chromosome") +
@@ -726,7 +726,7 @@ stats.DMC.df$variable <- factor(gsub("number.of.","",stats.DMC.df$variable),
 
 p <- ggplot(stats.DMC.df, aes(x = chr, y = perc, fill = variable)) + 
   scale_fill_manual(values = c(hypo.col,hyper.col)) +
-  geom_bar(stat = "identity",position = "stack", color = "black") +
+  ggplot2::geom_bar(stat = "identity",position = "stack", color = "black") +
   geom_text_repel(aes(label = count), position = position_stack(vjust = 0.5),
             hjust = 0.1,size = 5) +
   ggtitle(label = "Differentially methylated Cytosines per Chromosome") +
@@ -812,7 +812,7 @@ if( (fetch_refgen_success) & length(GRanges.diffmeth)!=0){
   
   p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
     scale_fill_manual(values = rev(cols)) +
-    geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
+    ggplot2::geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
     geom_text(aes(y = -10, label = count), hjust = 0,size = 5) +
     ggtitle(label = "Differentially methylated Cytosines per Genomic Feature") +
     labs(y = "Percentage", x = "Feature") + 
@@ -882,7 +882,7 @@ fill_strip <- function(facet_ggplot, fills, plot=FALSE) {
     
     p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
       scale_fill_manual(values = rev(cols)) +
-      geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
+      ggplot2::geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
       geom_text(mapping = aes(group = type, color = type , y = -10, label = count), size = 5, 
                   position = position_dodge(width= 1)) +
       scale_color_manual(values = c(hypo.col,hyper.col)) + 
@@ -979,7 +979,7 @@ if( (fetch_cpgi_success) & length(GRanges.diffmeth)!=0){
   
   p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
   scale_fill_manual(values = c("white","gray","green")) +
-  geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
+  ggplot2::geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
     geom_text(aes(y = -10, label = count), hjust = 0,size = 5) +
   coord_flip() +
   labs(y = "Percentage", x = "Feature") + 
@@ -1018,7 +1018,7 @@ if( length(GRanges.diffmeth.hypo)!=0 & length(GRanges.diffmeth.hyper)!=0){
   
   p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
   scale_fill_manual(values = c("white","gray","green")) +
-  geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
+  ggplot2::geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
   geom_text(mapping = aes(group = type, color = type , y = -10, label = count), size = 5, 
             position = position_dodge(width= 1)) +
   scale_color_manual(values = c(hypo.col,hyper.col)) +
@@ -1193,7 +1193,7 @@ if( (fetch_refgen_success) & length(GRanges.dmr)!=0){
   
   p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
     scale_fill_manual(values = rev(cols)) +
-    geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
+    ggplot2::geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
     geom_text(aes(y = -10, label = count), hjust = 0,size = 5) +
     ggtitle(label = "Differentially methylated Regions per Genomic Feature") +
     labs(y = "Percentage", x = "Feature") + 
@@ -1229,7 +1229,7 @@ if( (fetch_refgen_success) & length(GRanges.dmr)!=0){
     
     p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
       scale_fill_manual(values = rev(cols)) +
-      geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
+      ggplot2::geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
       geom_text(mapping = aes(group = type, color = type , y = -10, label = count), size = 5, 
                   position = position_dodge(width= 1)) +
       scale_color_manual(values = c(hypo.col,hyper.col)) + 
@@ -1326,7 +1326,7 @@ if( (fetch_cpgi_success) & length(GRanges.dmr)!=0){
   
   p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
   scale_fill_manual(values = c("white","gray","green")) +
-  geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
+  ggplot2::geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
     geom_text(aes(y = -10, label = count), hjust = 0,size = 5) +
   coord_flip() +
   labs(y = "Percentage", x = "Feature") + 
@@ -1365,7 +1365,7 @@ if( length(GRanges.dmr.hypo)!=0 & length(GRanges.dmr.hyper)!=0){
   
   p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
   scale_fill_manual(values = c("white","gray","green")) +
-  geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
+  ggplot2::geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
   geom_text(mapping = aes(group = type, color = type , y = -10, label = count), size = 5, 
             position = position_dodge(width= 1)) +
   scale_color_manual(values = c(hypo.col,hyper.col)) +
