@@ -26,6 +26,7 @@ rule idxstats_samtools:
     DIR_sorted+"{prefix}.bam",
   output:
     DIR_sorted+"{prefix}.idxstats.txt"
+  message: fmt("Collecting idxstats for file {wildcards.prefix}.bam")
   shell:
     nice("samtools" ,["idxstats {input} > {output}"])
 
@@ -35,6 +36,7 @@ rule stat_samtools:
     DIR_sorted+"{prefix}.bam",
   output:
     DIR_sorted+"{prefix}.stats.txt"
+  message: fmt("Collecting stats for file {wildcards.prefix}.bam")
   shell:
     nice("samtools", ['stats {input} > {output}'])
 
@@ -44,5 +46,6 @@ rule flagstat_samtools:
     DIR_sorted+"{prefix}.bam",
   output:
     DIR_sorted+"{prefix}.flagstat.txt"
+  message: fmt("Collecting flagstats for file {wildcards.prefix}.bam")
   shell:
     nice("samtools" ,["flagstat {input} > {output}"])

@@ -52,7 +52,7 @@ rule bwameth_genome_preparation:
         protected(GENOMEFILE+".bwameth.c2t")
     log:
         os.path.join(GENOMEPATH,'bwameth_genome_preparation.output_'+ASSEMBLY+'.log')
-    message: "Converting {ASSEMBLY} Genome into Bisulfite analogue with bwa-meth"
+    message: fmt("Converting {ASSEMBLY} Genome into Bisulfite analogue with bwa-meth")
     shell:
         nice("bwameth", ["index {input}"],"{log}")
 
@@ -65,7 +65,7 @@ rule bwameth_touch_index:
         GENOMEFILE+".bwameth.c2t.bwt"
     output:
         GENOMEFILE+".bwameth.c2t_was.touched"
-    message: "Update timestamp for {ASSEMBLY} Genome Index"
+    message: fmt("Update timestamp for {ASSEMBLY} Genome Index")
     shell:
         "sleep 60; touch {input};touch {output}"
 
