@@ -111,7 +111,28 @@ def parse_sample_sheet(path):
         sampleid_dict['files']      = files
         sampleid_dict['fastq_name'] = get_filenames(files)
         outputdict[row[2]] = sampleid_dict
-    return { 'SAMPLES': outputdict }
+
+    # verify intigrity of sample sheet values for technical replicates
+    merged_replicates = [
+        getMergeRepPerSample(sample, outputdict) for sample in outputdict
+    ]
+    merged_replicates_check_cols = ["Protocol", "Treatment"]
+    for mrep in list(set(merged_replicates)):
+        samples = getSamplesPerMergeRep(mrep, outputdict)
+        for check_col in merged_replicates_check_cols:
+            col_values = [outputdict[sample][check_col].upper() for sample in samples]
+            if len(set(col_values)) > 1:
+                occurrence = {item: col_values.count(item) for item in col_values}
+                sorted_occurrence = dict(sorted(occurrence.items(), key=lambda item:item[1], reverse=True))
+                bail(
+                    f"ERROR: Cannot merge Replicates for '{mrep}' due to different"
+                    f" '{check_col}' values.\n\n Please make sure '{check_col}' values"
+                    f" match for all samples with value '{mrep}' in column"
+                    f" 'MergeReplicates' of the in the Sample Sheet."
+                    f"\n Given values sorted by abundance: {sorted_occurrence}"
+                )
+
+    return {"SAMPLES": outputdict}
 
 
 # --------------------------------------
