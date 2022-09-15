@@ -472,21 +472,34 @@ rule deduplication_se:
     input:
         DIR_mapped+"{sample}_trimmed_bismark_bt2.bam"
     output:
-        DIR_sorted+"{sample}_se_bt2.sorted.deduped.bam"
-    params:
-        threads=config['execution']['rules']['samblaster_markdup_sort']['threads'],
-        memory=config['execution']['rules']['samblaster_markdup_sort']['memory']
+        bam = DIR_sorted+"{sample}_se_bt2.sorted.deduped.bam",
+        metric=DIR_sorted + "{sample}_se_bt2.sorted.markdup.metrics.txt",
+    resources:
+        threads=config["execution"]["rules"]["mergeMarkdupSort_bam"]["threads"],
+        memory=config["execution"]["rules"]["mergeMarkdupSort_bam"]["memory"],
     log:
         DIR_sorted+"{sample}_deduplication.log"
     message: fmt("Deduplicating single-end aligned reads from {input}")
     shell:
         nice("samtools", 
         ["view -h {input}"," | ", 
-        tool("samblaster"),"-r",toolArgs("samblaster"),"2> {log}","|",
-        tool("samtools"),"sort",
-         "-o {output}", "-@ {params.threads}", 
-         "-m {params.memory}", "-l 9","2> {log}",";",
-         tool("samtools"),"index {output}"],("{log}"))
+        tool("samtools"),
+                "sort -u",
+                "-m {resources.memory}",
+                "-@ {resources.threads}",
+                "-",
+                "2>> {log}",
+                "|",
+                tool("samtools"),
+                "markdup",
+                "-f {output.metric}",
+                "-@ {resources.threads}",
+                "- {output.bam}",
+                "2>> {log};",
+                tool("samtools"),
+                "index {output.bam}",
+                "2>> {log}"
+                ],("{log}"))
 
 
 #-----------------------
@@ -494,21 +507,42 @@ rule deduplication_pe:
     input:
         DIR_mapped+"{sample}_1_val_1_bismark_bt2_pe.bam"
     output:
-        DIR_sorted+"{sample}_1_val_1_bt2.sorted.deduped.bam"
-    params:
-        threads=config['execution']['rules']['samblaster_markdup_sort']['threads'],
-        memory=config['execution']['rules']['samblaster_markdup_sort']['memory']
+        bam = DIR_sorted+"{sample}_1_val_1_bt2.sorted.deduped.bam",
+        metric=DIR_sorted + "{sample}_1_val_1_bt2.sorted.markdup.metrics.txt",
+    resources:
+        threads=config["execution"]["rules"]["mergeMarkdupSort_bam"]["threads"],
+        memory=config["execution"]["rules"]["mergeMarkdupSort_bam"]["memory"],
     log:
         DIR_sorted+"{sample}_deduplication.log"
     message: fmt("Deduplicating paired-end aligned reads from {input}")
     shell:
         nice("samtools", 
         ["view -h {input}"," | ", 
-        tool("samblaster"),"-r",toolArgs("samblaster"),"2> {log}","|",
-        tool("samtools"),"sort",
-         "-o {output}", "-@ {params.threads}", 
-         "-m {params.memory}", "-l 9","2> {log}",";",
-         tool("samtools"),"index {output}"],("{log}"))
+        tool("samtools"),
+                "collate -u -O -",
+                "2>> {log}",
+                "|",
+                tool("samtools"),
+                "fixmate -m -u - - ",
+                "2>> {log}",
+                "|",
+        tool("samtools"),
+                "sort -u",
+                "-m {resources.memory}",
+                "-@ {resources.threads}",
+                "-",
+                "2>> {log}",
+                "|",
+                tool("samtools"),
+                "markdup",
+                "-f {output.metric}",
+                "-@ {resources.threads}",
+                "- {output.bam}",
+                "2>> {log};",
+                tool("samtools"),
+                "index {output.bam}",
+                "2>> {log}"
+                ],("{log}"))
 
 
 # ==========================================================================================
