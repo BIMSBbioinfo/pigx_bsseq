@@ -60,4 +60,9 @@ jobs:
         run: guix shell -D -f guix.scm -- make distcheck
       - name: Print Test Suite Log
         if: ${{ failure() }}
-        run: cat ./test-suite.log
+        run: cat ./test-suite.log 
+      - name: Upload Test Suite Log
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-suite.log
+          path: ./test-suite.log
