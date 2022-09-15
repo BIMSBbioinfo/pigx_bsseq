@@ -65,7 +65,9 @@ rule methyldackel_extract_methylKit_by_context:
         bamfile=DIR_sorted + "{sample}.bwameth.sorted.markdup.bam",
         genome=GENOMEFILE,
     output:
-        contextCallFile=DIR_methcall + "methylDackel/" + "{sample}_methyldackel_{context}.methylKit.gz",
+        contextCallFile=DIR_methcall
+        + "methylDackel/"
+        + "{sample}_methyldackel_{context}.methylKit.gz",
     wildcard_constraints:
         sample=".+(?<!deduped)",
     params:
@@ -110,7 +112,9 @@ rule methyldackel_extract_methylKit_deduped:
         bamfile=DIR_sorted + "{sample}.bwameth.sorted.markdup.bam",
         genome=GENOMEFILE,
     output:
-        contextCallFile=DIR_methcall + "methylDackel/" + "{sample}.deduped_methyldackel_{context}.methylKit.gz",
+        contextCallFile=DIR_methcall
+        + "methylDackel/"
+        + "{sample}.deduped_methyldackel_{context}.methylKit.gz",
     params:
         threads=config['execution']['rules']['methyldackel_extract']['threads'],
         prefix=DIR_methcall + "methylDackel/" + "{sample}.deduped_methyldackel",
@@ -226,7 +230,9 @@ rule tabix_methyldackelfile:
     log:
         DIR_methcall + "methylDackel/" + "tabix_{context}/{prefix}_{context}.makeTabix.log",
     message:
-        fmt("Create Tabix file from MethylDackel file for sample {wildcards.prefix} and context {params.context}")
+        fmt(
+            "Create Tabix file from MethylDackel file for sample {wildcards.prefix} and context {params.context}"
+        )
     shell:
         nice(
             'Rscript',
