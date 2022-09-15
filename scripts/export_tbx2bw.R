@@ -70,6 +70,10 @@ if(!is.null(argsL$logFile)) {
   sink()
 }
 
+message("========= Given Arguments ==========")
+print(argsL)
+message("====================================")
+
 # Run Functions -----------------------------------------------------------
 
 
@@ -121,9 +125,9 @@ methList <- lapply(SinfoList,
             # read directly from tabix file and process in chunks
             dt <- methylKit:::applyTbxByOverlap(
               tbxFile = filepath,
-              ranges = gr, 
-              return.type = "data.table", 
-              chunk.size = 1e9, 
+              ranges = gr,
+              return.type = "data.table",
+              chunk.size = 1e9,
               FUN = function(dt){
                 options(scipen = 999)
                 methylKit:::.setMethylDBNames(dt)
