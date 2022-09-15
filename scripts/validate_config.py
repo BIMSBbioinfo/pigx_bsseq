@@ -72,10 +72,16 @@ def parse_sample_sheet(path):
     rows = [list(map(str.strip, row)) for row in all_rows]
     header = rows[0]
     rows = rows[1:]
+    minimal_header = ["Read1", "Read2", "SampleID", "Protocol"]
+    treatment_col = "Treatment"
+    replicate_col = "MergeReplicates"
 
-    if header[:5] != minimal_header:
-        raise Exception("First columns of the input table have to be " +
-                        ",".join(minimal_header) + ".")
+    if header[:4] != minimal_header:
+        bail(
+            "ERROR: First columns of the input table have to be "
+            + ",".join(minimal_header)
+            + "."
+        )
 
     sample_ids = [x[2] for x in rows]
     if len(set(sample_ids)) != len(sample_ids):
