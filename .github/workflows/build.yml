@@ -65,12 +65,11 @@ jobs:
       - name: Distcheck
         id: distcheck
         run: guix shell -D -f guix.scm -- make distcheck
-        continue-on-error: true
       - name: Print Test Suite Log
-        if: steps.distcheck.outcome == 'failure'
+        if: ${{ failure() && steps.distcheck.outcome == 'failure') }}
         run: cat ${{ github.workspace }}/pigx_bsseq-${{ env.version }}/_build/sub/test-suite.log 
       - name: Upload Test Suite Log
-        if: steps.distcheck.outcome == 'failure'
+        if: ${{ failure() && steps.distcheck.outcome == 'failure') }}
         uses: actions/upload-artifact@v2
         with:
           # https://github.com/actions/upload-artifact#environment-variables-and-tilde-expansion
