@@ -39,3 +39,4 @@ tests/*
 !report_templates/
 !rules/
 !tests/
+!.github/workflows/build.yml
