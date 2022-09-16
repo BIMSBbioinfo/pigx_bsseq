@@ -53,6 +53,7 @@ jobs:
         id: set_picardjar
         run: |
           eval "$(guix shell -D -f guix.scm --search-paths)"
+          env | grep GUIX_ENVIRONMENT 
           export PICARDJAR="$GUIX_ENVIRONMENT/share/java/picard.jar"
           echo $PICARDJAR
           echo "PICARDJAR=$PICARDJAR" >> $GITHUB_ENV
