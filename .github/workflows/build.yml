@@ -20,9 +20,15 @@ jobs:
       - name: Guix cache
         id: guix-cache
         uses: actions/cache@v3
+        env:
+          cache-name: pigx-bsseq
         with:
           path: ~/.cache/guix
-          key: guix-cache-${{ steps.guix-commit.outputs.guix-commit }}
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/guix.scm') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
       - name: Checkout
         uses: actions/checkout@v3
         with:
