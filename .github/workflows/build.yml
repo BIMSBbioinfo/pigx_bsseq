@@ -65,6 +65,7 @@ jobs:
       - name: Distcheck
         id: distcheck
         run: guix shell -D -f guix.scm -- make distcheck
+        continue-on-error: true
       - name: Print Test Suite Log
         if: steps.distcheck.outcome == 'failure'
         run: cat ${{ github.workspace }}/pigx_bsseq-${{ env.version }}/_build/sub/test-suite.log 
