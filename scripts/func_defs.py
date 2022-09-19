@@ -113,6 +113,20 @@ def TrueOrFalse(value):
 # --------------------------------------
 
 
+def treatment(sample):
+    """Extract the Treatment value from the sample sheet"""
+    samples = getSamplesPerMergeRep(sample, config["SAMPLES"])
+    treatment = [config["SAMPLES"][sample]['Treatment'] for sample in samples]
+    return treatment[0]
+
+
+def protocol(sample):
+    """Extract the Protocol value from the sample sheet"""
+    samples = getSamplesPerMergeRep(sample, config["SAMPLES"])
+    protocol = [config["SAMPLES"][sample]['Protocol'].upper() for sample in samples]
+    return protocol[0].upper()
+
+
 def dedupe_tag(protocol):
     if protocol.upper() == "WGBS":
         return ".deduped"
