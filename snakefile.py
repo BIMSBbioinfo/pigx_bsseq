@@ -21,7 +21,6 @@
 import os
 from itertools import chain
 
-from scripts.func_defs import list_files_methyldackel_mbias_bwameth
 
 # include function definitions and extra rules
 include   : os.path.join(config['locations']['pkglibexecdir'], 'scripts/func_defs.py')
