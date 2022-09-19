@@ -30,8 +30,7 @@
 def get_unite_tabixfiles(analysis, tool, context):
     
     samplelist = get_sampleids_from_analysis(analysis)
-    protocols = [ samplesheet(sampleid,'Protocol') for sampleid in samplelist]
-    dedup_tag = [dedupe_tag(prot) for prot in protocols]
+    dedup_tag = [ dedupe_tag(protocol(sampleid)) for sampleid in samplelist]
     if tool.lower() == "methylkit":
         paired_flag = [len(samplesheet(sampleid, 'files'))==2 for sampleid in samplelist]
         aligner_tag = ["_1_val_1_bt2.sorted"  if flag else  "_se_bt2.sorted" for flag in paired_flag ]
@@ -55,7 +54,7 @@ rule unite_meth_calls:
     params:
         inputfiles = lambda wc, input: ",".join(input.samples),
         sampleids    = lambda wc: ",".join(get_sampleids_from_analysis(wc.analysis)),
-        treatments = lambda wc: ",".join([samplesheet(sample,'Treatment') for
+        treatments = lambda wc: ",".join([treatment(sample) for
             sample in get_sampleids_from_analysis(wc.analysis)]),
         assembly   = ASSEMBLY,
         context    = lambda wc: wc.context.replace("_destranded",""),
@@ -95,7 +94,7 @@ rule diffmeth:
         results_file   = os.path.join(DIR_diffmeth,"{analysis}","methylDiff_{analysis}_{context}_{tool}_results.tsv"),
     params:
         sampleids   = lambda wc: ','.join(get_sampleids_from_analysis(wc.analysis)),
-        treatments = lambda wc: ",".join([samplesheet(sample,'Treatment') for
+        treatments = lambda wc: ",".join([treatment(sample) for
             sample in get_sampleids_from_analysis(wc.analysis)]),
         assembly    = ASSEMBLY,
         context    = lambda wc: wc.context.replace("_destranded",""),
@@ -142,7 +141,7 @@ rule diffmeth_report:
     params:
         # specific for this report
         sampleids              = lambda wc: ','.join(get_sampleids_from_analysis(wc.analysis)),
-        treatments             = lambda wc: ",".join([samplesheet(sample,'Treatment') for
+        treatments             = lambda wc: ",".join([treatment(sample) for
             sample in get_sampleids_from_analysis(wc.analysis)]),
         assembly               = ASSEMBLY,
         context                = lambda wc: wc.context.replace("_destranded",""),
