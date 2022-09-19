@@ -122,6 +122,10 @@ linkedFiles <- file.path(outdir, inputFiles)
 file.link(inputs, linkedFiles)
 file.link(paste0(inputs, ".tbi"), paste0(linkedFiles, ".tbi"))
 inputs <- linkedFiles
+on.exit(expr = {
+  ## Remove temp hardlinked files
+  unlink(c(linkedFiles, paste0(linkedFiles, ".tbi")))
+})
 
 
 if (length(inputs > 1)) {
@@ -202,12 +206,6 @@ chunk.size = 1e7,
 )
 
 ## FIXME: check wether result has more than 1 rows and fail if not
-
-if (destrand) {
-
-## Remove temp destrand files
-unlink(c(destrandFiles, paste0(destrandFiles, ".tbi")))
-}
 
 ## Remove temp hardlinked files
 unlink(c(linkedFiles, paste0(linkedFiles, ".tbi")))
