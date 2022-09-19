@@ -409,9 +409,12 @@ def get_sampleids_from_treatment(treatment):
     sample_ids = list(config["SAMPLES"].keys())
     sample_treatments = [samplesheet(s, "Treatment") for s in sample_ids]
     sampleids_list = [
-        sample_ids[i] for i, x in enumerate(sample_treatments) if x == treatment
+        # FIXME: this breaks the bismark branch
+        getMergeRepPerSample(sample=sample_ids[i], samples_dict=config["SAMPLES"])
+        for i, x in enumerate(sample_treatments)
+        if x == treatment
     ]
-    return sampleids_list
+    return list(set(sampleids_list))
 
 
 def get_sampleids_from_analysis(analysis):
