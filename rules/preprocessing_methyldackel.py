@@ -42,12 +42,6 @@ def getContextArg(context):
     return contextArg
 
 
-def protocol(sample):
-    samples = getSamplesPerMergeRep(sample, config["SAMPLES"])
-    protocol = [config["SAMPLES"][sample]['Protocol'].upper() for sample in samples]
-    return str(set(protocol)).upper()
-
-
 def keepDups(protocol):
     keepDupsFlag = str(config["general"]["methylation-calling"]["keep-duplicates"]).lower()
     keepDups = ""
