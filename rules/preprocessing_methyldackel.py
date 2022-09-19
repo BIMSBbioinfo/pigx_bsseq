@@ -176,8 +176,8 @@ rule methyldackel_mbias:
         prefix=DIR_methcall + "methylDackel/" + "{prefix}_methylDackel_mbias_{context}",
         sample=lambda wc: removeMapperSuffix(wc.prefix),
         context=lambda wc: getContextArg(wc.context),
-        protocol=protocol("{params.sample}"),
-        keepDups=keepDups("{params.protocol}"),
+        protocol= lambda wc:  protocol(removeMapperSuffix(wc.prefix)),
+        keepDups= lambda wc: keepDups(protocol(removeMapperSuffix(wc.prefix))),
         minqual=int(config['general']['methylation-calling']['minimum-quality']),
     log:
         DIR_methcall + "methylDackel/" + "{prefix}_methylDackel_mbias_{context}.log",
