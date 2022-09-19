@@ -176,14 +176,9 @@ def getMergeRepPerSample(sample, samples_dict):
 
     Returns given 'sample' if column 'MergeReplicates' is empty or not found
     """
-    mergeReps = (
-        samples_dict[sample]["MergeReplicates"]
-        if ("MergeReplicates" in samples_dict[sample])
-        and (samples_dict[sample]["MergeReplicates"])
-        else sample
-    )
-    # samples_dict[sample]["MergeReplicates"]
-    # if not mergeReps: mergeReps = sample
+    mergeReps = samples_dict[sample].get("MergeReplicates", "")
+    if not mergeReps:
+        mergeReps = sample
     return mergeReps
 
 
@@ -197,9 +192,10 @@ def getSamplesPerMergeRep(mergeRep, samples_dict):
     samples = [
         sample
         for sample in samples_dict
-        if ("MergeReplicates" in samples_dict[sample])
-        and (samples_dict[sample]["MergeReplicates"] == mergeRep)
+        if (samples_dict[sample].get("MergeReplicates", "") == mergeRep)
     ]
+    if not samples:
+        samples = [mergeRep]
     return samples
 
 
