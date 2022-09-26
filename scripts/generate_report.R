@@ -177,9 +177,8 @@ cat(paste(
                           Sys.time()
                       }, origin="1970-01-01"), "%Y-%m-%d %H:%M:%S"),
     "\n\n",
-    "Rendering report:",basename(argsL$reportFile),"\n",
-    "from template:",basename(argsL$outFile),"\n",
-    "into directory:",argsL$workdir ,"\n\n"
+  "Rendering report:", basename(argsL$outFile), "\n",
+  "into directory:", argsL$workdir, "\n\n"
 ))
 
 
