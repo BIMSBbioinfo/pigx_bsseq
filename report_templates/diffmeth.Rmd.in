@@ -301,7 +301,7 @@ The full table of methylKit calculateDiffMeth() results can be found at:
 `r methylDiff_results_file`
 
 
-```{r DiffMeth.load_methylDB, message=TRUE}
+```{r DiffMeth.map_treatment, message=TRUE}
 
 
 if (!setequal(control_group,treatment_group)) {
@@ -322,8 +322,9 @@ if (!setequal(control_group,treatment_group)) {
                 sep = ": ",collapse = "\n"))
   
 }
+```
 
-
+```{r DiffMeth.load_methylDB, results='asis'}
 methylDiffDB <- methylKit:::readMethylDiffDB(dbpath = methylDiff_file,
                                     dbtype = "tabix",
                                     sample.ids = sampleids,
