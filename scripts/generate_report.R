@@ -31,17 +31,17 @@
 #' @param workdir working directory
 #' @param report.params
 #' @param logo Location of PiGx logo
-#' @param quiet boolean value (default: FALSE). If set to TRUE, progress bars 
+#' @param quiet boolean value (default: FALSE). If set to TRUE, progress bars
 #'   and chunk labels will be suppressed while knitting the Rmd file.
 #' @param selfContained boolean value (default: TRUE). By default, the generated
-#'   html file will be self-contained, which means that all figures and tables 
-#'   will be embedded in a single html file with no external dependencies (See 
+#'   html file will be self-contained, which means that all figures and tables
+#'   will be embedded in a single html file with no external dependencies (See
 #'   rmarkdown::html_document)
 #' @param bibTexFile path to bibTex biblographie file
 #' @param prefix prefix for report
-#'   
-#' @return An html generated using rmarkdown/knitr/pandoc that contains 
-#'   interactive figures, tables, and text that provide an overview of the 
+#'
+#' @return An html generated using rmarkdown/knitr/pandoc that contains
+#'   interactive figures, tables, and text that provide an overview of the
 #'   experiment
 #' @export
 #'
@@ -53,13 +53,10 @@ render2HTML <- function(reportFile,
                         logo,
                         bibTexFile,
                         prefix,
-                        selfContained=TRUE,
-                        quiet = FALSE
-                        )
-{
-
+                        selfContained = TRUE,
+                        quiet = FALSE) {
   if (is.null(report.params)) report.params <- list()
-  
+
   ## render single report
   message("rendering report from template: ", reportFile)
 
@@ -76,22 +73,23 @@ render2HTML <- function(reportFile,
       toc = TRUE,
       depth = 2,
       toc_float = TRUE,
-      theme = 'lumen',
+      theme = "lumen",
       number_sections = TRUE,
       code_folding = "hide",
       bibliography = bibTexFile
     ),
     output_options = list(self_contained = selfContained),
     params = c(report.params,
-               logo = logo,
-               prefix = prefix,
-               workdir = workdir),
-    quiet  = quiet,
-    clean  = TRUE
+      logo = logo,
+      prefix = prefix,
+      workdir = workdir
+    ),
+    quiet = quiet,
+    clean = TRUE
   )
-	if(dir.exists(file.path(workdir, prefix))) {
-			unlink(file.path(workdir, prefix), recursive = TRUE)
-	  }
+  if (dir.exists(file.path(workdir, prefix))) {
+    unlink(file.path(workdir, prefix), recursive = TRUE)
+  }
 }
 
 
@@ -101,12 +99,12 @@ render2HTML <- function(reportFile,
 args <- commandArgs(TRUE)
 
 ## Default setting when no arguments passed
-if(length(args) < 1) {
+if (length(args) < 1) {
   args <- c("--help")
 }
 
 ## Help section
-if("--help" %in% args) {
+if ("--help" %in% args) {
   cat("
       Render to report
 
@@ -125,7 +123,7 @@ if("--help" %in% args) {
       Example:
       ./test.R --arg1=1 --arg2='output.txt' --arg3=TRUE \n\n")
 
-  q(save="no")
+  q(save = "no")
 }
 
 ## Parse arguments (we expect the form --arg=value)
@@ -136,16 +134,16 @@ argsL <- as.list(as.character(argsDF$V2))
 names(argsL) <- argsDF$V1
 
 ## catch output and messages into log file
-if(!is.null(argsL$logFile)) {
+if (!is.null(argsL$logFile)) {
   out <- file(argsL$logFile, open = "at")
-  sink(out,type = "output")
+  sink(out, type = "output")
   sink(out, type = "message")
 } else {
   sink()
 }
 
 ## get deeper list elements of report params
-if(!is.null(argsL$report.params)) {
+if (!is.null(argsL$report.params)) {
   argsL$report.params <- jsonlite::fromJSON(argsL$report.params)
 }
 
@@ -160,12 +158,13 @@ jsonlite::write_json(
 message("========= Given Parameters ==========")
 print(argsL)
 
-## check wether all required report params are given 
+## check wether all required report params are given
 paramsList <- knitr::knit_params(readLines(argsL$reportFile),
-                                 evaluate = TRUE)
+  evaluate = TRUE
+)
 
 ## exclude standard report params
-paramsList <- paramsList[!names(paramsList) %in% c("logo","prefix","workdir")]
+paramsList <- paramsList[!names(paramsList) %in% c("logo", "prefix", "workdir")]
 
 givenParams <- names(paramsList) %in% names(argsL$report.params)
 if (!all(givenParams)) {
@@ -178,22 +177,24 @@ message("====================================")
 
 
 cat(paste(
-    format(as.POSIXct(if ("" != Sys.getenv("SOURCE_DATE_EPOCH")) {
-                          as.numeric(Sys.getenv("SOURCE_DATE_EPOCH"))
-                      } else {
-                          Sys.time()
-                      }, origin="1970-01-01"), "%Y-%m-%d %H:%M:%S"),
-    "\n\n",
+  format(as.POSIXct(if ("" != Sys.getenv("SOURCE_DATE_EPOCH")) {
+    as.numeric(Sys.getenv("SOURCE_DATE_EPOCH"))
+  } else {
+    Sys.time()
+  }, origin = "1970-01-01"), "%Y-%m-%d %H:%M:%S"),
+  "\n\n",
   "Rendering report:", basename(argsL$outFile), "\n",
   "into directory:", argsL$workdir, "\n\n"
 ))
 
 
-render2HTML(reportFile = normalizePath(argsL$reportFile),
-      outFile = basename(argsL$outFile),
-      workdir = argsL$workdir,
-      report.params = argsL$report.params,
-      logo = argsL$logo,
-      bibTexFile = argsL$bibTexFile,
-      prefix = argsL$prefix,
-      selfContained = TRUE)
+render2HTML(
+  reportFile = normalizePath(argsL$reportFile),
+  outFile = basename(argsL$outFile),
+  workdir = argsL$workdir,
+  report.params = argsL$report.params,
+  logo = argsL$logo,
+  bibTexFile = argsL$bibTexFile,
+  prefix = argsL$prefix,
+  selfContained = TRUE
+)
