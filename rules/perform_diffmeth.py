@@ -148,6 +148,7 @@ rule diffmeth_report:
         destranded             = lambda wc: True if "destranded" in wc.context else False,
         treatment_group        = lambda wc: config["DManalyses"][wc.analysis]["treatment_sample_groups"],
         control_group          = lambda wc: config["DManalyses"][wc.analysis]["control_sample_groups"],
+        cores                  = int(config['general']['differential-methylation']['cores']),
         scripts_dir            = DIR_scripts,
         cpgIsland_bedfile      = CPGISLAND_BEDFILE,
         refGenes_bedfile       = REFGENES_BEDFILE,
@@ -194,7 +195,8 @@ rule diffmeth_report:
                                '"chrom_seqlengths":"{params.chrom_seqlengths}"',
                                '"qvalue":"{params.qvalue}"',
                                '"difference":"{params.difference}"',
-                               '"webfetch":"{params.webfetch}"'
+                               '"webfetch":"{params.webfetch}"',
+                               '"cores":"{params.cores}"',
                            ])+"}}'",
                            "--logFile={log}"], "{log}", 
                            "echo '' ")
