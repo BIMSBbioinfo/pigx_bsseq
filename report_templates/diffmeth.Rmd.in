@@ -341,13 +341,13 @@ methylDiff.obj.all <- getMethylDiff(.Object = methylDiffDB,
 									save.db = FALSE)
 
 # Check if there are some differentially methylated cytosines
-if (! nrow(methylDiff.obj.all)>1 ) {
-	cat("\n**There are no differentially methylated cytosines.**")
-	ExtractDiffMeth <- FALSE
-	AnnotateDiffMeth <- FALSE
+if (nrow(methylDiff.obj.all) > 1) {
+  cat("\n**We found ", nrow(methylDiff.obj.all), " cytosines to be differentially methylated .**")
 } else {
-    cat("\n**We found ",nrow(methylDiff.obj.all)," cytosines to be differentially methylated .**")
-  }
+  cat("\n**There are no differentially methylated cytosines.**")
+  ExtractDiffMeth <- FALSE
+  AnnotateDiffMeth <- FALSE
+}
 
 ```
 
@@ -505,20 +505,22 @@ pdf(file.path(workdir,paste0(prefix,".find_dmr.pdf")))
 dmrs <- find_DMR(methylDiffDB,cores = cores)
 invisible(dev.off())
 
-if(! length(unique(dmrs$seg.group)) > 1 ) {
+if (length(unique(dmrs$seg.group)) > 1) {
+  cat(
+    "\n**The segmentation was successful, out of ", length(dmrs), " regions ",
+    "we found ", sum(dmrs$seg.group == "hyper"), "to be hyper-methylated and ",
+    sum(dmrs$seg.group == "hypo"), " to be hypo-methylated.**"
+  )
+} else {
   cat(
     "\n**The segments belong only to a single class,\n",
     "This could indicate the unsupervised clustering of the ",
     "segments was not successful or the difference in methylation ",
     "is not high enough.**"
   )
-	ExportDMR <- FALSE
-	AnnotateDMR <- FALSE
-} else {
-    cat("\n**The segmentation was successful, out of ",length(dmrs)," regions ",
-    "we found ",sum(dmrs$seg.group == "hyper") ,"to be hyper-methylated and ",
-    sum(dmrs$seg.group == "hypo"), " to be hypo-methylated.**")
-  }
+  ExportDMR <- FALSE
+  AnnotateDMR <- FALSE
+}
 ```
 
 ```{r DiffMeth.export_dmr_text, results='asis', eval=ExportDMR}
