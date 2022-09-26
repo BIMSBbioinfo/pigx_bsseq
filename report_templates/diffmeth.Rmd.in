@@ -361,24 +361,7 @@ cat('- **DmC BED file**:\n',file.path(workdir,paste0(prefix,".dmc.bed")),'\n')
 
 ```
 
-```{r Diffmeth.extract_dmc, eval=ExtractDiffMeth}
-
-# Get hyper-methylated
-methylDiff.obj.hyper <- getMethylDiff(.Object = methylDiff.obj.all,
-									  difference = difference,
-									  type = "hyper",
-									  qvalue = qvalue)
-# Get hypo-methylated
-methylDiff.obj.hypo <- getMethylDiff(.Object = methylDiff.obj.all,
-									 difference = difference,
-									 type = "hypo",
-									 qvalue=qvalue)
-
-```
-
-
-```{r DiffMeth.export_dmc, eval=ExtractDiffMeth, echo=FALSE}
-
+```{r DiffMeth.export_bed, echo=FALSE}
 #-------------------------------------------------------------------
 #' Export windows to a BED file
 #'
@@ -474,7 +457,25 @@ meth2bed<-function(windows,filename,
                    trackLine=as(trackLine, "BasicTrackLine"))
     }
 }
+```
 
+```{r Diffmeth.extract_dmc, eval=ExtractDiffMeth}
+
+# Get hyper-methylated
+methylDiff.obj.hyper <- getMethylDiff(.Object = methylDiff.obj.all,
+									  difference = difference,
+									  type = "hyper",
+									  qvalue = qvalue)
+# Get hypo-methylated
+methylDiff.obj.hypo <- getMethylDiff(.Object = methylDiff.obj.all,
+									 difference = difference,
+									 type = "hypo",
+									 qvalue=qvalue)
+
+```
+
+
+```{r Diffmeth.export_dmc, eval=ExtractDiffMeth}
 # Export differentially methylated cytosines to a bed file
 bedFile <- file.path(workdir,paste0(prefix,".dmc.bed"))
 meth2bed(windows = methylDiff.obj.all,
@@ -485,8 +486,6 @@ meth2bed(windows = methylDiff.obj.all,
          scoreCol = "meth.diff",
          colramp=colorRamp(c("gray","green", "darkgreen")),
          filename = bedFile) 
-
-
 ```
 
 ```{r DiffMeth.find_dmr_text, results='asis', eval=ExtractDiffMeth}
