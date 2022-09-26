@@ -144,17 +144,21 @@ if(!is.null(argsL$logFile)) {
   sink()
 }
 
-# export a copy of the argument list for this rendering attempt
-saveRDS( argsL, file=paste0(argsL$outFile,".RenderArgs.rds") )
-message("========= Given Parameters ==========")
-print(argsL)
-message("====================================")
-
 ## get deeper list elements of report params
 if(!is.null(argsL$report.params)) {
   argsL$report.params <- jsonlite::fromJSON(argsL$report.params)
 }
 
+# export a copy of the argument list for this rendering attempt
+message("Exporting a copy of the argument list for this rendering attempt.\n", "For debugging, please load arguments via:")
+cat("\n", paste0('params = jsonlite::read_json("', gsub("html", "RenderArgs.json", argsL$outFile), '", simplifyVector=TRUE)'), "\n\n")
+jsonlite::write_json(
+  with(argsL, c(report.params, logo = logo, prefix = prefix, workdir = workdir)),
+  path = gsub("html", "RenderArgs.json", argsL$outFile),  pretty = TRUE
+)
+
+message("========= Given Parameters ==========")
+print(argsL)
 
 ## check wether all required report params are given 
 paramsList <- knitr::knit_params(readLines(argsL$reportFile),
@@ -164,10 +168,13 @@ paramsList <- knitr::knit_params(readLines(argsL$reportFile),
 paramsList <- paramsList[!names(paramsList) %in% c("logo","prefix","workdir")]
 
 givenParams <- names(paramsList) %in% names(argsL$report.params)
-if( !all(givenParams ))  {
-  warning("Missing values for parameters: ",
-          paste(names(paramsList)[!givenParams],collapse = ", "))
+if (!all(givenParams)) {
+  warning(
+    "--------- Missing values for parameters: ----------", "\n",
+    paste(names(paramsList)[!givenParams], collapse = ", ")
+  )
 }
+message("====================================")
 
 
 cat(paste(
