@@ -488,7 +488,7 @@ meth2bed(windows = methylDiff.obj.all,
          filename = bedFile) 
 ```
 
-```{r DiffMeth.find_dmr_text, results='asis', eval=ExtractDiffMeth}
+```{r DiffMeth.find_dmr_text, results='asis'}
 cat('## Finding Regions of Differential Methylation\n\n')
 
 cat('We use the `methSeg()` function to perform an unsupervised segmentation of the methylation differences calculated from `calculateDiffMeth()`. Then we classify hyper and hypo methylated segments based on the methylation difference threshold and join neighbouring segments with the same class. For details about the segmentation see [Wreczycka, et al (2017)](https://www.sciencedirect.com/science/article/pii/S0168165617315936). ')
@@ -498,7 +498,7 @@ cat('To aggregate the region level statistics we use Stouffer’s weighted Z-met
 
 ```
 
-```{r DiffMeth.find_dmr, eval=ExtractDiffMeth, echo=FALSE,warning=FALSE,message=FALSE}
+```{r DiffMeth.find_dmr, results='asis',echo=FALSE,warning=FALSE,message=FALSE}
 source(file.path(scripts_dir, "find_dmrs.R"))
 
 pdf(file.path(workdir,paste0(prefix,".find_dmr.pdf")))
@@ -512,6 +512,8 @@ if (length(unique(dmrs$seg.group)) > 1) {
     sum(dmrs$seg.group == "hypo"), " to be hypo-methylated.**"
   )
 } else {
+  # TODO: provide more detailed explanation what went wrong
+  # distinguish between "none" and other groups
   cat(
     "\n**The segments belong only to a single class,\n",
     "This could indicate the unsupervised clustering of the ",
