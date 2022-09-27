@@ -75,7 +75,7 @@ EXTRA_DIST =										\
   tests/settings.yaml                 \
   tests/settings_no_de.yaml
 
-AM_TESTS_ENVIRONMENT = srcdir="$(abs_top_srcdir)" builddir="$(abs_top_builddir)"
+AM_TESTS_ENVIRONMENT = srcdir="$(abs_top_srcdir)" builddir="$(abs_top_builddir)" PIGX_UNINSTALLED=1 PIGX_UGLY=1
 
 TESTS = \
   test.sh											\
