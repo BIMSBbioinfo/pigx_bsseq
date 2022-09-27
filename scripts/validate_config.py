@@ -132,7 +132,9 @@ def parse_sample_sheet(path):
             col_values = [outputdict[sample][check_col].upper() for sample in samples]
             if len(set(col_values)) > 1:
                 occurrence = {item: col_values.count(item) for item in col_values}
-                sorted_occurrence = dict(sorted(occurrence.items(), key=lambda item:item[1], reverse=True))
+                sorted_occurrence = dict(
+                    sorted(occurrence.items(), key=lambda item: item[1], reverse=True)
+                )
                 bail(
                     f"ERROR: Cannot merge Replicates for '{mrep}' due to different"
                     f" '{check_col}' values.\n\n Please make sure '{check_col}' values"
@@ -171,14 +173,19 @@ def validate_config(config):
 
     # Check that all of the requested differential methylation
     # treatment values are found in the sample sheet.
-    treatments = list(set(
-        (config["SAMPLES"][sample].get("Treatment","") for sample in config["SAMPLES"])
-    ))
+    treatments = list(
+        set(
+            (
+                config["SAMPLES"][sample].get("Treatment", "")
+                for sample in config["SAMPLES"]
+            )
+        )
+    )
     if "DManalyses" in config:
         if config["DManalyses"]:
             if not treatments[0]:
                 bail(
-                "ERROR: The config file contains a 'DManalyses' section, but there are not treatments defined in the sample-sheet. Please consider removing or commenting out this section.\n"
+                    "ERROR: The config file contains a 'DManalyses' section, but there are not treatments defined in the sample-sheet. Please consider removing or commenting out this section.\n"
                 )
             for analysis in config["DManalyses"]:
                 for group in config["DManalyses"][analysis][
