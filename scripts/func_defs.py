@@ -116,14 +116,14 @@ def TrueOrFalse(value):
 def treatment(sample):
     """Extract the Treatment value from the sample sheet"""
     samples = getSamplesPerMergeRep(sample, config["SAMPLES"])
-    treatment = [config["SAMPLES"][sample]['Treatment'] for sample in samples]
+    treatment = [config["SAMPLES"][sample]["Treatment"] for sample in samples]
     return treatment[0]
 
 
 def protocol(sample):
     """Extract the Protocol value from the sample sheet"""
     samples = getSamplesPerMergeRep(sample, config["SAMPLES"])
-    protocol = [config["SAMPLES"][sample]['Protocol'].upper() for sample in samples]
+    protocol = [config["SAMPLES"][sample]["Protocol"].upper() for sample in samples]
     return protocol[0].upper()
 
 
@@ -162,7 +162,7 @@ def destrand(context):
 
 
 def formatContext(context):
-    contexts = {'cpg': 'CpG', 'chg': 'CHG', 'chh': 'CHH'}
+    contexts = {"cpg": "CpG", "chg": "CHG", "chh": "CHH"}
     return contexts.get(context)
 
 
