@@ -71,7 +71,6 @@ rule methyldackel_extract_methylKit_by_context:
         protocol=lambda wc: protocol(wc.sample),
         keepDups=lambda wc: keepDups(protocol(wc.sample)),
         minqual=int(config['general']['methylation-calling']['minimum-quality']),
-        mbias=config['general']['methylation-calling']['methylation-bias'],
     log:
         DIR_methcall + "methylDackel/" + "{sample}.methyldackel_{context}_calls.log",
     message:
@@ -80,15 +79,13 @@ rule methyldackel_extract_methylKit_by_context:
         )
     shell:
         nice(
-            "methyldackel",
+            "methyldackel-extract",
             [
-                "extract",
                 "{input.genome}",
                 "{input.bamfile}",
                 "-o {params.prefix}",
                 "-@ {params.threads}",
                 "{params.keepDups}",
-                "{params.mbias}",
                 "--methylKit",
                 "{params.context}",
                 "-q {params.minqual}",
@@ -116,7 +113,6 @@ rule methyldackel_extract_methylKit_deduped:
         protocol=lambda wc: protocol(wc.sample),
         keepDups=lambda wc: keepDups(protocol(wc.sample)),
         minqual=int(config['general']['methylation-calling']['minimum-quality']),
-        mbias=config['general']['methylation-calling']['methylation-bias'],
     log:
         DIR_methcall + "methylDackel/" + "{sample}.deduped.methyldackel_{context}_calls.log",
     message:
@@ -125,15 +121,13 @@ rule methyldackel_extract_methylKit_deduped:
         )
     shell:
         nice(
-            "methyldackel",
+            "methyldackel-extract",
             [
-                "extract",
                 "{input.genome}",
                 "{input.bamfile}",
                 "-o {params.prefix}",
                 "-@ {params.threads}",
                 "{params.keepDups}",
-                "{params.mbias}",
                 "--methylKit",
                 "{params.context}",
                 "-q {params.minqual}",
@@ -187,9 +181,8 @@ rule methyldackel_mbias:
         )
     shell:
         nice(
-            "methyldackel",
+            "methyldackel-mbias",
             [
-                "mbias",
                 "{input.genome}",
                 "{input.bamfile}",
                 "{params.prefix}",

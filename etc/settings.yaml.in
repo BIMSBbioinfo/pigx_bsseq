@@ -19,11 +19,6 @@ general:
     keep-duplicates: Auto                 
     # extract contexts other than CpG? 
     context: CpG #,CHG,CHH  # specify as comma separated list 
-    # suggested inclusion option as found in 06_methyl_calls/<sample>.methyldackel_mbias.log
-    # Example "--OT 3,0,2,142 --OB 0,0,10,149"
-    # check https://github.com/dpryan79/MethylDackel#methylation-bias-plotting-and-correction
-    # and https://github.com/dpryan79/MethylDackel#alignment-trimming for explanations
-    methylation-bias: 
   export-bigwig:
     # extract/export contexts other than CpG? 
     context:
@@ -148,9 +143,12 @@ tools:
   samtools:
     executable: @SAMTOOLS@
     args: ""
-  methyldackel:
+  methyldackel-mbias:
     executable: @METHYLDACKEL@
-    args: ""
+    args: "mbias"
+  methyldackel-extract:
+    executable: @METHYLDACKEL@
+    args: "extract"
   bowtie2-inspect:
     executable: @BOWTIE2_INSPECT@
     args: ""
