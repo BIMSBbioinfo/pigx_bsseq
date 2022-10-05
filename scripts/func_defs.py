@@ -313,7 +313,7 @@ def list_files_methyldackel_mbias_bismark(files, sampleID, protocol):
 def list_files_methyldackel_mbias_bwameth(files, sampleID, protocol):
     PATH = DIR_methcall + "methylDackel/"
     sampleID = getMergeRepPerSample(sample=sampleID, samples_dict=config["SAMPLES"])
-    prefix = PATH + sampleID + ".bwameth.sorted.markdup"
+    prefix = PATH + sampleID + ".bwameth.sorted.picard_MarkDuplicates"
     return [
         # NOTE: this should be rewritten with snakemakes expand()
         f"{prefix}_methylDackel_mbias_{context}{ext}"

@@ -56,7 +56,7 @@ def getKeepDupsArg(protocol):
 
 rule methyldackel_extract_methylKit_by_context:
     input:
-        bamfile=DIR_sorted + "{sample}.bwameth.sorted.markdup.bam",
+        bamfile=DIR_sorted + "{sample}.bwameth.sorted.picard_MarkDuplicates.bam",
         genome=GENOMEFILE,
     output:
         contextCallFile=DIR_methcall
@@ -100,7 +100,7 @@ rule methyldackel_extract_methylKit_by_context:
 
 rule methyldackel_extract_methylKit_deduped:
     input:
-        bamfile=DIR_sorted + "{sample}.bwameth.sorted.markdup.bam",
+        bamfile=DIR_sorted + "{sample}.bwameth.sorted.picard_MarkDuplicates.bam",
         genome=GENOMEFILE,
     output:
         contextCallFile=DIR_methcall
@@ -145,7 +145,7 @@ rule methyldackel_extract_methylKit_deduped:
 
 
 def removeMapperSuffix(prefix):
-    mapper_suffix = [".bwameth.sorted.markdup"]  # bwameth
+    mapper_suffix = [".bwameth.sorted.picard_MarkDuplicates"]  # bwameth
     mapper_suffix += [
         "_1_val_1_bt2.sorted",
         "_se_bt2.sorted",
