@@ -42,7 +42,7 @@ def getContextArg(context):
     return contextArg
 
 
-def keepDups(protocol):
+def getKeepDupsArg(protocol):
     keepDupsFlag = str(config["general"]["methylation-calling"]["keep-duplicates"]).lower()
     keepDups = ""
     if keepDupsFlag == 'auto':
@@ -69,7 +69,7 @@ rule methyldackel_extract_methylKit_by_context:
         prefix=DIR_methcall + "methylDackel/" + "{sample}_methyldackel",
         context=lambda wc: getContextArg(wc.context),
         protocol=lambda wc: protocol(wc.sample),
-        keepDups=lambda wc: keepDups(protocol(wc.sample)),
+        keepDups=lambda wc: getKeepDupsArg(protocol(wc.sample)),
         minqual=int(config['general']['methylation-calling']['minimum-quality']),
     log:
         DIR_methcall + "methylDackel/" + "{sample}.methyldackel_{context}_calls.log",
@@ -111,7 +111,7 @@ rule methyldackel_extract_methylKit_deduped:
         prefix=DIR_methcall + "methylDackel/" + "{sample}.deduped_methyldackel",
         context=lambda wc: getContextArg(wc.context),
         protocol=lambda wc: protocol(wc.sample),
-        keepDups=lambda wc: keepDups(protocol(wc.sample)),
+        keepDups=lambda wc: getKeepDupsArg(protocol(wc.sample)),
         minqual=int(config['general']['methylation-calling']['minimum-quality']),
     log:
         DIR_methcall + "methylDackel/" + "{sample}.deduped.methyldackel_{context}_calls.log",
@@ -171,7 +171,7 @@ rule methyldackel_mbias:
         sample=lambda wc: removeMapperSuffix(wc.prefix),
         context=lambda wc: getContextArg(wc.context),
         protocol=lambda wc: protocol(removeMapperSuffix(wc.prefix)),
-        keepDups=lambda wc: keepDups(protocol(removeMapperSuffix(wc.prefix))),
+        keepDups=lambda wc: getKeepDupsArg(protocol(removeMapperSuffix(wc.prefix))),
         minqual=int(config['general']['methylation-calling']['minimum-quality']),
     log:
         DIR_methcall + "methylDackel/" + "{prefix}_methylDackel_mbias_{context}.log",
