@@ -316,7 +316,7 @@ def list_files_methyldackel_mbias_bwameth(files, sampleID, protocol):
     prefix = PATH + sampleID + ".bwameth.sorted.picard_MarkDuplicates"
     return [
         # NOTE: this should be rewritten with snakemakes expand()
-        f"{prefix}_methylDackel_mbias_{context}{ext}"
+        f"{prefix}_methylDackel_mbias_{formatContext(context)}{ext}"
         for ext in [".txt", "_OB.svg", "_OT.svg"]
         for context in METH_CONTEXTS
     ]
@@ -330,7 +330,9 @@ def list_files_maketabix_methyldackel(files, sampleID, protocol):
     return [
         # contexts are CpG, CHG, CHH
         os.path.join(
-            PATH, f"tabix_{formatContext(context)}", f"{prefix}_{context}.txt.bgz{ext}"
+            PATH,
+            f"tabix_{formatContext(context)}",
+            f"{prefix}_{formatContext(context)}.txt.bgz{ext}",
         )
         for ext in ["", ".tbi"]
         for context in METH_CONTEXTS
