@@ -305,7 +305,7 @@ for target in selected_targets:
 
 # FIXME: the list of files must be flattened twice(!).  We should make
 # sure that the targets really just return simple lists.
-OUTPUT_FILES = list(chain.from_iterable(chain.from_iterable([targets[name]['files'] for name in selected_targets])))
+OUTPUT_FILES = sorted(list(set(chain.from_iterable(chain.from_iterable([targets[name]['files'] for name in selected_targets])))))
 
 
 # ==============================================================================================================
