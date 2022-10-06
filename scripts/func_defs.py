@@ -157,8 +157,13 @@ def get_fastq_name(full_name):
 # --------------------------------------
 # context related
 # --------------------------------------
-def destrand(context):
-    return config["general"]["export-bigwig"]["context"][context.lower()]["destrand"]
+def destrandSuffix(context):
+    suffix = (
+        "_destranded"
+        if config["general"]["export-bigwig"]["context"][context.lower()]["destrand"]
+        else ""
+    )
+    return suffix
 
 
 def formatContext(context):
@@ -341,21 +346,19 @@ def list_files_maketabix_methyldackel(files, sampleID, protocol):
 
 def bigwig_exporting_bismark(files, sampleID, protocol):
     PATH = DIR_bigwig
-    DESTRAND = "_destranded" if destrand("cpg") else ""
     # ---- change based on single or paired end
     mapper_suffix = "_se_bt2.sorted" if len(files) == 1 else "_1_val_1_bt2.sorted"
     prefix = PATH + sampleID + mapper_suffix + dedupe_tag(protocol)
-    return [f"{prefix}.{context}{DESTRAND}_methylKit.bw" for context in METH_CONTEXTS]
+    return [f"{prefix}.{context}{destrandSuffix(context)}_methylKit.bw" for context in METH_CONTEXTS]
 
 
 # FIXME: contexts should be generate output based on settings file
 def bigwig_exporting_bwameth(files, sampleID, protocol):
     PATH = DIR_bigwig
     sampleID = getMergeRepPerSample(sample=sampleID, samples_dict=config["SAMPLES"])
-    DESTRAND = "_destranded" if destrand("cpg") else ""
     prefix = PATH + sampleID + dedupe_tag(protocol)
     return [
-        f"{prefix}.{formatContext(context)}{DESTRAND}_methylDackel.bw"
+        f"{prefix}.{formatContext(context)}{destrandSuffix(context)}_methylDackel.bw"
         for context in METH_CONTEXTS
     ]
 
@@ -445,76 +448,55 @@ def files_for_treatment(proc):
 # FIXME: create files dependend on context
 def list_files_unite_bismark(treatment):
     PATH = DIR_diffmeth + treatment + "/"
-    DESTRAND = "_destranded" if destrand("cpg") else ""
-    return [PATH + "methylBase_" + treatment + "_cpg" + DESTRAND + "_methylKit.txt.bgz"]
+    prefix = PATH + "methylBase_" + treatment 
+    return [
+        f"{prefix}_{context}{destrandSuffix(context)}_methylKit.txt.bgz"
+        for context in METH_CONTEXTS
+        ]
 
 
 def list_files_unite_bwameth(treatment):
     PATH = DIR_diffmeth + treatment + "/"
-    DESTRAND = "_destranded" if destrand("cpg") else ""
+    prefix = PATH + "methylBase_" + treatment
     return [
-        PATH + "methylBase_" + treatment + "_CpG" + DESTRAND + "_methylDackel.txt.bgz"
+        f"{prefix}_{formatContext(context)}{destrandSuffix(context)}_methylDackel.txt.bgz"
+        for context in METH_CONTEXTS
     ]
 
 
 def list_files_diffmeth_bismark(treatment):
     PATH = DIR_diffmeth + treatment + "/"
-    DESTRAND = "_destranded" if destrand("cpg") else ""
+    prefix =  PATH + "methylDiff_" + treatment
     return [
-        PATH
-        + "methylDiff_"
-        + treatment
-        + "_cpg"
-        + DESTRAND
-        + "_methylKit_full.txt.bgz",
-        PATH + "methylDiff_" + treatment + "_cpg" + DESTRAND + "_methylKit_results.tsv",
+        f"{prefix}_{context}{destrandSuffix(context)}_methylKit_{ext}"
+        for ext in ["full.txt.bgz", "results.tsv"]
+        for context in METH_CONTEXTS
     ]
 
 
 def list_files_diffmeth_bwameth(treatment):
     PATH = DIR_diffmeth + treatment + "/"
-    DESTRAND = "_destranded" if destrand("cpg") else ""
+    prefix =  PATH + "methylDiff_" + treatment
     return [
-        PATH
-        + "methylDiff_"
-        + treatment
-        + "_CpG"
-        + DESTRAND
-        + "_methylDackel_full.txt.bgz",
-        PATH
-        + "methylDiff_"
-        + treatment
-        + "_CpG"
-        + DESTRAND
-        + "_methylDackel_results.tsv",
+        f"{prefix}_{formatContext(context)}{destrandSuffix(context)}_methylDackel_{ext}"
+        for ext in ["full.txt.bgz", "results.tsv"]
+        for context in METH_CONTEXTS
     ]
 
 
 def list_files_diffmeth_report_bwameth(treatment):
-    PATH = DIR_final
-    DESTRAND = "_destranded" if destrand("cpg") else ""
+    PATH = DIR_final + treatment + "/"
+    prefix =  PATH + treatment
     return [
-        PATH
-        + treatment
-        + "/"
-        + treatment
-        + "_CpG"
-        + DESTRAND
-        + "_methylDackel"
-        + ".diffmeth-report.html"
+        f"{prefix}_{formatContext(context)}{destrandSuffix(context)}_methylDackel.diffmeth-report.html"
+        for context in METH_CONTEXTS
     ]
 
 
 def list_files_diffmeth_report_bismark(treatment):
-    PATH = DIR_final
-    DESTRAND = "_destranded" if destrand("cpg") else ""
+    PATH = DIR_final + treatment + "/"
+    prefix =  PATH + treatment
     return [
-        PATH
-        + treatment
-        + "/"
-        + treatment
-        + "_cpg"
-        + DESTRAND
-        + "_methylKit"
-        + ".diffmeth-report.html"
+        f"{prefix}_{context}{destrandSuffix(context)}_methylKit.diffmeth-report.html"
+        for context in METH_CONTEXTS
     ]
