@@ -311,7 +311,7 @@ def list_files_methyldackel_mbias_bismark(files, sampleID, protocol):
     return [
         f"{prefix}_methylDackel_mbias_{context}{ext}"
         for ext in [".txt", "_OB.svg", "_OT.svg"]
-        for context in METH_CONTEXTS
+        for context in ["cpg", "chh", "chg" ] # METH_CONTEXTS
     ]
 
 
@@ -323,7 +323,8 @@ def list_files_methyldackel_mbias_bwameth(files, sampleID, protocol):
         # NOTE: this should be rewritten with snakemakes expand()
         f"{prefix}_methylDackel_mbias_{formatContext(context)}{ext}"
         for ext in [".txt", "_OB.svg", "_OT.svg"]
-        for context in METH_CONTEXTS
+        # FIXME: should mbias created for all contexts in general? 
+        for context in ["cpg", "chh", "chg" ] # METH_CONTEXTS
     ]
 
 
