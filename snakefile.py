@@ -321,6 +321,12 @@ rule all:
     input:
         OUTPUT_FILES
 
+rule clean:
+    input:
+        OUTPUT_FILES
+    shell:
+        "rm {input}"
+
 rule help:
     run:
         for key in sorted(targets.keys()):
