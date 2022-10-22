@@ -332,6 +332,7 @@ def list_files_methyldackel_mbias_bwameth(files, sampleID, protocol):
 def list_files_maketabix_methyldackel(files, sampleID, protocol):
     PATH = DIR_methcall + "methylDackel/"
     # ---- change based on single or paired end
+    sampleID = getMergeRepPerSample(sample=sampleID, samples_dict=config["SAMPLES"])
     prefix = sampleID + dedupe_tag(protocol)
     return [
         # contexts are CpG, CHG, CHH
