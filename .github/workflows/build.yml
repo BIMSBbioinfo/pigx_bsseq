@@ -50,4 +50,6 @@ jobs:
       - name: Build
         run: guix shell -D -f guix.scm -- make -j
       - name: Distcheck
+        env:
+          VERBOSE: "true"
         run: guix shell -D -f guix.scm -- make distcheck
