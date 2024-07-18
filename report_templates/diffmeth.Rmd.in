@@ -20,7 +20,6 @@ params:
   chrom_seqlengths:       ''
   qvalue:                 0.01
   difference:             25
-  webfetch:               ''
 
   sampleids:              ''
   treatments:             ''
@@ -99,7 +98,6 @@ nTop <- 5000
 
 cpgIsland_bedfile       <- params$cpgIsland_bedfile
 refGenes_bedfile        <- params$refGenes_bedfile
-webfetch                <- tolower(params$webfetch) %in% c("true", "yes")
 chrom_seqlengths_file   <- params$chrom_seqlengths
 
 methylDiff_file <- params$methylDiff_file
@@ -146,7 +144,7 @@ AnnotateDiffMeth  <- TRUE
 ExportDMR <- TRUE
 AnnotateDMR <- TRUE
 
-if(! (all(file.exists(cpgIsland_bedfile,refGenes_bedfile)) | webfetch )) {
+if(! (all(file.exists(cpgIsland_bedfile,refGenes_bedfile)))) {
   AnnotateDiffMeth <- FALSE
 }
 
@@ -743,26 +741,31 @@ print(p)
 ```
 
 ```{r AnnotateDiffMeth.fetch_annotations, eval=AnnotateDiffMeth}
-source(file.path(scripts_dir, "fetch_procedures.R"))
-fetched.refgenes <- lookupBedFile(type = "knownGene",
-                               filename = refGenes_bedfile,
-                               assembly = assembly,
-                               webfetch = webfetch )
-fetch_refgen_success <- !is.null(fetched.refgenes)
-fetched.cpgi <- lookupBedFile(type = "cpgIslandExt",
-                              filename =  cpgIsland_bedfile,
-                              assembly = assembly,
-                              webfetch = webfetch )
-
-fetch_cpgi_success <- !is.null(fetched.cpgi)
-
+refgenes.grl <-
+    tryCatch(
+             expr = readTranscriptFeatures(refGenes_bedfile),
+             error = function (msg) {
+                 message(paste("Error while reading transcript features:",
+                                msg))
+                 return(NULL)
+             })
+fetch_refgen_success <- !is.null(refgenes.grl)
+# read the shores and flanking regions and name the flanks as shores
+# and CpG islands as CpGi
+cpg.obj <-
+    tryCatch(
+             expr = readFeatureFlank(cpgIsland_bedfile,
+                         feature.flank.name=c("CpGi","shores")),
+             error = function (msg) {
+                 message(paste("Error while reading CpG island annotation:",
+                                msg))
+                 return(NULL)
+             })
+fetch_cpgi_success <- !is.null(cpg.obj)
 ```
 
 ```{r AnnotateDiffMeth.annotateWithGeneParts,  eval=AnnotateDiffMeth, echo=FALSE, message=FALSE, results='asis'}
 if( (fetch_refgen_success) & length(GRanges.diffmeth)!=0){
-  ## now we parse the gene features
-  refgenes.grl <- readTranscriptFeatures(fetched.refgenes)
-
   annot.gene <- annotateWithGeneParts(target = GRanges.diffmeth,
                                          feature = refgenes.grl,
                                          intersect.chr = TRUE)
@@ -921,11 +924,6 @@ fill_strip <- function(facet_ggplot, fills, plot=FALSE) {
 
 ```{r AnnotateDiffMeth.annotateWithFeatureFlank,  eval=AnnotateDiffMeth, echo=FALSE, warning=FALSE, message=FALSE ,results='asis'}
 if( (fetch_cpgi_success) & length(GRanges.diffmeth)!=0){
-
-  # read the shores and flanking regions and name the flanks as shores
-  # and CpG islands as CpGi
-    cpg.obj=readFeatureFlank(fetched.cpgi,
-                           feature.flank.name=c("CpGi","shores"))
   #
   # convert methylDiff object to GRanges and annotate
   diffCpGann=annotateWithFeatureFlank(target = GRanges.diffmeth,
@@ -1141,10 +1139,7 @@ ideoDMC_hyper_hypo(hyper = GRanges.dmr.hyper,
 
 ```{r AnnotateDMR.annotateWithGeneParts,  eval=AnnotateDMR, echo=FALSE, message=FALSE, results='asis'}
 if( (fetch_refgen_success) & length(GRanges.dmr)!=0){
-  ## now we parse the gene features
-  refgenes.grl <- readTranscriptFeatures(fetched.refgenes)
-
-  annot.dmr.gene <- annotateWithGeneParts(target = GRanges.dmr,
+  annot.dmr.gene <- genomation::annotateWithGeneParts(target = GRanges.dmr,
                                          feature = refgenes.grl,
                                          intersect.chr = TRUE)
   
@@ -1268,11 +1263,6 @@ if( (fetch_refgen_success) & length(GRanges.dmr)!=0){
 
 ```{r AnnotateDMR.annotateWithFeatureFlank,  eval=AnnotateDMR, echo=FALSE, warning=FALSE, message=FALSE ,results='asis'}
 if( (fetch_cpgi_success) & length(GRanges.dmr)!=0){
-
-  # read the shores and flanking regions and name the flanks as shores
-  # and CpG islands as CpGi
-  cpg.obj=readFeatureFlank(fetched.cpgi,
-                         feature.flank.name=c("CpGi","shores"))
 
   # convert methylDiff object to GRanges and annotate
   diffCpGann.dmr=annotateWithFeatureFlank(target = GRanges.dmr,
