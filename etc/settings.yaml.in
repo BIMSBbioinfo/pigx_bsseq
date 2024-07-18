@@ -153,7 +153,7 @@ tools:
     args: ""
   samblaster:
     executable: @SAMBLASTER@
-    args: ""
+    args: "--ignoreUnmated"
   methyldackel:
     executable: @METHYLDACKEL@
     args: ""
