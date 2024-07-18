@@ -118,6 +118,9 @@ methList <- lapply(SinfoList,
 
          message("Processing chromosome ",seqnames(gr),"...")
 
+         tryCatch(
+            {
+
             # read directly from tabix file and process in chunks
             dt <- methylKit:::applyTbxByOverlap(
               tbxFile = filepath,
@@ -136,9 +139,16 @@ methList <- lapply(SinfoList,
             return(GenomicRanges::makeGRangesFromDataFrame(
               dt,seqinfo = Sinfo,  keep.extra.columns=TRUE)
               )
+
+            },
+            error = function(e) {
+              message("Chromosome ",seqnames(gr)," failed.")
+              return(NULL)
+            })
         })
 
-methList <- unlist(GRangesList(methList))
+# remove empty list elements
+methList <- unlist(GRangesList(methList[!sapply(methList,is.null)]))
 
 rtracklayer::export.bw( object = methList, con = out_path )
 
