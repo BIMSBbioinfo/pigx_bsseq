@@ -66,10 +66,14 @@ execution:
   submit-to-cluster: no
   jobs: 6
   nice: 19
+  mem_mb: 64000
   cluster:
     missing-file-timeout: 120
+    memory: 8G
     stack: 128M
+    queue: all.q
     contact-email: none
+    log-dir: '.'
     args: ''
   rules:
     __default__:
@@ -97,6 +101,12 @@ execution:
       threads: 12
       memory: 12G
     samblaster_markdup_sort:
+      threads: 12
+      memory: 12G
+    deduplication_se:
+      threads: 12
+      memory: 12G
+    deduplication_pe:
       threads: 12
       memory: 12G
     bwameth_align_trimmed:
