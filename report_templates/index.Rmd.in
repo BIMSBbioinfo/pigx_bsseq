@@ -76,7 +76,7 @@ knitr::opts_knit$set(progress = FALSE)
 ```{r chunk_eval_options}
 MethCall          <- TRUE
 Segmentation      <- TRUE
-AnnotateSegments  <- TRUE
+Annotation          <- TRUE
 
 inBam <- params$inBam
 bigwigFile <- params$bigwigFile
@@ -87,16 +87,19 @@ scripts_dir  <- params$scripts_dir
 
 if(!MethCall) {
   Segmentation <- 
-  AnnotateSegments <- 
+  Annotation <-
     FALSE
 }
 
-if(!Segmentation) AnnotateSegments <- FALSE
+if(!Segmentation) Annotation <- FALSE
+
+if(!file.exists(refGenes_bedfile)) {
+       Annotation <- FALSE
+}
 
 ```
 
-# Final Report {-}
-
+# Description
 
 PiGx BSseq is a data-processing pipeline for bisulfite experiments; it automates the analysis of raw single-end or paired-end fastq reads, including quality control, trimming and alignment. The software also provides post-mapping analysis, such as differential-methylation detection, methylation segmentation, and annotation of such detected regions. 
 It was first developed by the Akalin group at MDC in Berlin in 2017.
@@ -132,7 +135,7 @@ knitr::kable(basic_inputParams)
 ```
 
 ```{r MethCallHeader, results='asis', eval=MethCall} 
-cat('## Methylation Calling\n')
+cat('# Methylation Calling\n')
 cat('The following table(s) lists some of the basic parameters under which the pipeline calculations were performed as well as output files that may be of interest to the user for further analysis.')
 ```
 
@@ -179,7 +182,7 @@ knitr::kable(inputParams)
 ```
 
 ```{r MethCallDescription, results='asis', eval=MethCall} 
-cat('### Extract Methylation Calls \n')
+cat('## Extract Methylation Calls \n')
 
 cat('We first extract the methylation calls from the sequence alignment produced by the bisulfite mapper [Bismark](https://www.bioinformatics.babraham.ac.uk/projects/bismark/) [@krueger_bismark:_2011] using the `processBismarkAln()` function of [methylKit](https://bioconductor.org/packages/release/bioc/html/methylKit.html) [@methylKit2012] --a package for the  analysis of DNA methylation profiles. 
 We apply filters based on a minimum coverage of ',mincov,' and a mapping quality of at least ',minqual,', as indicated in the parameters table.\n')
@@ -207,7 +210,7 @@ cat('Here we show some simple statistics related to the distribution of methylat
 
 
 ```{r Segmentation, results='asis', eval=Segmentation} 
-cat('## Segmentation \n')
+cat('# Segmentation \n')
 ```
 
 ```{r Segmentation.eval_params, eval=Segmentation}
@@ -232,15 +235,14 @@ cat('For the present data set, however, there exist chromosomes that could not b
 if( methsegempty )
    {
    Segmentation         <- FALSE;
-   AnnotateSegments     <- FALSE;
-   fetch_refgen_success <- FALSE;
+   Annotation     <- FALSE;
    }
 ```
 
 
 
 ```{r SegmentationDescription, results='asis', eval= Segmentation } 
-cat('### Segmentation of Methylation Profile\n')
+cat('## Segmentation of Methylation Profile\n')
 
 cat('Segmentation of the methylation profile is done using the methSeg() function, where change-points in the genome-wide  signal are recorded and the genome is partitioned into regions between consecutive change-points. This approach is typically used in the detection of copy-number variation [@klambauer2012] but can be applied to methylome segmentation as well [@Wreczycka2017]. Here, the identified segments are further clustered based on their average methylation signal, using a mixture-modeling approach, which permits the detection of distinct regions inside the genome  [@Wreczycka2017].\n')
 ```
@@ -258,7 +260,7 @@ cat('For the given sample, there were insufficient segments detected to perform 
 ```
 
 ```{r SegmentationExport, results='asis', eval= Segmentation }
-cat('### Export to BED\n')
+cat('## Export to BED\n')
 
 cat('We export the above regions to a *BED* file, which can be loaded into any genome browser (such as [IGV](http://software.broadinstitute.org/software/igv/) or [UCSC](https://genome.ucsc.edu/) ) to allow for further analysis, annotation and visualisation.\n')
 
@@ -267,8 +269,6 @@ cat('- **Methylation Segments BED file**:\n',methSegBed ,'\n')
 ```
 
 ```{r Annotation.readRefGene,  results='asis', eval= Annotation }
-
-require(genomation,quietly = TRUE)
 ## now we parse the gene features
 refgenes.grl <- tryCatch(
                          expr = readTranscriptFeatures(refGenes_bedfile),
@@ -291,33 +291,7 @@ cat('The annotation of the identified regions with genomic features allows for a
 
 
 
-```{r AnnotateSegments.fetchRefgene, eval= AnnotateSegments }
-originally_present_refgen = file.exists(refGenes_bedfile)
-source(paste0(scripts_dir, "fetch_procedures.R"))
-fetched.refgenes <- lookupBedFile(type      = "refGene",
-                                  filename  = refGenes_bedfile,
-                                  assembly  = assembly,
-                                  webfetch  = webfetch )
-fetch_refgen_success <- ( fetched.refgenes != '')
-```
-
-```{r AnnotateSegments.readRefGene,  results='asis', eval= AnnotateSegments }
-
-## now we parse the gene features
-if( fetch_refgen_success ) {
-  cat( paste( "In this particular execution of the pipeline, the reference gene set was obtained, while the option webfetch was set to =", webfetch) )
-  if( !webfetch )
-    {cat('; this implies that the .bed file was found locally on the machine.') }
-  if( webfetch && !originally_present_refgen)
-    { cat('\n since the reference gene file was not originally present, this implies that it was downloaded remotely from the UCSC server.') }
-  refgenes.grl <- readTranscriptFeatures(fetched.refgenes)
-  } else { 
-  cat( paste(" In this particular execution of the pipeline, PiGx failed to find the reference gene file ", refGenes_bedfile, ", while the option webfetch was set to =", webfetch, ". Thus, the corresponding section was omitted.") )
-  }
-```
-
-```{r AnnotateSegments.loadSegments, eval= AnnotateSegments }
-
+```{r Annotation.loadSegments, eval= Annotation }
 # now load segments 
 segments.gr <- readBed(file = methSegBed,
                       track.line = "auto")
@@ -338,11 +312,11 @@ annot.gene.list <- annotateWithGeneParts(target = segments.grl,
                                         intersect.chr = TRUE)
 ```
 
-```{r AnnotateSegments.text2, results='asis', eval= AnnotateSegments }
+```{r Annotation.text2, results='asis', eval= Annotation }
 cat('Here, we plot the average methylation per segment group and the overlap with gene features for the input reference gene set.\n')
 ```
 
-```{r AnnotateSegments.plot,  eval= AnnotateSegments }
+```{r Annotation.plot,  eval= Annotation }
 ## percentage of target features overlapping with annotation:
 ## (with promoter > exon > intron precedence)
 annot.gene.mat <- as.matrix(sapply(annot.gene.list, function(x) x@precedence))
@@ -361,7 +335,7 @@ legend("bottomright",legend = rownames(annot.gene.mat),fill = grey(seq.int(0,1,l
 ```
 
 
-```{r plot_methylation_near_TSSs, results='asis', eval = fetch_refgen_success }
+```{r plot_methylation_near_TSSs, results='asis', eval = Annotation }
 
 TSS_plotlength  <- as.integer(params$TSS_plotlength)
 ymin = 0
@@ -370,11 +344,6 @@ ymax = 100
 gene_features   <- refgenes.grl
 TSS_exact       <- gene_features$TSSes
 TSS_proximal    <- resize(TSS_exact, width=TSS_plotlength, fix='center')
-
-# following lines commented out for efficiency
-# sample_methylome_gr          <-  as(methRaw, "GRanges")
-# sample_methylome_gr$methfrac <-  sample_methylome_gr$numCs/sample_methylome_gr$coverage
-# TSSprox_scoremat_noweight = genomation::ScoreMatrix( sample_methylome_gr,
 
 TSSprox_scoremat_noweight <- tryCatch(
 									  expr = {
