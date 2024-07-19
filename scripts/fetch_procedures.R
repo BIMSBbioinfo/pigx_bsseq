@@ -114,8 +114,9 @@ lookupBedFile <- function(type, filename, assembly, webfetch) {
     return(filename)
   }
   
-  if(!(type %in% c("cpgIslandExt", "knownGene"))) {
-    stop('ERROR: type can be either "cpgIslandExt" or "knownGene".')
+  accepted_types <- c("cpgIslandExt", "knownGene", "refGene")
+  if(!(type %in% accepted_types)) {
+    stop(paste0("Type <'",type,"'> not supported. Please use one of the following: ",paste(accepted_types,collapse=", ")))
   }
 
   message("Trying to fetch from AnnotationHub.\n")

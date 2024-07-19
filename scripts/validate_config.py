@@ -110,13 +110,20 @@ def parse_samples(lines):
 # check for common input/configuration errors:
 def validate_config(config):
     # Check that all locations exist
-    for loc in config['locations']:
+    required_locations = ['input-dir', 'output-dir', 'genome-fasta']
+    for loc in required_locations:
         if ( (not loc == 'output-dir') and (not (os.path.isdir(config['locations'][loc]) or os.path.isfile(config['locations'][loc])))):
             bail("ERROR: The following necessary directory/file does not exist: {} ({})".format(
                 config['locations'][loc], loc))
+    optional_locations = ['cpgIsland-bedfile', 'refGenes-bedfile']
+    for loc in optional_locations:
+        if ( config['locations'][loc] and ( not os.path.isfile(config['locations'][loc]))):
+            bail("ERROR: The following optional file does not exist: {} ({})".format(
+                config['locations'][loc], loc))
+    
 
 
-        # Load parameters specific to samples
+    # Load parameters specific to samples
     with open(config['locations']['sample-sheet'], 'r') as f:
             lines = f.read().splitlines()
     sample_params = parse_samples(lines)
@@ -141,6 +148,14 @@ def validate_config(config):
     if 'treatment-groups' in config['general']['differential-methylation']:
         bail("ERROR: The specification of treatment groups and differential analysis has changed.\n"+
         "Please retrieve the new default settings layout with 'pigx-bsseq --init settings'.\n")
+
+
+    # check for new annotation layout
+    if 'annotation' in config['general']['differential-methylation']:
+        bail("ERROR: The specification of annotation files has changed.\n"+
+        "Please retrieve the new default settings layout with 'pigx-bsseq --init settings'.\n")
+
+
 
     # Check for a any Assembly string
     if not config['general']['assembly']:

@@ -46,7 +46,8 @@ ideoDMC <- function(methylDiff.obj, chrom.length, difference = 25,
   require(methylKit)
   require(GenomicRanges)
   require(ggbio)
-  
+  # TODO: rewrite the require statement as library::function calls to not pollute the reports environment
+
   # chrom.length
   myIdeo <- GRanges(seqnames = names(chrom.length), ranges = IRanges(start = 1, 
                                                                      width = chrom.length))

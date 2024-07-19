@@ -2,6 +2,11 @@ locations:
   input-dir: /path/to/reads/
   output-dir: /path/to/output/
   genome-fasta: /path/to/genome.fasta
+  # UCSC annotation tables fetched from table browser in BED format.
+  # [optional] CpG island predictions
+  cpgIsland-bedfile: ''
+  # [optional] Gene annotation, should be refGenes or knownGenes table
+  refGenes-bedfile: ''
 
 general:
   assembly: ''
@@ -36,11 +41,6 @@ general:
     cores: 1
     qvalue: 0.01
     difference: 25
-    annotation:
-      cpgIsland-bedfile: ''
-      refGenes-bedfile: ''
-      # download cpgIsland-bedfile or refGenes-bedfile automatically if not given?
-      webfetch:   no
       
 # DManalyses:
 #   # The names of analyses can be anything but they have to be unique

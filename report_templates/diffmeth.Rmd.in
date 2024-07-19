@@ -20,7 +20,6 @@ params:
   chrom_seqlengths:       ''
   qvalue:                 0.01
   difference:             25
-  webfetch:               ''
 
   sampleids:              ''
   treatments:             ''
@@ -99,7 +98,6 @@ nTop <- 5000
 
 cpgIsland_bedfile       <- params$cpgIsland_bedfile
 refGenes_bedfile        <- params$refGenes_bedfile
-webfetch                <- tolower(params$webfetch) %in% c("true", "yes")
 chrom_seqlengths_file   <- params$chrom_seqlengths
 
 methylDiff_file <- params$methylDiff_file
@@ -146,7 +144,7 @@ AnnotateDiffMeth  <- TRUE
 ExportDMR <- TRUE
 AnnotateDMR <- TRUE
 
-if(! (all(file.exists(cpgIsland_bedfile,refGenes_bedfile)) | webfetch )) {
+if(! (all(file.exists(cpgIsland_bedfile,refGenes_bedfile)))) {
   AnnotateDiffMeth <- FALSE
 }
 
@@ -301,7 +299,7 @@ The full table of methylKit calculateDiffMeth() results can be found at:
 `r methylDiff_results_file`
 
 
-```{r DiffMeth.load_methylDB, message=TRUE}
+```{r DiffMeth.map_treatment, message=TRUE}
 
 
 if (!setequal(control_group,treatment_group)) {
@@ -322,8 +320,9 @@ if (!setequal(control_group,treatment_group)) {
                 sep = ": ",collapse = "\n"))
   
 }
+```
 
-
+```{r DiffMeth.load_methylDB, results='asis'}
 methylDiffDB <- methylKit:::readMethylDiffDB(dbpath = methylDiff_file,
                                     dbtype = "tabix",
                                     sample.ids = sampleids,
@@ -341,13 +340,13 @@ methylDiff.obj.all <- getMethylDiff(.Object = methylDiffDB,
 									save.db = FALSE)
 
 # Check if there are some differentially methylated cytosines
-if (! nrow(methylDiff.obj.all)>1 ) {
-	cat("\n**There are no differentially methylated cytosines.**")
-	ExtractDiffMeth <- FALSE
-	AnnotateDiffMeth <- FALSE
+if (nrow(methylDiff.obj.all) > 1) {
+  cat("\n**We found ", nrow(methylDiff.obj.all), " cytosines to be differentially methylated .**")
 } else {
-    cat("\n**We found ",nrow(methylDiff.obj.all)," cytosines to be differentially methylated .**")
-  }
+  cat("\n**There are no differentially methylated cytosines.**")
+  ExtractDiffMeth <- FALSE
+  AnnotateDiffMeth <- FALSE
+}
 
 ```
 
@@ -360,24 +359,7 @@ cat('- **DmC BED file**:\n',file.path(workdir,paste0(prefix,".dmc.bed")),'\n')
 
 ```
 
-```{r Diffmeth.extract_dmc, eval=ExtractDiffMeth}
-
-# Get hyper-methylated
-methylDiff.obj.hyper <- getMethylDiff(.Object = methylDiff.obj.all,
-									  difference = difference,
-									  type = "hyper",
-									  qvalue = qvalue)
-# Get hypo-methylated
-methylDiff.obj.hypo <- getMethylDiff(.Object = methylDiff.obj.all,
-									 difference = difference,
-									 type = "hypo",
-									 qvalue=qvalue)
-
-```
-
-
-```{r DiffMeth.export_dmc, eval=ExtractDiffMeth, echo=FALSE}
-
+```{r DiffMeth.export_bed, echo=FALSE}
 #-------------------------------------------------------------------
 #' Export windows to a BED file
 #'
@@ -473,7 +455,25 @@ meth2bed<-function(windows,filename,
                    trackLine=as(trackLine, "BasicTrackLine"))
     }
 }
+```
 
+```{r Diffmeth.extract_dmc, eval=ExtractDiffMeth}
+
+# Get hyper-methylated
+methylDiff.obj.hyper <- getMethylDiff(.Object = methylDiff.obj.all,
+									  difference = difference,
+									  type = "hyper",
+									  qvalue = qvalue)
+# Get hypo-methylated
+methylDiff.obj.hypo <- getMethylDiff(.Object = methylDiff.obj.all,
+									 difference = difference,
+									 type = "hypo",
+									 qvalue=qvalue)
+
+```
+
+
+```{r Diffmeth.export_dmc, eval=ExtractDiffMeth}
 # Export differentially methylated cytosines to a bed file
 bedFile <- file.path(workdir,paste0(prefix,".dmc.bed"))
 meth2bed(windows = methylDiff.obj.all,
@@ -484,11 +484,9 @@ meth2bed(windows = methylDiff.obj.all,
          scoreCol = "meth.diff",
          colramp=colorRamp(c("gray","green", "darkgreen")),
          filename = bedFile) 
-
-
 ```
 
-```{r DiffMeth.find_dmr_text, results='asis', eval=ExtractDiffMeth}
+```{r DiffMeth.find_dmr_text, results='asis'}
 cat('## Finding Regions of Differential Methylation\n\n')
 
 cat('We use the `methSeg()` function to perform an unsupervised segmentation of the methylation differences calculated from `calculateDiffMeth()`. Then we classify hyper and hypo methylated segments based on the methylation difference threshold and join neighbouring segments with the same class. For details about the segmentation see [Wreczycka, et al (2017)](https://www.sciencedirect.com/science/article/pii/S0168165617315936). ')
@@ -498,27 +496,31 @@ cat('To aggregate the region level statistics we use Stouffer’s weighted Z-met
 
 ```
 
-```{r DiffMeth.find_dmr, eval=ExtractDiffMeth, echo=FALSE,warning=FALSE,message=FALSE}
+```{r DiffMeth.find_dmr, results='asis',echo=FALSE,warning=FALSE,message=FALSE}
 source(file.path(scripts_dir, "find_dmrs.R"))
 
 pdf(file.path(workdir,paste0(prefix,".find_dmr.pdf")))
 dmrs <- find_DMR(methylDiffDB,cores = cores)
 invisible(dev.off())
 
-if(! length(unique(dmrs$seg.group)) > 1 ) {
+if (length(unique(dmrs$seg.group)) > 1) {
+  cat(
+    "\n**The segmentation was successful, out of ", length(dmrs), " regions ",
+    "we found ", sum(dmrs$seg.group == "hyper"), "to be hyper-methylated and ",
+    sum(dmrs$seg.group == "hypo"), " to be hypo-methylated.**"
+  )
+} else {
+  # TODO: provide more detailed explanation what went wrong
+  # distinguish between "none" and other groups
   cat(
     "\n**The segments belong only to a single class,\n",
     "This could indicate the unsupervised clustering of the ",
     "segments was not successful or the difference in methylation ",
     "is not high enough.**"
   )
-	ExportDMR <- FALSE
-	AnnotateDMR <- FALSE
-} else {
-    cat("\n**The segmentation was successful, out of ",length(dmrs)," regions ",
-    "we found ",sum(dmrs$seg.group == "hyper") ,"to be hyper-methylated and ",
-    sum(dmrs$seg.group == "hypo"), " to be hypo-methylated.**")
-  }
+  ExportDMR <- FALSE
+  AnnotateDMR <- FALSE
+}
 ```
 
 ```{r DiffMeth.export_dmr_text, results='asis', eval=ExportDMR}
@@ -689,7 +691,7 @@ stats.df$variable <- factor(gsub("number.of.","",stats.df$variable),
 ```{r AnnotateDiffMeth.num_of_dmcs.plot, eval=ExtractDiffMeth,fig.width=8,fig.height=8}
 p <- ggplot(stats.df, aes(x = chr, y = perc, fill = variable)) + 
   scale_fill_manual(values = c(hypo.col,hyper.col)) +
-  geom_bar(stat = "identity",position = "stack", color = "black") +
+  ggplot2::geom_bar(stat = "identity",position = "stack", color = "black") +
   geom_text_repel(aes(label = count), position = position_stack(vjust = 0.5),
             hjust = 0.1,size = 5) +
   ggtitle(label = "Differentially methylated Cytosines per Chromosome") +
@@ -726,7 +728,7 @@ stats.DMC.df$variable <- factor(gsub("number.of.","",stats.DMC.df$variable),
 
 p <- ggplot(stats.DMC.df, aes(x = chr, y = perc, fill = variable)) + 
   scale_fill_manual(values = c(hypo.col,hyper.col)) +
-  geom_bar(stat = "identity",position = "stack", color = "black") +
+  ggplot2::geom_bar(stat = "identity",position = "stack", color = "black") +
   geom_text_repel(aes(label = count), position = position_stack(vjust = 0.5),
             hjust = 0.1,size = 5) +
   ggtitle(label = "Differentially methylated Cytosines per Chromosome") +
@@ -739,26 +741,31 @@ print(p)
 ```
 
 ```{r AnnotateDiffMeth.fetch_annotations, eval=AnnotateDiffMeth}
-source(file.path(scripts_dir, "fetch_procedures.R"))
-fetched.refgenes <- lookupBedFile(type = "knownGene",
-                               filename = refGenes_bedfile,
-                               assembly = assembly,
-                               webfetch = webfetch )
-fetch_refgen_success <- !is.null(fetched.refgenes)
-fetched.cpgi <- lookupBedFile(type = "cpgIslandExt",
-                              filename =  cpgIsland_bedfile,
-                              assembly = assembly,
-                              webfetch = webfetch )
-
-fetch_cpgi_success <- !is.null(fetched.cpgi)
-
+refgenes.grl <-
+    tryCatch(
+             expr = readTranscriptFeatures(refGenes_bedfile),
+             error = function (msg) {
+                 message(paste("Error while reading transcript features:",
+                                msg))
+                 return(NULL)
+             })
+fetch_refgen_success <- !is.null(refgenes.grl)
+# read the shores and flanking regions and name the flanks as shores
+# and CpG islands as CpGi
+cpg.obj <-
+    tryCatch(
+             expr = readFeatureFlank(cpgIsland_bedfile,
+                         feature.flank.name=c("CpGi","shores")),
+             error = function (msg) {
+                 message(paste("Error while reading CpG island annotation:",
+                                msg))
+                 return(NULL)
+             })
+fetch_cpgi_success <- !is.null(cpg.obj)
 ```
 
 ```{r AnnotateDiffMeth.annotateWithGeneParts,  eval=AnnotateDiffMeth, echo=FALSE, message=FALSE, results='asis'}
 if( (fetch_refgen_success) & length(GRanges.diffmeth)!=0){
-  ## now we parse the gene features
-  refgenes.grl <- readTranscriptFeatures(fetched.refgenes)
-
   annot.gene <- annotateWithGeneParts(target = GRanges.diffmeth,
                                          feature = refgenes.grl,
                                          intersect.chr = TRUE)
@@ -812,7 +819,7 @@ if( (fetch_refgen_success) & length(GRanges.diffmeth)!=0){
   
   p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
     scale_fill_manual(values = rev(cols)) +
-    geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
+    ggplot2::geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
     geom_text(aes(y = -10, label = count), hjust = 0,size = 5) +
     ggtitle(label = "Differentially methylated Cytosines per Genomic Feature") +
     labs(y = "Percentage", x = "Feature") + 
@@ -882,7 +889,7 @@ fill_strip <- function(facet_ggplot, fills, plot=FALSE) {
     
     p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
       scale_fill_manual(values = rev(cols)) +
-      geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
+      ggplot2::geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
       geom_text(mapping = aes(group = type, color = type , y = -10, label = count), size = 5, 
                   position = position_dodge(width= 1)) +
       scale_color_manual(values = c(hypo.col,hyper.col)) + 
@@ -917,11 +924,6 @@ fill_strip <- function(facet_ggplot, fills, plot=FALSE) {
 
 ```{r AnnotateDiffMeth.annotateWithFeatureFlank,  eval=AnnotateDiffMeth, echo=FALSE, warning=FALSE, message=FALSE ,results='asis'}
 if( (fetch_cpgi_success) & length(GRanges.diffmeth)!=0){
-
-  # read the shores and flanking regions and name the flanks as shores
-  # and CpG islands as CpGi
-    cpg.obj=readFeatureFlank(fetched.cpgi,
-                           feature.flank.name=c("CpGi","shores"))
   #
   # convert methylDiff object to GRanges and annotate
   diffCpGann=annotateWithFeatureFlank(target = GRanges.diffmeth,
@@ -979,7 +981,7 @@ if( (fetch_cpgi_success) & length(GRanges.diffmeth)!=0){
   
   p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
   scale_fill_manual(values = c("white","gray","green")) +
-  geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
+  ggplot2::geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
     geom_text(aes(y = -10, label = count), hjust = 0,size = 5) +
   coord_flip() +
   labs(y = "Percentage", x = "Feature") + 
@@ -1018,7 +1020,7 @@ if( length(GRanges.diffmeth.hypo)!=0 & length(GRanges.diffmeth.hyper)!=0){
   
   p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
   scale_fill_manual(values = c("white","gray","green")) +
-  geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
+  ggplot2::geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
   geom_text(mapping = aes(group = type, color = type , y = -10, label = count), size = 5, 
             position = position_dodge(width= 1)) +
   scale_color_manual(values = c(hypo.col,hyper.col)) +
@@ -1137,10 +1139,7 @@ ideoDMC_hyper_hypo(hyper = GRanges.dmr.hyper,
 
 ```{r AnnotateDMR.annotateWithGeneParts,  eval=AnnotateDMR, echo=FALSE, message=FALSE, results='asis'}
 if( (fetch_refgen_success) & length(GRanges.dmr)!=0){
-  ## now we parse the gene features
-  refgenes.grl <- readTranscriptFeatures(fetched.refgenes)
-
-  annot.dmr.gene <- annotateWithGeneParts(target = GRanges.dmr,
+  annot.dmr.gene <- genomation::annotateWithGeneParts(target = GRanges.dmr,
                                          feature = refgenes.grl,
                                          intersect.chr = TRUE)
   
@@ -1193,7 +1192,7 @@ if( (fetch_refgen_success) & length(GRanges.dmr)!=0){
   
   p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
     scale_fill_manual(values = rev(cols)) +
-    geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
+    ggplot2::geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
     geom_text(aes(y = -10, label = count), hjust = 0,size = 5) +
     ggtitle(label = "Differentially methylated Regions per Genomic Feature") +
     labs(y = "Percentage", x = "Feature") + 
@@ -1229,7 +1228,7 @@ if( (fetch_refgen_success) & length(GRanges.dmr)!=0){
     
     p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
       scale_fill_manual(values = rev(cols)) +
-      geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
+      ggplot2::geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
       geom_text(mapping = aes(group = type, color = type , y = -10, label = count), size = 5, 
                   position = position_dodge(width= 1)) +
       scale_color_manual(values = c(hypo.col,hyper.col)) + 
@@ -1264,11 +1263,6 @@ if( (fetch_refgen_success) & length(GRanges.dmr)!=0){
 
 ```{r AnnotateDMR.annotateWithFeatureFlank,  eval=AnnotateDMR, echo=FALSE, warning=FALSE, message=FALSE ,results='asis'}
 if( (fetch_cpgi_success) & length(GRanges.dmr)!=0){
-
-  # read the shores and flanking regions and name the flanks as shores
-  # and CpG islands as CpGi
-  cpg.obj=readFeatureFlank(fetched.cpgi,
-                         feature.flank.name=c("CpGi","shores"))
 
   # convert methylDiff object to GRanges and annotate
   diffCpGann.dmr=annotateWithFeatureFlank(target = GRanges.dmr,
@@ -1326,7 +1320,7 @@ if( (fetch_cpgi_success) & length(GRanges.dmr)!=0){
   
   p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
   scale_fill_manual(values = c("white","gray","green")) +
-  geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
+  ggplot2::geom_bar(stat = "identity" ,color = "black", position = position_dodge()) +
     geom_text(aes(y = -10, label = count), hjust = 0,size = 5) +
   coord_flip() +
   labs(y = "Percentage", x = "Feature") + 
@@ -1365,7 +1359,7 @@ if( length(GRanges.dmr.hypo)!=0 & length(GRanges.dmr.hyper)!=0){
   
   p <- ggplot(df, aes(x = variable, y = value, fill = variable)) + 
   scale_fill_manual(values = c("white","gray","green")) +
-  geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
+  ggplot2::geom_bar(mapping = aes(group = type), stat = "identity" ,color = "black",  position = position_dodge()) +
   geom_text(mapping = aes(group = type, color = type , y = -10, label = count), size = 5, 
             position = position_dodge(width= 1)) +
   scale_color_manual(values = c(hypo.col,hyper.col)) +
