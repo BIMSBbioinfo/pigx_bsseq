@@ -3,9 +3,9 @@ locations:
   output-dir: /path/to/output/
   genome-fasta: /path/to/genome.fasta
   # UCSC annotation tables fetched from table browser in BED format.
-  # CpG island predictions
+  # [optional] CpG island predictions
   cpgIsland-bedfile: ''
-  # Gene annotation, should be refGenes or knownGenes table
+  # [optional] Gene annotation, should be refGenes or knownGenes table
   refGenes-bedfile: ''
 
 general:
