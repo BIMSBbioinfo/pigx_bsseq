@@ -86,6 +86,12 @@ def bail(msg):
     print(msg, file=sys.stderr)
     exit(1)
 
+
+# print a warning
+def warn(msg):
+    """Print the warning message to stderr."""
+    print(f"WARNING: {msg}", file=sys.stderr)
+
 def TrueOrFalse(value):
     value = repr(value)
     if value:
