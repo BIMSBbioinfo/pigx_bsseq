@@ -25,6 +25,7 @@ include   : os.path.join(config['locations']['pkglibexecdir'], 'scripts/func_def
 include   : os.path.join(config['locations']['pkglibexecdir'], 'scripts/update_pigx_work.py')
 include   : os.path.join(config['locations']['pkglibexecdir'], 'scripts/validate_config.py')
 
+config = update_config_layout(config)
 validate_config(config)
 update_pigx_work(config)
 
