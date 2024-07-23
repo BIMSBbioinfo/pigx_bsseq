@@ -20,7 +20,7 @@
 import os
 import csv
 from glob import glob
-from func_defs import bail
+from func_defs import bail, warn
 
 # ==============================================================================
 #
@@ -101,12 +101,35 @@ def parse_samples(lines):
         outputdict[row[2]] = sampleid_dict
     return { 'SAMPLES': outputdict }
 
+def update_config_layout(config):
+    # check for new annotation layout
+    if not 'differential-methylation' in config['general']:
+        return config
+
+    differential_methylation = config['general']['differential-methylation']
+    if not 'annotation' in differential_methylation:
+        return config
+
+    warn("The specification of annotation files has changed in version 0.1.9 \n"+
+        "For now updating configuration file with the new default settings layout.\n"+
+        "In the future, please retrieve the new default settings layout with 'pigx-bsseq --init settings'.")
+    ## move cpgisland and refgene files to location dict
+    if 'cpgIsland-bedfile' in differential_methylation['annotation']:
+        config['locations']['cpgIsland-bedfile'] = differential_methylation['annotation']['cpgIsland-bedfile']
+    if 'refGenes-bedfile' in differential_methylation['annotation']:
+        config['locations']['refGenes-bedfile'] = differential_methylation['annotation']['refGenes-bedfile']
+    ## remove annotation section
+    differential_methylation.pop('annotation')
+
+    config['general']['differential-methylation'] = differential_methylation
+
+    return config
+
+
 
 # --------------------------------------
 # validation of Config 
 # --------------------------------------
-
-
 # check for common input/configuration errors:
 def validate_config(config):
     # Check that all locations exist
@@ -148,14 +171,6 @@ def validate_config(config):
     if 'treatment-groups' in config['general']['differential-methylation']:
         bail("ERROR: The specification of treatment groups and differential analysis has changed.\n"+
         "Please retrieve the new default settings layout with 'pigx-bsseq --init settings'.\n")
-
-
-    # check for new annotation layout
-    if 'annotation' in config['general']['differential-methylation']:
-        bail("ERROR: The specification of annotation files has changed.\n"+
-        "Please retrieve the new default settings layout with 'pigx-bsseq --init settings'.\n")
-
-
 
     # Check for a any Assembly string
     if not config['general']['assembly']:
