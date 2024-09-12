@@ -338,7 +338,7 @@ def bigwig_exporting_bismark(files, sampleID, protocol):
     if USEBWAMETH:
         INFIX += [ ".bwameth.sorted"]
     DESTRAND = "_destranded" if destrand("cpg") else ""
-    FILES = [ PATH+sampleID+infix + ".CpG" + DESTRAND + "_methylDackel" + ".bw" for infix in INFIX]
+    FILES = [ PATH+sampleID+infix+dedupe_tag(protocol) + ".CpG" + DESTRAND + "_methylDackel" + ".bw" for infix in INFIX]
     return FILES
 
 # FIXME: contexts should be generate output based on settings file

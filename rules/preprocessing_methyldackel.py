@@ -192,13 +192,11 @@ rule tabix_methyldackelfile:
     output:
         DIR_methcall + "methylDackel/" + "tabix_{context}/{prefix}_{context}.txt.bgz",
         DIR_methcall + "methylDackel/" + "tabix_{context}/{prefix}_{context}.txt.bgz.tbi"
-    wildcard_constraints:
-        sample="sorted.+(?<!deduped)"
     params:
         sampleid = "{prefix}_{context}",
         assembly = ASSEMBLY,
         treatment = lambda wc: samplesheet(
-            wc.prefix.replace(".deduped", ""), 'Treatment'),
+            removeMapperSuffix(wc.prefix), 'Treatment'),
         context = "{context}",
         dbdir = DIR_methcall + "methylDackel/" + "/tabix_{context}/",
         mincov = int(config['general']['methylation-calling']

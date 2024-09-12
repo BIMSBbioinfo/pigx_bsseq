@@ -32,8 +32,8 @@ rule export_tabix_bigwig:
     output:
         bw = os.path.join(DIR_bigwig, "{prefix}.{context}_{tool}.bw")
     wildcard_constraints:
-        context=".+(?<!destranded)",
-        tool="(?<!destranded)_.*"
+        context="CpG|CHG|CHH",
+        tool="methylDackel|methylKit"
     params:
         assembly = ASSEMBLY,
         destrand = lambda wc: destrand(wc.context)
