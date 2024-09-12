@@ -32,7 +32,8 @@ rule export_tabix_bigwig:
     output:
         bw = os.path.join(DIR_bigwig, "{prefix}.{context}_{tool}.bw")
     wildcard_constraints:
-        context=".+(?<!destranded)"
+        context=".+(?<!destranded)",
+        tool="(?<!destranded)_.*"
     params:
         assembly = ASSEMBLY,
         destrand = lambda wc: destrand(wc.context)

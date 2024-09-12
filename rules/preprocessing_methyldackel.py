@@ -29,9 +29,26 @@
 # Extract methylation counts with methylDackel
 #
 
+def removeMapperSuffix(prefix):
+    print(prefix)
+    mapper_suffix = [
+        ".bwameth.sorted", 
+        ".bwameth.sorted.deduped"
+        ]  # bwameth
+    mapper_suffix += [
+        "_1_val_1_bt2.sorted",
+        "_se_bt2.sorted",
+        "_1_val_1_bt2.sorted.deduped",
+        "_se_bt2.sorted.deduped",
+    ]  # bismark
+    for suffix in mapper_suffix:
+        if prefix.endswith(suffix):
+            print(prefix[: -len(suffix)])
+            return prefix[: -len(suffix)]
 
 def protocol(wc):
-    return config["SAMPLES"][wc.sample]['Protocol'].upper()
+    sample = removeMapperSuffix(wc.sample)
+    return config["SAMPLES"][sample]['Protocol'].upper()
 
 
 def keepDups(protocol):
@@ -50,7 +67,7 @@ def keepDups(protocol):
 ## TODO: make extraction of chg and chh files optional?? 
 rule methyldackel_extract_methylKit:
     input:
-        bamfile = DIR_sorted + "{sample}.bwameth.sorted.markdup.bam",
+        bamfile = DIR_sorted + "{sample}.bam",
         genome = GENOMEFILE
     output:
         cpgCallFile = DIR_methcall + "methylDackel/" +"{sample}_methyldackel_CpG.methylKit",
@@ -79,7 +96,7 @@ rule methyldackel_extract_methylKit:
 ## TODO: compress methylKit files  
 rule methyldackel_extract_methylKit_deduped:
     input:
-        bamfile = DIR_sorted + "{sample}.bwameth.sorted.markdup.bam",
+        bamfile = DIR_sorted + "{sample}.bam",
         genome = GENOMEFILE
     output:
         cpgCallFile = DIR_methcall + "methylDackel/" + \
@@ -106,7 +123,7 @@ rule methyldackel_extract_methylKit_deduped:
              ("{log}"))
 
 
-# ==========================================================================================
+# ==============================================================================
 # Extract methylation bias with methylDackel
 #
 
@@ -175,6 +192,8 @@ rule tabix_methyldackelfile:
     output:
         DIR_methcall + "methylDackel/" + "tabix_{context}/{prefix}_{context}.txt.bgz",
         DIR_methcall + "methylDackel/" + "tabix_{context}/{prefix}_{context}.txt.bgz.tbi"
+    wildcard_constraints:
+        sample="sorted.+(?<!deduped)"
     params:
         sampleid = "{prefix}_{context}",
         assembly = ASSEMBLY,

@@ -253,104 +253,119 @@ def list_files_bwamethMappingStats(files, sampleID, protocol):
 
 # FIXME: contexts should be generate output based on settings file
 def bam_processing(files, sampleID, protocol):
-    PATH = DIR_methcall+ "methylKit/"
-    if len(files) == 1:
-        # ---- single end
-        return [PATH+"tabix_cpg/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_cpg.txt.bgz",
-                PATH+"tabix_cpg/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_cpg.txt.bgz.tbi",
-                # PATH+"tabix_chg/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_chg.txt.bgz",
-                # PATH+"tabix_chg/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_chg.txt.bgz.tbi",
-                # PATH+"tabix_chh/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_chh.txt.bgz",
-                # PATH+"tabix_chh/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_chh.txt.bgz.tbi"
-                ]
-    elif len(files) == 2:
-        # ---- paired end
-        return [PATH+"tabix_cpg/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_cpg.txt.bgz",
-                PATH+"tabix_cpg/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_cpg.txt.bgz.tbi",
-                # PATH+"tabix_chg/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_chg.txt.bgz",
-                # PATH+"tabix_chg/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_chg.txt.bgz.tbi",
-                # PATH+"tabix_chh/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_chh.txt.bgz",
-                # PATH+"tabix_chh/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_chh.txt.bgz.tbi"
-                ]
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    PATH = DIR_methcall + "methylDackel/"
+    INFIX = []
+    if USEBISMARK:
+        INFIX += [ "_se_bt2.sorted" if len(files) == 1 else "_1_val_1_bt2.sorted"] 
+    if USEBWAMETH:
+        INFIX += [ "bwameth.sorted"]
+    PREFIX = [PATH+sampleID+infix+dedupe_tag(protocol) for infix in INFIX]
+    CONTEXTS = ["CpG", "CHG", "CHH"]
+    FILES =  [ prefix+"_methyldackel_" + context +".methylKit" for prefix in PREFIX for context in CONTEXTS ]
+    return FILES
+    # if len(files) == 1:
+    #     # ---- single end
+    #     return [PATH+"tabix_cpg/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_cpg.txt.bgz",
+    #             PATH+"tabix_cpg/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_cpg.txt.bgz.tbi",
+    #             # PATH+"tabix_chg/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_chg.txt.bgz",
+    #             # PATH+"tabix_chg/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_chg.txt.bgz.tbi",
+    #             # PATH+"tabix_chh/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_chh.txt.bgz",
+    #             # PATH+"tabix_chh/"+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_chh.txt.bgz.tbi"
+    #             ]
+    # elif len(files) == 2:
+    #     # ---- paired end
+    #     return [PATH+"tabix_cpg/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_cpg.txt.bgz",
+    #             PATH+"tabix_cpg/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_cpg.txt.bgz.tbi",
+    #             # PATH+"tabix_chg/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_chg.txt.bgz",
+    #             # PATH+"tabix_chg/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_chg.txt.bgz.tbi",
+    #             # PATH+"tabix_chh/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_chh.txt.bgz",
+    #             # PATH+"tabix_chh/"+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_chh.txt.bgz.tbi"
+    #             ]
+    # else:
+    #     raise Exception(
+    #         "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
                 
 # FIXME: contexts should be generate output based on settings file
 def list_files_methyldackel_extract(files, sampleID, protocol):
     PATH = DIR_methcall + "methylDackel/"
-    return [PATH+sampleID+dedupe_tag(protocol)+"_methyldackel_CpG.methylKit",
-            PATH+sampleID+dedupe_tag(protocol)+"_methyldackel_CHG.methylKit",
-            PATH+sampleID+dedupe_tag(protocol)+"_methyldackel_CHH.methylKit",
+    INFIX = []
+    if USEBISMARK:
+        INFIX += [ "_se_bt2.sorted" if len(files) == 1 else "_1_val_1_bt2.sorted"] 
+    if USEBWAMETH:
+        INFIX += [ "bwameth.sorted"]
+    PREFIX = [PATH+sampleID+infix+dedupe_tag(protocol) for infix in INFIX]
+    CONTEXTS = ["CpG", "CHG", "CHH"]
+    FILES =  [ prefix+"_methyldackel_" + context +".methylKit" for prefix in PREFIX for context in CONTEXTS ]
+    return FILES
             # PATH+sampleID+"_mbias_methyldackel.txt",
             # PATH+sampleID+"_mbias_OB.svg",
             # PATH+sampleID+"_mbias_OT.svg",
             # PATH+sampleID+"_methyldackel.cytosine_report.txt"
-            ]
+            
 
 # FIXME: contexts should be generate output based on settings file
 def list_files_maketabix_methyldackel(files, sampleID, protocol):
     PATH = DIR_methcall + "methylDackel/"
-    return [
-            PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz",
-            PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz.tbi",
-            PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz",
-            PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz.tbi",
-            PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz",
-            PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz.tbi"
-            ]
+    INFIX = []
+    if USEBISMARK:
+        INFIX += [ "_se_bt2.sorted" if len(files) == 1 else "_1_val_1_bt2.sorted"] 
+    if USEBWAMETH:
+        INFIX += [ ".bwameth.sorted"]
+    PREFIX = [sampleID+infix+dedupe_tag(protocol) for infix in INFIX]
+    CONTEXTS = [
+        "CpG",
+        #  "CHG",
+        #  "CHH"
+                ]
+    SUFFIX = [".txt.bgz", ".txt.bgz.tbi"]
+    FILES =  [ PATH+"tabix_"+context+"/"+prefix+"_"+context+suffix for prefix in PREFIX for context in CONTEXTS for suffix in SUFFIX]
+    return FILES
+    # return [
+    #         PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz",
+    #         PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz.tbi",
+    #         PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz",
+    #         PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz.tbi",
+    #         PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz",
+    #         PATH+"tabix_CpG/"+sampleID+dedupe_tag(protocol)+"_CpG.txt.bgz.tbi"
+    #         ]
 
 # FIXME: contexts should be generate output based on settings file
 def bigwig_exporting_bismark(files, sampleID, protocol):
     PATH = DIR_bigwig
+    INFIX = []
+    if USEBISMARK:
+        INFIX += [ "_se_bt2.sorted" if len(files) == 1 else "_1_val_1_bt2.sorted"] 
+    if USEBWAMETH:
+        INFIX += [ ".bwameth.sorted"]
     DESTRAND = "_destranded" if destrand("cpg") else ""
-    if len(files) == 1:
-        # ---- single end
-        return PATH+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + ".cpg" + DESTRAND + "_methylKit"+ ".bw"
-    elif len(files) == 2:
-        # ---- paired end
-        return [PATH+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + ".cpg" + DESTRAND +  "_methylKit" + ".bw"]
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    FILES = [ PATH+sampleID+infix + ".CpG" + DESTRAND + "_methylDackel" + ".bw" for infix in INFIX]
+    return FILES
 
 # FIXME: contexts should be generate output based on settings file
 def bigwig_exporting_bwameth(files, sampleID, protocol):
     PATH = DIR_bigwig
     DESTRAND = "_destranded" if destrand("cpg") else ""
-    if len(files) == 1:
-        # ---- single end
-        return [PATH+sampleID+dedupe_tag(protocol) + ".CpG" + DESTRAND + "_methylDackel" + ".bw"]
-    elif len(files) == 2:
-        # ---- paired end
-        return [PATH+sampleID+dedupe_tag(protocol) + ".CpG" + DESTRAND + "_methylDackel" + ".bw"]
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    INFIX = [ ".bwameth.sorted"]
+    FILES = [ PATH+sampleID+infix+dedupe_tag(protocol) + ".CpG" + DESTRAND + "_methylDackel" + ".bw" for infix in INFIX]
+    return FILES
 
 def methSeg_bismark(files, sampleID, protocol):
     PATH = DIR_seg
     if len(files) == 1:
         # ---- single end
-        return PATH+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_cpg" + "_methylKit" +".meth_segments.bed"
+        return PATH+sampleID+"_se_bt2.sorted" + dedupe_tag(protocol) + "_CpG" + "_methylDackel" +".meth_segments.bed"
     elif len(files) == 2:
         # ---- paired end
-        return [PATH+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_cpg" + "_methylKit" +".meth_segments.bed"]
+        return [PATH+sampleID+"_1_val_1_bt2.sorted" + dedupe_tag(protocol) + "_CpG" + "_methylDackel" +".meth_segments.bed"]
     else:
         raise Exception(
             "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
 
 def methSeg_bwameth(files, sampleID, protocol):
     PATH = DIR_seg
-    if len(files) == 1:
-        # ---- single end
-        return []
-    elif len(files) == 2:
-        # ---- paired end
-        return [PATH+sampleID+dedupe_tag(protocol) + "_CpG" + "_methylDackel" +".meth_segments.bed"]
-    else:
-        raise Exception(
-            "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
+    INFIX = [ ".bwameth.sorted"]
+    return [PATH+sampleID+infix+dedupe_tag(protocol) + "_CpG" + "_methylDackel" +".meth_segments.bed" for infix in INFIX]
+    
 
 def list_final_reports_bwameth(files, sampleID, protocol):
     SUFFIX = "CpG_methylDackel_{}".format(ASSEMBLY) 
@@ -367,7 +382,7 @@ def list_final_reports_bwameth(files, sampleID, protocol):
             "=== ERROR: file list is neither 1 nor 2 in length. STOP! ===")
 
 def list_final_reports_bismark(files, sampleID, protocol):
-    SUFFIX = "cpg_methylKit_{}".format(ASSEMBLY) 
+    SUFFIX = "CpG_methylDackel_{}".format(ASSEMBLY) 
     PATH = os.path.join(DIR_final,"sample_reports/" )
     if len(files) == 1:
         # ---- single end
