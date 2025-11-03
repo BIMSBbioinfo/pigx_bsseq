@@ -29,6 +29,8 @@ dev/guix/init_env.sh
 # test generated files
 test.sh.trs
 tests/*
+*.log
+config.json
 
 # cluster logs
 *.err
