@@ -14,6 +14,16 @@ jobs:
         uses: PromyLOPh/guix-install-action@v1
         with:
           pullAfterInstall: false
+      - name: Find Guix path
+        run: |
+          which guix || find / -name guix -type f 2>/dev/null | grep bin
+      - name: Add Guix to PATH
+        run: |
+          echo "/var/guix/profiles/per-user/root/current-guix/bin" >> $GITHUB_PATH
+          echo "$HOME/.config/guix/current/bin" >> $GITHUB_PATH
+      - name: Find Guix path
+        run: |
+          which guix || find / -name guix -type f 2>/dev/null | grep bin
       - name: Describe Guix
         run: echo "guix-commit=$(guix describe | grep commit | join -a1 -o1.2 - /dev/null)" >> $GITHUB_OUTPUT
         id: guix-commit
