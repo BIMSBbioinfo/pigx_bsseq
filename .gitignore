@@ -30,6 +30,10 @@ dev/guix/init_env.sh
 test.sh.trs
 tests/*
 
+# cluster logs
+*.err
+*.out
+
 # ignore all folders, except for:
 */
 .*/
@@ -39,3 +43,4 @@ tests/*
 !report_templates/
 !rules/
 !tests/
+.github/
