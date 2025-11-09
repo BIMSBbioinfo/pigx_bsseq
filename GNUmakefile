@@ -28,16 +28,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-.PHONY: all clean test release sign
+.PHONY: clean test release sign
 
 
 all: 
 	make init
-ifdef GUIX_PYTHONPATH
-	make build-guix
-else
-	make build
-endif
+	ifdef GUIX_PYTHONPATH
+		make build-guix
+	else
+		make build
+	endif
 
 
 ##? help: Show usage and available commands
@@ -51,20 +51,20 @@ help:
 
 
 ##? init: Initialize the project and build the executable
-init:
+init: pigx-common
 	@echo "Initializing the PiGx project..."
 	@echo "Fetching submodules..."
 	git submodule update --init --recursive
 	
 ## build: Build the executable
-build: pigx-bsseq Makefile
+build: Makefile
 	./configure
 
 ## build-guix: Build the executable in a pure environment using guix shell
 #  --pure:        unset existing environment variables
 #  -D:            include the development inputs of the next package
 #  -f guix.scm:   use the given file as the build manifest.
-build-guix: pigx-bsseq
+build-guix: pigx-bsseq 
 	guix shell --pure -D -f guix.scm -- ./bootstrap.sh
 	guix shell --pure -D -f guix.scm -- ./configure PYTHONPATH='${GUIX_PYTHONPATH}'
 
