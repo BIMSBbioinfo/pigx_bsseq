@@ -102,9 +102,9 @@ AC_CONFIG_FILES([META])
 AC_CONFIG_FILES([etc/settings.yaml
                  report_templates/index.Rmd
                  report_templates/diffmeth.Rmd
-                 Makefile
-                 qsub-template.sh])
+                 Makefile])
 AC_CONFIG_FILES([test.sh], [chmod +x test.sh])
 AC_CONFIG_FILES([pigx-bsseq:pigx-common/common/pigx-runner.in], [chmod +x pigx-bsseq])
+AC_CONFIG_FILES([qsub-template.sh:pigx-common/common/qsub-template.sh.in])
 
 AC_OUTPUT
