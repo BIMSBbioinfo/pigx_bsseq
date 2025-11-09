@@ -47,19 +47,19 @@ jobs:
       - name: Authorize cached signing key
         if: steps.guix-cache.outputs.cache-hit == 'true'
         run: |
-          cat ~/.cache/guix/signing-key.pub | sudo -E /var/guix/profiles/per-user/root/current-guix/bin/guix archive --authorize
+          cat ~/.cache/guix/signing-key.pub | sudo -E $GITHUB_PATH/guix archive --authorize
       - name: Import Guix environment
         if: steps.guix-cache.outputs.cache-hit == 'true'
         run: |
           du -sh ~/.cache/guix/env
-          cat ~/.cache/guix/env | sudo -E /var/guix/profiles/per-user/root/current-guix/bin/guix archive --import
+          cat ~/.cache/guix/env | sudo -E $GITHUB_PATH/guix archive --import
       - name: Bootstrap
-        run: guix shell -D -f guix.scm -- ./bootstrap.sh
+        run: $GITHUB_PATH/guix shell -D -f guix.scm -- ./bootstrap.sh
       - name: Configure
-        run: guix shell -D -f guix.scm -- ./configure
+        run: $GITHUB_PATH/guix shell -D -f guix.scm -- ./configure
       - name: Build
-        run: guix shell -D -f guix.scm -- make -j
+        run: $GITHUB_PATH/guix shell -D -f guix.scm -- make -j
       - name: Distcheck
         env:
           VERBOSE: "true"
-        run: guix shell -D -f guix.scm -- make distcheck
+        run: $GITHUB_PATH/guix shell -D -f guix.scm -- make distcheck
