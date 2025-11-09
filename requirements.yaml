@@ -1,0 +1,46 @@
+name: pigx-bsseq
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  # Core Python dependencies
+  - python>=3.5
+  - pyyaml  # Required Python yaml module
+
+  # Core bioinformatics tools
+  - snakemake-minimal<=6.0
+  - fastqc
+  - multiqc
+  - trim-galore
+  - bwa
+  - bowtie2
+  - cutadapt
+  - bismark>=0.22
+  - samtools>=1.7
+  - samblaster
+
+  # Methylation-specific tools
+  - bwameth  # For bwameth.py
+  - methyldackel
+
+  # R and R packages
+  - r-base>=4.0
+  - r-ggplot2
+  - r-ggrepel
+  - r-reshape2
+  - r-matrixstats
+  - r-data.table<1.17
+  - r-rmarkdown>=1.5
+  - r-dt  # For DT package
+  - bioconductor-annotationhub
+  - bioconductor-genomation
+  - bioconductor-ggbio
+  - bioconductor-methylkit>=1.15.3
+  - bioconductor-rtracklayer
+
+  # Utility tools
+  - pandoc
+  - coreutils  # For cut and other GNU utilities
+  - bash
+  - sed
+  - grep

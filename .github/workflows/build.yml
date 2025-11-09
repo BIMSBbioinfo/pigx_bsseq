@@ -6,8 +6,8 @@ on:
     # weekly builds to make sure it works with the latest version of Guix
     - cron: '39 3 * * 0'
 jobs:
-  build:
-    name: make distcheck
+  build-with-guix:
+    name: make distcheck - guix
     runs-on: ubuntu-latest
     steps:
       - name: Install GNU Guix
@@ -53,3 +53,32 @@ jobs:
         env:
           VERBOSE: "true"
         run: guix shell -D -f guix.scm -- make distcheck
+  build-with-micromamba:
+    name: make distcheck - micromamba
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: requirements.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          generate-run-shell: true
+      - name: Bootstrap
+        run: ./bootstrap.sh
+        shell: micromamba-shell {0}
+      - name: Configure
+        run: ./configure
+        shell: micromamba-shell {0}
+      - name: Build
+        run: make -j
+        shell: micromamba-shell {0}
+      - name: Distcheck
+        env:
+          VERBOSE: "true"
+        run: make distcheck
+        shell: micromamba-shell {0}
+        
