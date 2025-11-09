@@ -37,12 +37,12 @@ jobs:
       - name: Authorize cached signing key
         if: steps.guix-cache.outputs.cache-hit == 'true'
         run: |
-          cat ~/.cache/guix/signing-key.pub | sudo -E guix archive --authorize
+          cat ~/.cache/guix/signing-key.pub | sudo -E /var/guix/profiles/per-user/root/current-guix/bin/guix archive --authorize
       - name: Import Guix environment
         if: steps.guix-cache.outputs.cache-hit == 'true'
         run: |
           du -sh ~/.cache/guix/env
-          cat ~/.cache/guix/env | sudo -E guix archive --import
+          cat ~/.cache/guix/env | sudo -E /var/guix/profiles/per-user/root/current-guix/bin/guix archive --import
       - name: Bootstrap
         run: guix shell -D -f guix.scm -- ./bootstrap.sh
       - name: Configure
