@@ -20,23 +20,35 @@ The figure below provides a schematic of the process.
 
 # Install
 
+## Using Guix (Recommended)
+
 You can install this pipeline with all its dependencies using GNU Guix:
 
-    guix package -i pigx-bsseq
+```sh
+guix package -i pigx-bsseq
+```
 
-You can also install it from source manually.  PiGx BSseq uses the GNU
-build system.  If you want to install PiGx BSseq from source (you can
-find the [latest release
-here](https://github.com/BIMSBbioinfo/pigx_bsseq/releases/latest)),
-please make sure that all required dependencies are installed and then
-follow these steps after unpacking the latest release tarball:
+## Installation from source
+ 
+You can also install it from source manually. Please make sure that all required [dependencies](#dependencies) are installed (e.g. via [Guix](#installation-of-dependencies-via-guix) or [Conda](#installation-of-dependencies-via-conda)). Then follow the instructions in the [Installation from source](#installation-from-source) section.
+
+PiGx BSseq uses the GNU build system.  You will need to download the PiGx BSseq source tarball (you can find the [latest release
+here](https://github.com/BIMSBbioinfo/pigx_bsseq/releases/latest)) and then unpack it. 
 
 ```sh
-./configure --prefix=/some/where
+tar -xvf pigx_bsseq-*.tar.gz
+```
+
+After unpacking, you can install into a writable location (adjust `--prefix` to your needs) by running the following commands:
+
+```sh
+cd pigx_bsseq-*/
+
+./configure --prefix=$HOME/.local/
 make install
 ```
 
-# Dependencies
+## Dependencies
 
 By default, the `configure` script expects tools to be in a directory
 listed in the `PATH` environment variable. For reproducibility
@@ -79,14 +91,14 @@ of all variables and options.
  - ggrepel
  - reshape2
  - matrixstats
- - data-table
+ - data-table [<1.17]
 
 All of these dependencies must be present in the environment at
 configuration time.
 </details>
 
 
-## Installation of dependencies via Guix
+### Installation of dependencies via Guix
 
 Rather than installing all required packages manually, we generally
 recommend using [GNU Guix](https://gnu.org/s/guix).  The following
@@ -95,6 +107,20 @@ command spawns a sub-shell in which all dependencies are available:
 ```sh
 guix environment -l guix.scm
 ```
+
+### Installation of dependencies via Conda
+
+We also provide a `requirements.yaml` file that can be used to install
+all dependencies via [micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html) or [miniconda](https://docs.conda.io/en/latest/miniconda.html). The following command will install all dependencies into a new conda environment called `pigx-bsseq` and spawns a sub-shell in which all dependencies are available:
+
+```sh
+micromamba create -f requirements.yaml
+micromamba activate pigx-bsseq
+```
+
+
+
+
 
 # Getting started
 
