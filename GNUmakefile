@@ -66,7 +66,7 @@ build: pigx-bsseq Makefile
 #  -f guix.scm:   use the given file as the build manifest.
 build-guix: pigx-bsseq
 	guix shell --pure -D -f guix.scm -- ./bootstrap.sh
-	guix shell --pure -D -f guix.scm -- ./configure PYTHONPATH='${GUIX_PYTHONPATH}'
+	guix shell --pure -D -f guix.scm -- sh -c './configure PYTHONPATH="$$GUIX_PYTHONPATH"'
 
 # https://www.gnu.org/prep/standards/html_node/Standard-Targets.html
 ## clean: Delete almost everything that can be reconstructed with the Makefile. 
