@@ -517,7 +517,7 @@ bismark_cores = str(config['tools']['bismark']['cores'])
 rule bismark_align_and_map_se:
     input:
         refconvert_CT = GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
-	refconvert_GA = GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa",
+        refconvert_GA = GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa",
         fqfile = DIR_trimmed+"{sample}_trimmed.fq.gz",
         qc     = DIR_posttrim_QC+"{sample}_trimmed_fastqc.zip"
     output:
@@ -542,7 +542,7 @@ rule bismark_align_and_map_se:
 rule bismark_align_and_map_pe:
     input:
         refconvert_CT = GENOMEPATH+"Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa",
-	refconvert_GA = GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa",
+        refconvert_GA = GENOMEPATH+"Bisulfite_Genome/GA_conversion/genome_mfa.GA_conversion.fa",
         fin1 = DIR_trimmed+"{sample}_1_val_1.fq.gz",
         fin2 = DIR_trimmed+"{sample}_2_val_2.fq.gz",
         qc   = [ DIR_posttrim_QC+"{sample}_1_val_1_fastqc.zip",
@@ -646,12 +646,12 @@ rule fastqc_after_trimming_se:
     input:
         DIR_trimmed+"{sample}_trimmed.fq.gz",
     output:
-    	DIR_posttrim_QC+"{sample}_trimmed_fastqc.zip"
+        DIR_posttrim_QC+"{sample}_trimmed_fastqc.zip"
     params:
         fastqc_args = config['tools']['fastqc']['args'],
         outdir = "--outdir "+DIR_posttrim_QC
     log:
-   	    DIR_posttrim_QC+"{sample}_trimmed_fastqc.log"
+        DIR_posttrim_QC+"{sample}_trimmed_fastqc.log"
     message: fmt("Quality checking trimmmed single-end data from sample {wildcards.sample}")
     shell:
         nice('fastqc', ["{params}", "{input}"], "{log}")
@@ -661,13 +661,13 @@ rule fastqc_after_trimming_pe:
         DIR_trimmed+"{sample}_1_val_1.fq.gz",
         DIR_trimmed+"{sample}_2_val_2.fq.gz"
     output:
-    	DIR_posttrim_QC+"{sample}_1_val_1_fastqc.zip",
-    	DIR_posttrim_QC+"{sample}_2_val_2_fastqc.zip"
+        DIR_posttrim_QC+"{sample}_1_val_1_fastqc.zip",
+        DIR_posttrim_QC+"{sample}_2_val_2_fastqc.zip"
     params:
         fastqc_args = config['tools']['fastqc']['args'],
         outdir = "--outdir "+DIR_posttrim_QC
     log:
-   	    DIR_posttrim_QC+"{sample}_trimmed_fastqc.log"
+        DIR_posttrim_QC+"{sample}_trimmed_fastqc.log"
     message: fmt("Quality checking trimmmed paired-end data from sample {wildcards.sample}")
     shell:
         nice('fastqc', ["{params}", "{input}"], "{log}")
