@@ -14,8 +14,22 @@ jobs:
         uses: PromyLOPh/guix-install-action@v1
         with:
           pullAfterInstall: false
+          channels: |-
+            (list
+              (channel
+                (name 'guix)
+                (url "https://git.guix.gnu.org/guix.git")
+                (branch "master")
+                (commit "8ce414a206206c6f9aa4297143a916ff26ba497d")
+                (introduction
+                 (make-channel-introduction
+                  "9edb3f66fd807b096b48283debdcddccfea34bad"
+                  (openpgp-fingerprint
+                   "BBB0 2DDF 2CEA F6A8 0D1D  E643 A2A0 6DF2 A33A 54FA")))))
       - name: Describe Guix
-        run: echo "guix-commit=$(guix describe | grep commit | join -a1 -o1.2 - /dev/null)" >> $GITHUB_OUTPUT
+        run: |
+          /var/guix/profiles/per-user/root/current-guix/bin/guix describe -f channels
+          echo "guix-commit=$(/var/guix/profiles/per-user/root/current-guix/bin/guix describe | grep commit | join -a1 -o1.2 - /dev/null)" >> $GITHUB_OUTPUT
         id: guix-commit
       - name: Guix cache
         id: guix-cache
@@ -31,8 +45,8 @@ jobs:
         if: steps.guix-cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p ~/.cache/guix
-          guix environment -l guix.scm --root=env -- echo done
-          guix archive --export --recursive $(readlink -f env) > ~/.cache/guix/env
+          /var/guix/profiles/per-user/root/current-guix/bin/guix shell --root=env -D -f guix.scm -- echo done
+          /var/guix/profiles/per-user/root/current-guix/bin/guix archive --export --recursive $(readlink -f env) > ~/.cache/guix/env
           cp /etc/guix/signing-key.pub ~/.cache/guix/
       - name: Authorize cached signing key
         if: steps.guix-cache.outputs.cache-hit == 'true'
@@ -42,17 +56,20 @@ jobs:
         if: steps.guix-cache.outputs.cache-hit == 'true'
         run: |
           du -sh ~/.cache/guix/env
+          file ~/.cache/guix/env
+          ls -la ~/.cache/guix/env
           cat ~/.cache/guix/env | sudo /var/guix/profiles/per-user/root/current-guix/bin/guix archive --import
+          echo imported
       - name: Bootstrap
-        run: guix shell -D -f guix.scm -- ./bootstrap.sh
+        run: /var/guix/profiles/per-user/root/current-guix/bin/guix shell -D -f guix.scm -- ./bootstrap.sh
       - name: Configure
-        run: guix shell -D -f guix.scm -- ./configure
+        run: /var/guix/profiles/per-user/root/current-guix/bin/guix shell -D -f guix.scm -- ./configure
       - name: Build
-        run: guix shell -D -f guix.scm -- make -j
+        run: /var/guix/profiles/per-user/root/current-guix/bin/guix shell -D -f guix.scm -- make -j
       - name: Distcheck
         env:
           VERBOSE: "true"
-        run: guix shell -D -f guix.scm -- make distcheck
+        run: /var/guix/profiles/per-user/root/current-guix/bin/guix shell -D -f guix.scm -- make distcheck
   build-with-micromamba:
     name: make distcheck - micromamba
     runs-on: ubuntu-latest
