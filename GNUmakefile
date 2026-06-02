@@ -77,18 +77,21 @@ build-guix: $(PIGX_RUNNER)
 	guix shell --pure -D -f guix.scm -- ./bootstrap.sh
 	guix shell --pure -D -f guix.scm -- sh -c './configure PYTHONPATH="$$GUIX_PYTHONPATH"'
 
+.PHONY: clean
 # https://www.gnu.org/prep/standards/html_node/Standard-Targets.html
 ## clean: Delete almost everything that can be reconstructed with the Makefile. 
 clean:
-	make maintainer-clean
+	$(MAKE) maintainer-clean
 
+.PHONY: test
 ## test: Run tests with sample configuration
 test:
-	PIGX_UNINSTALLED=1 ./pigx-bsseq -s tests/settings.yaml tests/sample_sheet.csv
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv
 
+.PHONY: dry
 ## dry: Run a dry-run of the pipeline
 dry:
-	PIGX_UNINSTALLED=1 ./pigx-bsseq -s tests/settings.yaml tests/sample_sheet.csv -n --force --printshellcmds
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv -n --force --printshellcmds
 
 ## tarball: Create a distribution tarball
 tarball:
