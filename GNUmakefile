@@ -93,26 +93,37 @@ test:
 dry:
 	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv -n --force --printshellcmds
 
+.PHONY: tarball
 ## tarball: Create a distribution tarball
 tarball:
-	make distcheck
+	$(MAKE) distcheck
 
-VERSION = $(shell cat VERSION)
+VERSION := $(shell cat VERSION 2>/dev/null || echo "0")
+
+TARBALL :=  pigx_$(PIPELINE)-$(VERSION).tar.gz
+SIGNED_TAR :=  pigx_$(PIPELINE)-$(VERSION).tar.gz.sig
+
+$(TARBALL):
+	$(MAKE) tarball
+
+.PHONY: sign
 ## sign: Sign tag and release (requires gpg)
-sign:
+sign: $(TARBALL)
 	git tag --sign v$(VERSION)
-	gpg --detach-sign pigx_*-$(VERSION).tar.gz
+	gpg --detach-sign $(TARBALL)
 
+.PHONY: upload-release
 ## upload-release: Upload the release to GitHub (requires gh)
-upload-release:
+upload-release: $(TARBALL) $(SIGNED_TAR)
 	git push --tags
-	gh release create v$(VERSION) $(shell ls pigx_*-$(VERSION).tar.gz{,.sig}) --draft 
+	gh release create v$(VERSION) $(shell ls $(TARBALL) $(SIGNED_TAR)) --draft 
 
+.PHONY: release
 ## release: Create a release (requires gpg and gh)
 release: 
-	make tarball
-	make sign
-	make upload-release
+	$(MAKE) tarball
+	$(MAKE) sign
+	$(MAKE) upload-release
 
 format:
 	@echo "Formatting code with snakefmt..."
