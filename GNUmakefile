@@ -49,8 +49,8 @@ help:
 	@echo "Usage: $(MAKE) [subcommand] [-v]"
 	@echo
 	@echo "Available subcommands are:"
-	@grep -h "##" $(MAKEFILE_LIST) | grep -v grep  | sed -e 's/##//' | sed -e 's/^ /    /' | sed -e 's/: /\t\t/'
-	@exit 1
+	@grep -E '^[ \t]*## [a-zA-Z_-]+:' $(MAKEFILE_LIST) | sed -E 's/^[ \t]*## //' | sed -E 's/: */\t/' | column -s $$'\t' -t
+	@exit 0
 
 
 ## fetch-submodules: Initialize the submodules
