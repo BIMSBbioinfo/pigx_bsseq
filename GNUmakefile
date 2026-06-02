@@ -63,15 +63,17 @@ fetch-submodules:
 $(PIGX_RUNNER): 
 	$(MAKE) fetch-submodules
 	
+.PHONY: build
 ## build: Build the executable
-build: pigx-bsseq Makefile pigx-common/common/pigx-runner.in
+build: $(PIGX_RUNNER)
 	./configure
 
+.PHONY: build-guix
 ## build-guix: Build the executable in a pure environment using guix shell
 #  --pure:        unset existing environment variables
 #  -D:            include the development inputs of the next package
 #  -f guix.scm:   use the given file as the build manifest.
-build-guix: pigx-bsseq Makefile pigx-common/common/pigx-runner.in
+build-guix: $(PIGX_RUNNER) 
 	guix shell --pure -D -f guix.scm -- ./bootstrap.sh
 	guix shell --pure -D -f guix.scm -- sh -c './configure PYTHONPATH="$$GUIX_PYTHONPATH"'
 
