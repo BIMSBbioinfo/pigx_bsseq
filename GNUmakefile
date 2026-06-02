@@ -125,6 +125,7 @@ release:
 	$(MAKE) sign
 	$(MAKE) upload-release
 
+.PHONY: format
 format:
 	@echo "Formatting code with snakefmt..."
 	snakefmt snakefile.py rules/*.py
@@ -132,6 +133,7 @@ format:
 	air format scripts/
 	@echo "Formatting complete."
 
+.PHONY: check-format
 check-format:
 	@echo "Formatting code with snakefmt..."
 	snakefmt --check snakefile.py rules/*.py
