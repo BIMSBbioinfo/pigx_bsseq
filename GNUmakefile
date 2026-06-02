@@ -60,8 +60,8 @@ fetch-submodules:
 			git submodule update --init; \
 		fi
 
-pigx-common/common/pigx-runner.in:
-	make fetch-submodule
+$(PIGX_RUNNER): 
+	$(MAKE) fetch-submodules
 	
 ## build: Build the executable
 build: pigx-bsseq Makefile pigx-common/common/pigx-runner.in
