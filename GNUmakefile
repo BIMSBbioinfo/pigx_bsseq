@@ -33,15 +33,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-.PHONY: all clean test release sign
+PIPELINE := bsseq
+PIPELINE_RUNNER := pigx-$(PIPELINE)
+PIGX_RUNNER := ./pigx-common/common/pigx-runner.in
 
+BUILD_TARGET := $(if $(GUIX_PYTHONPATH),build-guix,build)
 
-all: 
-ifdef GUIX_PYTHONPATH
-	make build-guix
-else
-	make build
-endif
+.PHONY: all
+all: $(BUILD_TARGET)
 
 
 ##? help: Show usage and available commands
