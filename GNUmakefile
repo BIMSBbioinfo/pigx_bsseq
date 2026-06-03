@@ -1,7 +1,7 @@
 # -*- GNUMakefile -*-
 # PiGx Developer GNUMakefile
 #
-# Copyright © 2021 Aexander Blume <alexander.blume@mdc-berlin.de> 
+# Copyright © 2021-2026 Aexander Blume <alexander.blume@mdc-berlin.de> 
 #
 # This file is provided to help the developers of the PiGx Pipelines.  
 # Change History
@@ -13,6 +13,11 @@
 # 29/07/2025 Alexander Blume    Add more targets and update default target.
 #								Add clean target to run maintainer-clean.
 # 								Add target to create Makefile.
+# 02/06/2026 Alexander Blume    Rename init to fetch-submodules.
+# 								Add target for pigx-common/common/pigx-runner.in.
+# 								Make build targets depend on pigx-runner
+# 								
+#
 #
 #
 # This program is free software: you can redistribute it and/or modify
@@ -28,16 +33,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-.PHONY: all clean test release sign
+PIPELINE := bsseq
+PIPELINE_RUNNER := pigx-$(PIPELINE)
+PIGX_RUNNER := ./pigx-common/common/pigx-runner.in
 
+BUILD_TARGET := $(if $(GUIX_PYTHONPATH),build-guix,build)
 
-all: 
-	make init
-ifdef GUIX_PYTHONPATH
-	make build-guix
-else
-	make build
-endif
+.PHONY: all
+all: $(BUILD_TARGET)
 
 
 ##? help: Show usage and available commands
@@ -46,62 +49,83 @@ help:
 	@echo "Usage: $(MAKE) [subcommand] [-v]"
 	@echo
 	@echo "Available subcommands are:"
-	@grep -h "##" $(MAKEFILE_LIST) | grep -v grep  | sed -e 's/##//' | sed -e 's/^ /    /' | sed -e 's/: /\t\t/'
-	@exit 1
+	@grep -E '^[ \t]*## [a-zA-Z_-]+:' $(MAKEFILE_LIST) | sed -E 's/^[ \t]*## //' | sed -E 's/: */\t/' | column -s $$'\t' -t
+	@exit 0
 
 
-##? init: Initialize the project and build the executable
-init:
-	@echo "Initializing the PiGx project..."
-	@echo "Fetching submodules..."
-	git submodule update --init --recursive
+## fetch-submodules: Initialize the submodules
+fetch-submodules:
+	@if git submodule status | grep -q -E '^[-+]' ; then \
+		echo "INFO: Need to reinitialize git submodules"; \
+			git submodule update --init; \
+		fi
+
+$(PIGX_RUNNER): 
+	$(MAKE) fetch-submodules
 	
+.PHONY: build
 ## build: Build the executable
-build: pigx-bsseq Makefile
+build: $(PIGX_RUNNER)
 	./configure
 
+.PHONY: build-guix
 ## build-guix: Build the executable in a pure environment using guix shell
 #  --pure:        unset existing environment variables
 #  -D:            include the development inputs of the next package
 #  -f guix.scm:   use the given file as the build manifest.
-build-guix: pigx-bsseq
+build-guix: $(PIGX_RUNNER) 
 	guix shell --pure -D -f guix.scm -- ./bootstrap.sh
-	guix shell --pure -D -f guix.scm -- ./configure PYTHONPATH='${GUIX_PYTHONPATH}'
+	guix shell --pure -D -f guix.scm -- sh -c './configure PYTHONPATH="$$GUIX_PYTHONPATH"'
 
+.PHONY: clean
 # https://www.gnu.org/prep/standards/html_node/Standard-Targets.html
 ## clean: Delete almost everything that can be reconstructed with the Makefile. 
 clean:
-	make maintainer-clean
+	$(MAKE) maintainer-clean
 
+.PHONY: test
 ## test: Run tests with sample configuration
 test:
-	PIGX_UNINSTALLED=1 ./pigx-bsseq -s tests/settings.yaml tests/sample_sheet.csv
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv
 
+.PHONY: dry
 ## dry: Run a dry-run of the pipeline
 dry:
-	PIGX_UNINSTALLED=1 ./pigx-bsseq -s tests/settings.yaml tests/sample_sheet.csv -n --force --printshellcmds
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv -n --force --printshellcmds
 
+.PHONY: tarball
 ## tarball: Create a distribution tarball
 tarball:
-	make distcheck
+	$(MAKE) distcheck
 
-VERSION = $(shell cat VERSION)
+VERSION := $(shell cat VERSION 2>/dev/null || echo "0")
+
+TARBALL :=  pigx_$(PIPELINE)-$(VERSION).tar.gz
+SIGNED_TAR :=  pigx_$(PIPELINE)-$(VERSION).tar.gz.sig
+
+$(TARBALL):
+	$(MAKE) tarball
+
+.PHONY: sign
 ## sign: Sign tag and release (requires gpg)
-sign:
+sign: $(TARBALL)
 	git tag --sign v$(VERSION)
-	gpg --detach-sign pigx_*-$(VERSION).tar.gz
+	gpg --detach-sign $(TARBALL)
 
+.PHONY: upload-release
 ## upload-release: Upload the release to GitHub (requires gh)
-upload-release:
+upload-release: $(TARBALL) $(SIGNED_TAR)
 	git push --tags
-	gh release create v$(VERSION) $(shell ls pigx_*-$(VERSION).tar.gz{,.sig}) --draft 
+	gh release create v$(VERSION) $(shell ls $(TARBALL) $(SIGNED_TAR)) --draft 
 
+.PHONY: release
 ## release: Create a release (requires gpg and gh)
 release: 
-	make tarball
-	make sign
-	make upload-release
+	$(MAKE) tarball
+	$(MAKE) sign
+	$(MAKE) upload-release
 
+.PHONY: format
 format:
 	@echo "Formatting code with snakefmt..."
 	snakefmt snakefile.py rules/*.py
@@ -109,6 +133,7 @@ format:
 	air format scripts/
 	@echo "Formatting complete."
 
+.PHONY: check-format
 check-format:
 	@echo "Formatting code with snakefmt..."
 	snakefmt --check snakefile.py rules/*.py
@@ -117,8 +142,8 @@ check-format:
 	@echo "Formatting complete."
 
 
-# This Makefile is generated by autoconf.
-Makefile:
+# The local Makefile is generated by autoconf.
+Makefile: 
 	./bootstrap.sh
 	./configure
 
