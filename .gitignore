@@ -3,6 +3,8 @@ META
 qsub-template.sh
 configure
 config.status
+config.json
+config.log
 pigx-bsseq
 Makefile.in
 Makefile
@@ -10,18 +12,22 @@ autom4te.cache/
 aclocal.m4
 build-aux/*
 etc/settings.yaml
-test.sh
+test*.sh
+test*.log
 report_templates/*.Rmd
 report_templates/*.html
+
+.snakemake
+*~
 
 # on install generated
 libexec/
 share/
 
 # releases
-pigx_bsseq-*.tar.gz
-pigx_bsseq-*.tar.gz.sig
-pigx_bsseq-*/
+pigx_*.tar.gz
+pigx_*.tar.gz.sig
+pigx_*/
 
 # dev
 dev/guix/.guix-profile*
@@ -29,8 +35,8 @@ dev/guix/load_env.sh
 dev/guix/init_env.sh
 
 # test generated files
-test.sh.trs
-tests/*
+test*.trs
+tests/output/
 *.log
 *.log
 *.png
