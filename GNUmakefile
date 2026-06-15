@@ -154,9 +154,11 @@ Makefile: $(PIGX_RUNNER)
 	./bootstrap.sh
 	./configure
 
-# Delegate any unspecified target to the original Makefile
+# Delegate any unspecified target to the original Makefile (only when it exists)
+ifneq ($(wildcard Makefile),)
 %: Makefile
 	@$(MAKE) -f Makefile $@
+endif
 
 
 # Execute the specified command
