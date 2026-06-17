@@ -73,6 +73,7 @@ knitr::opts_knit$set(progress = FALSE)
 
 ## load libraries
 library("methylKit")
+library("GenomeInfoDb")
 library("DT")
 library("genomation")
 library("rtracklayer")

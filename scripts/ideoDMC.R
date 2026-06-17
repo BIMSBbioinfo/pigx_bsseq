@@ -155,11 +155,11 @@ ideoDMC_hyper_hypo <- function(hyper, hypo, chrom.length,
     #                                                                                                  hypo.col)) + labs(title = title)
     # new alternative commented out
     d = c(g.per, g.po)
-    p = autoplot(myIdeo, layout = "karyogram")
+    p <- ggplot() + layout_karyogram(myIdeo, cytoband = FALSE)
     p + layout_karyogram(d, geom = "point", size = 0.65,
-                         aes(x = start,  y = meth.diff, color = id))+
-      scale_colour_manual("", values = c(hyper.col, hypo.col))+
-      labs(title = title) 
+                         aes(x = start, y = meth.diff, color = id)) +
+      scale_colour_manual("", values = c(hyper.col, hypo.col)) +
+      labs(title = title)
   }
 }
 
