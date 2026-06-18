@@ -90,10 +90,20 @@ build-guix: $(PIGX_RUNNER) guix.scm
 clean:
 	$(MAKE) maintainer-clean
 
-.PHONY: test
-## test: Run tests with sample configuration
-test: $(PIPELINE_RUNNER)
+.PHONY: run_test
+## run_test: Run tests with sample configuration
+run_test: $(PIPELINE_RUNNER)
 	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv
+
+.PHONY: test_unlock
+## test_unlock: Unlock the pipeline
+test_unlock:
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv --unlock
+
+.PHONY: run_test_cluster
+## run_test_cluster: Run tests with sample configuration on cluster
+run_test_cluster:
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_cluster.yaml tests/sample_sheet_reduced.csv
 
 .PHONY: dry
 ## dry: Run a dry-run of the pipeline
