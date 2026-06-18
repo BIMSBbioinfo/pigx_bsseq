@@ -36,10 +36,14 @@
 PIPELINE := bsseq
 PIPELINE_RUNNER := pigx-$(PIPELINE)
 PIGX_RUNNER := pigx-common/common/pigx-runner.in
+PIPELINE_TEMPLATES := etc/settings.yaml.in report_templates/index.Rmd.in report_templates/diffmeth.Rmd.in
 
 BUILD_TARGET := $(if $(GUIX_PYTHONPATH),build-guix,build)
+BUILD_DEPS := $(PIPELINE_RUNNER) $(PIGX_RUNNER) $(subst .in,,$(PIPELINE_TEMPLATES))
+# Keep generated config outputs in sync with their sources, especially the report templates.
+CONFIGURE_DEPS := configure configure.ac aclocal.m4 Makefile.am
 
-.PHONY: all
+# .PHONY: all
 all: $(BUILD_TARGET)
 
 
@@ -71,9 +75,20 @@ $(PIGX_RUNNER):
 $(PIPELINE_RUNNER): $(PIGX_RUNNER)
 	./configure
 
+
+# -- Autoconf bootstrap dependencies --
+
+# Tell make how to turn any .in file into its configured counterpart
+%: %.in config.status
+	./config.status --file=$@
+
+config.status: $(CONFIGURE_DEPS)
+	@[ -f build-aux/install-sh ] || ./bootstrap.sh
+	./configure
+
 .PHONY: build
 ## build: Build the executable
-build: $(PIPELINE_RUNNER)
+build: $(BUILD_DEPS)
 
 .PHONY: build-guix
 ## build-guix: Build the executable in a pure environment using guix shell
@@ -120,7 +135,7 @@ run_test_cluster:
 
 .PHONY: dry
 ## dry: Run a dry-run of the pipeline
-dry: $(PIPELINE_RUNNER)
+dry: $(BUILD_DEPS)
 	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv -n --force --printshellcmds
 
 .PHONY: tarball
