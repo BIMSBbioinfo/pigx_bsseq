@@ -160,9 +160,36 @@ release:
 lint: require-snakemake
 	snakemake -s snakefile.py --configfile config.json --lint
 
-.PHONY: format
-format:
-	@echo "Formatting code with snakefmt..."
+.PHONY: dev
+dev:
+	$(MAKE) $(DEV_ENV_TARGET)
+
+.PHONY: dev	
+## dev_env_guix: Enter the dev environment with all tools available
+dev-guix: require-guix
+	@echo "Entering development environment with Guix..."
+	guix shell -D -f guix.scm
+
+env-conda: $(CONDA_ENV_STAMP) require-micromamba
+
+$(CONDA_ENV_STAMP): requirements.yaml
+	@if micromamba env list 2>/dev/null | awk 'NR>2 {print $$1}' | grep -qx '$(CONDA_PREFIX)'; then \
+		echo "Updating conda environment $(CONDA_PREFIX) from requirements.yaml..."; \
+		micromamba install -y -n $(CONDA_PREFIX) -f requirements.yaml; \
+	else \
+		echo "Creating conda environment $(CONDA_PREFIX) from requirements.yaml..."; \
+		micromamba create -y -n $(CONDA_PREFIX) -f requirements.yaml; \
+	fi
+	@touch $@
+
+
+dev-conda: env-conda require-micromamba
+	@echo "Entering conda environment..."
+	R_LIBS_SITE="/home/agosdsc/.conda/envs/pigx-bsseq/lib/R/library" \
+	R_LIBS_SITE="$${CONDA_PREFIX}/lib/R/library"; \
+	PYTHONPATH="$($$GUIX_PYTHONPATH)" \
+	micromamba shell $(CONDA_PREFIX)
+
 .PHONY: format check-format
 ## format: format rules with snakefmt and scripts with air
 format: require-snakefmt require-air
