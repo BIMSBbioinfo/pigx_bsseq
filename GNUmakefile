@@ -36,8 +36,10 @@
 PIPELINE := bsseq
 PIPELINE_RUNNER := pigx-$(PIPELINE)
 PIGX_RUNNER := pigx-common/common/pigx-runner.in
+PIPELINE_TEMPLATES := etc/settings.yaml.in report_templates/index.Rmd.in report_templates/diffmeth.Rmd.in
 
 BUILD_TARGET := $(if $(GUIX_PYTHONPATH),build-guix,build)
+BUILD_DEPS := $(PIPELINE_RUNNER) $(PIGX_RUNNER) $(subst .in,,$(PIPELINE_TEMPLATES))
 
 .PHONY: all
 all: $(BUILD_TARGET)
@@ -57,8 +59,8 @@ define init-submodules
 @if git submodule status | grep -q -E '^[-+]' ; then \
 	echo "INFO: Need to reinitialize git submodules"; \
 	git submodule update --init; \
-fi
-endef
+	fi
+	endef
 
 .PHONY: init-submodules
 ## init-submodules: Initialize the submodules
@@ -71,16 +73,27 @@ $(PIGX_RUNNER):
 $(PIPELINE_RUNNER): $(PIGX_RUNNER)
 	./configure
 
+# -- Autoconf bootstrap dependencies --
+
+# Tell make how to turn any .in file into its configured counterpart
+%: %.in config.status
+	./config.status --file=$@
+
+config.status: $(CONFIGURE_DEPS)
+	./configure
+
+
 .PHONY: build
 ## build: Build the executable
-build: $(PIPELINE_RUNNER)
+build: $(BUILD_DEPS)
+	@:
 
 .PHONY: build-guix
 ## build-guix: Build the executable in a pure environment using guix shell
 #  --pure:        unset existing environment variables
 #  -D:            include the development inputs of the next package
 #  -f guix.scm:   use the given file as the build manifest.
-build-guix: $(PIGX_RUNNER) guix.scm
+build-guix: $(BUILD_DEPS) guix.scm
 	guix shell --pure -D -f guix.scm -- ./bootstrap.sh
 	guix shell --pure -D -f guix.scm -- sh -c './configure PYTHONPATH="$$GUIX_PYTHONPATH"'
 
@@ -92,12 +105,12 @@ clean:
 
 .PHONY: test
 ## test: Run tests with sample configuration
-test: $(PIPELINE_RUNNER)
+test: $(BUILD_DEPS)
 	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv
 
 .PHONY: dry
 ## dry: Run a dry-run of the pipeline
-dry: $(PIPELINE_RUNNER)
+dry: $(BUILD_DEPS)
 	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv -n --force --printshellcmds
 
 .PHONY: tarball
@@ -156,7 +169,7 @@ Makefile: $(PIGX_RUNNER)
 
 # Delegate any unspecified target to the original Makefile (only when it exists)
 ifneq ($(wildcard Makefile),)
-%: Makefile
+	%: Makefile
 	@$(MAKE) -f Makefile $@
 endif
 
