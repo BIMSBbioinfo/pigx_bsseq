@@ -80,9 +80,22 @@ build: $(PIPELINE_RUNNER)
 #  --pure:        unset existing environment variables
 #  -D:            include the development inputs of the next package
 #  -f guix.scm:   use the given file as the build manifest.
-build-guix: $(PIGX_RUNNER) guix.scm
-	guix shell --pure -D -f guix.scm -- ./bootstrap.sh
-	guix shell --pure -D -f guix.scm -- sh -c './configure PYTHONPATH="$$GUIX_PYTHONPATH"'
+
+build-guix: require-guix $(PIGX_RUNNER) guix.scm
+	guix shell --pure -D -f guix.scm -- sh -c '\
+		export PYTHONPATH="$$GUIX_PYTHONPATH"; \
+		./bootstrap.sh; \
+		./configure \
+	'
+
+## build-conda: Build the executable in an environment using micromamba run
+build-conda: require-micromamba $(PIGX_RUNNER)
+	micromamba run -n $(CONDA_PREFIX) --clean-env bash -lc '\
+		export R_LIBS_SITE="$${CONDA_PREFIX}/lib/R/library"; \
+		export PYTHONPATH="$$(python -c '\''import sysconfig; print(sysconfig.get_paths()["purelib"])'\'')"; \
+		./bootstrap.sh; \
+		./configure'
+
 
 .PHONY: clean
 # https://www.gnu.org/prep/standards/html_node/Standard-Targets.html
