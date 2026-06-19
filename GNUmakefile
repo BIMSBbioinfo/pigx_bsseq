@@ -1,9 +1,9 @@
 # -*- GNUMakefile -*-
 # PiGx Developer GNUMakefile
 #
-# Copyright © 2021-2026 Aexander Blume <alexander.blume@mdc-berlin.de> 
+# Copyright © 2021-2026 Aexander Blume <alexander.blume@mdc-berlin.de>
 #
-# This file is provided to help the developers of the PiGx Pipelines.  
+# This file is provided to help the developers of the PiGx Pipelines.
 # Change History
 # 08/06/2021 Alexander Blume    Update help message.
 #                               Add release and sign.
@@ -16,7 +16,7 @@
 # 02/06/2026 Alexander Blume    Rename init to fetch-submodules.
 # 								Add target for pigx-common/common/pigx-runner.in.
 # 								Make build targets depend on pigx-runner
-# 								
+#
 #
 #
 #
@@ -48,7 +48,7 @@ all: $(BUILD_TARGET)
 
 
 ##? help: Show usage and available commands
-# this target finds helpstrings beginning with '##' in the Makefile 
+# this target finds helpstrings beginning with '##' in the Makefile
 help:
 	@echo "Usage: $(MAKE) [subcommand] [-v]"
 	@echo
@@ -114,7 +114,7 @@ build-conda: require-micromamba $(PIGX_RUNNER)
 
 .PHONY: clean
 # https://www.gnu.org/prep/standards/html_node/Standard-Targets.html
-## clean: Delete almost everything that can be reconstructed with the Makefile. 
+## clean: Delete almost everything that can be reconstructed with the Makefile.
 clean:
 	$(MAKE) maintainer-clean
 
@@ -161,11 +161,11 @@ sign: $(TARBALL)
 ## upload-release: Upload the release to GitHub (requires gh)
 upload-release: $(TARBALL) $(SIGNED_TAR)
 	git push --tags
-	gh release create v$(VERSION) $(shell ls $(TARBALL) $(SIGNED_TAR)) --draft 
+	gh release create v$(VERSION) $(shell ls $(TARBALL) $(SIGNED_TAR)) --draft
 
 .PHONY: release
 ## release: Create a release (requires gpg and gh)
-release: 
+release:
 	$(MAKE) tarball
 	$(MAKE) sign
 	$(MAKE) upload-release
@@ -209,15 +209,12 @@ dev-conda: env-conda require-micromamba
 ## format: format rules with snakefmt and scripts with air
 format: require-snakefmt require-air
 	snakefmt snakefile.py rules/*.py
-	@echo "Formatting code with air..."	
 	air format scripts/
-	@echo "Formatting complete."
 
 .PHONY: format_check
 ## format_check: check formatting of rules with snakefmt and scripts with air
 format_check: require-snakefmt require-air
 	snakefmt --check snakefile.py rules/*.py
-	@echo "Formatting code with air..."	
 	air format --check scripts/
 
 require-%:
@@ -232,7 +229,7 @@ Makefile: $(PIGX_RUNNER)
 
 # Delegate any unspecified target to the original Makefile (only when it exists)
 ifneq ($(wildcard Makefile),)
-%: Makefile
+	%: Makefile
 	@$(MAKE) -f Makefile $@
 endif
 
