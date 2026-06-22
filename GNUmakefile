@@ -227,12 +227,13 @@ Makefile: $(PIGX_RUNNER)
 	./bootstrap.sh
 	./configure
 
-# Delegate any unspecified target to the original Makefile (only when it exists)
-ifneq ($(wildcard Makefile),)
-	%: Makefile
-	@$(MAKE) -f Makefile $@
-endif
+# Source files tracked by version control — give them explicit rules so the
+# catch-all pattern below cannot match them.
+$(CONFIGURE_DEPS) $(PIPELINE_TEMPLATES): ;
 
+# Delegate any unspecified target to the generated Makefile.
+%: Makefile
+	@$(MAKE) -f Makefile $@
 
 # Execute the specified command
 $(eval $(ARGS) : ; @true)
