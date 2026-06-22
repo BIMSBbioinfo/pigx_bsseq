@@ -1,7 +1,7 @@
 # -*- GNUMakefile -*-
 # PiGx Developer GNUMakefile
 #
-# Copyright © 2021-2026 Aexander Blume <alexander.blume@mdc-berlin.de>
+# Copyright © 2021-2026 Alexander Blume <alexander.blume@mdc-berlin.de>
 #
 # This file is provided to help the developers of the PiGx Pipelines.
 # Change History
