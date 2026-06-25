@@ -112,6 +112,10 @@ execution:
     bwameth_align_trimmed:
       threads: 12
       memory: 20G
+    fq2bam_meth_align:
+      threads: 16
+      memory: 50G
+      gpus: 1
     methyldackel_extract:
       threads: 4
       memory: 6G
@@ -134,6 +138,9 @@ tools:
     args: ""
   bwameth:
     executable: @BWAMETH@
+    args: ""
+  fq2bam_meth:
+    executable: "docker://nvcr.io/nvidia/clara/clara-parabricks:4.7.0-1"
     args: ""
   bowtie2:
     executable: @BOWTIE2@
