@@ -177,8 +177,11 @@ def validate_config(config):
             bail("ERROR: Please set a genome assembly string in the settings file at general::assembly.")
 
     # Check for a any Assembly string
-    if not (config['general']['use_bwameth'] or config['general']['use_bismark']):
+    _bwameth = str(config['general']['use_bwameth']).lower()
+    if _bwameth not in ("true", "yes", "cpu", "gpu") and not TrueOrFalse(config['general']['use_bismark']):
             bail("ERROR: Please enable one or both bisulfite aligners at general::use_bwameth/use_bismark.")
+    if _bwameth not in ("false", "no", "true", "yes", "cpu", "gpu"):
+            bail("ERROR: use_bwameth must be 'cpu', 'gpu', or False.")
     
 
     # Check if we have permission to write to the reference-genome directory ourselves

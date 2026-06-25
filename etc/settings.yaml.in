@@ -12,6 +12,7 @@ general:
   assembly: ''
   # use one or both bisulfite aligners
   # bwameth is faster and uses less resources
+  # use_bwameth accepts: "cpu" (CPU bwameth), "gpu" (Parabricks fq2bam_meth), or False
   use_bwameth: False
   # bismark is gold standard and uses sensible defaults
   use_bismark: True
