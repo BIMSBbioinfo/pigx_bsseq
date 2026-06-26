@@ -36,18 +36,35 @@
 PIPELINE := bsseq
 PIPELINE_RUNNER := pigx-$(PIPELINE)
 PIGX_RUNNER := pigx-common/common/pigx-runner.in
-PIPELINE_TEMPLATES := etc/settings.yaml.in report_templates/index.Rmd.in report_templates/diffmeth.Rmd.in
+PIPELINE_TEMPLATES := \
+	etc/settings.yaml.in \
+	report_templates/index.Rmd.in \
+	report_templates/diffmeth.Rmd.in
 
-BUILD_TARGET := $(if $(GUIX_PYTHONPATH),build-guix,build)
-BUILD_DEPS := $(PIPELINE_RUNNER) $(PIGX_RUNNER) $(subst .in,,$(PIPELINE_TEMPLATES))
-# Keep generated config outputs in sync with their sources, especially the report templates.
-CONFIGURE_DEPS := configure configure.ac aclocal.m4 Makefile.am
+BUILD_TARGET := $(if $(GUIX_PYTHONPATH),build-guix,$(if $(CONDA_PREFIX),build-conda,build))
+BUILD_DEPS := $(PIPELINE_RUNNER) $(subst .in,,$(PIPELINE_TEMPLATES))
+DEV_ENV_TARGET := $(if $(GUIX_PYTHONPATH),dev-guix,dev-conda)
 
-# .PHONY: all
+$(if $(and $(GUIX_PYTHONPATH),$(CONDA_PREFIX)),$(warning Both GUIX_PYTHONPATH and CONDA_PREFIX are set; using Guix environment))
+
+# Keep generated config outputs synchronized with their sources.
+SUBMODULE_DEPS := pigx-common/common/m4
+CONFIGURE_DEPS := \
+	configure \
+	configure.ac \
+	aclocal.m4 \
+	Makefile.am
+ENV_FILES := guix.scm requirements.yaml
+CONDA_ENV := $(CURDIR)/.conda
+CONDA_LOCK := $(CONDA_ENV)/requirements.lock
+VERSION := $(shell cat VERSION 2>/dev/null || echo "0")
+TARBALL := pigx_$(PIPELINE)-$(VERSION).tar.gz
+SIGNED_TARBALL := $(TARBALL).sig
+
+
 all: $(BUILD_TARGET)
 
-
-##? help: Show usage and available commands
+## help: Show usage and available commands
 # this target finds helpstrings beginning with '##' in the Makefile
 help:
 	@echo "Usage: $(MAKE) [subcommand] [-v]"
@@ -56,180 +73,206 @@ help:
 	@grep -E '^[ \t]*## [a-zA-Z_-]+:' $(MAKEFILE_LIST) | sed -E 's/^[ \t]*## //' | sed -E 's/: */\t/' | column -s $$'\t' -t
 	@exit 0
 
+# ---------------------------------------------------------------------------
+# == Bootstrap and configure helpers ==
+# ---------------------------------------------------------------------------
 
-define init-submodules
-@if git submodule status | grep -q -E '^[-+]' ; then \
-	echo "INFO: Need to reinitialize git submodules"; \
-	git submodule update --init; \
-fi
-endef
+.PHONY: init-submodules bootstrap-configure
 
-.PHONY: init-submodules
-## init-submodules: Initialize the submodules
+## init-submodules: Initialize the submodules used by the build
 init-submodules:
-	$(init-submodules)
+	@echo "Initializing git submodules..."
+	@git submodule update --init --recursive
 
-$(PIGX_RUNNER):
-	$(init-submodules)
-
-$(PIPELINE_RUNNER): $(PIGX_RUNNER)
-	./configure
+$(SUBMODULE_DEPS):
+	@echo "Submodule dependencies missing. Initializing submodules..."
+	$(MAKE) init-submodules
 
 
-# -- Autoconf bootstrap dependencies --
+## bootstrap-configure: Regenerate build files if needed
+bootstrap-configure: $(CONFIGURE_DEPS)
+	@echo "Bootstrapping and configuring the build system..."
+	@[ -f build-aux/install-sh ] || ./bootstrap.sh
+	@./configure
 
-# Tell make how to turn any .in file into its configured counterpart
+# Tell make how to turn any .in file into its configured counterpart.
 %: %.in config.status
 	./config.status --file=$@
 
 config.status: $(CONFIGURE_DEPS)
-	@[ -f build-aux/install-sh ] || ./bootstrap.sh
-	./configure
+	@echo "Building config.status..."
+	@$(MAKE) bootstrap-configure
 
-.PHONY: build
-## build: Build the executable
+
+$(PIGX_RUNNER): $(SUBMODULE_DEPS)
+	@echo "Generating $(PIGX_RUNNER) ..."
+	@$(MAKE) bootstrap-configure
+
+$(PIPELINE_RUNNER): $(PIGX_RUNNER)
+	@echo "Generating $(PIPELINE_RUNNER) ..."
+	@$(MAKE) bootstrap-configure
+
+# ---------------------------------------------------------------------------
+# == Build targets ==
+# ---------------------------------------------------------------------------
+
+.PHONY: build build-guix build-conda
+
+## build: Build the executable using the current environment
 build: $(BUILD_DEPS)
+	@echo "Building $(BUILD_TARGET) with the current environment ..."
+# 	@$(MAKE) bootstrap-configure
+	@echo $(BUILD_DEPS)
+	@$(MAKE) bootstrap-configure
 
-.PHONY: build-guix
-## build-guix: Build the executable in a pure environment using guix shell
-#  --pure:        unset existing environment variables
-#  -D:            include the development inputs of the next package
-#  -f guix.scm:   use the given file as the build manifest.
-
+## build-guix: Build in a pure Guix environment
 build-guix: require-guix $(PIGX_RUNNER) guix.scm
-	guix shell --pure -D -f guix.scm -- sh -c '\
+	@echo "Building in guix environment: $(GUIX_PYTHONPATH)"
+	@guix shell --pure -D -f guix.scm -- sh -c '\
 		export PYTHONPATH="$$GUIX_PYTHONPATH"; \
-		./bootstrap.sh; \
-		./configure \
+		make build; \
 	'
 
-## build-conda: Build the executable in an environment using micromamba run
-build-conda: require-micromamba $(PIGX_RUNNER)
-	micromamba run -n $(CONDA_PREFIX) --clean-env bash -lc '\
+## build-conda: Build in a conda/micromamba environment
+build-conda: require-micromamba $(CONDA_LOCK) $(PIGX_RUNNER)
+	@echo "Building in conda environment: $(CONDA_ENV)"
+	@micromamba run -p $(CONDA_ENV) --clean-env bash -lc '\
 		export R_LIBS_SITE="$${CONDA_PREFIX}/lib/R/library"; \
 		export PYTHONPATH="$$(python -c '\''import sysconfig; print(sysconfig.get_paths()["purelib"])'\'')"; \
-		./bootstrap.sh; \
-		./configure'
+		make build\
+	'
 
+# ---------------------------------------------------------------------------
+# == Test and pipeline run targets ==
+# ---------------------------------------------------------------------------
 
-.PHONY: clean
-# https://www.gnu.org/prep/standards/html_node/Standard-Targets.html
-## clean: Delete almost everything that can be reconstructed with the Makefile.
-clean:
-	$(MAKE) maintainer-clean
+.PHONY: test-local test-unlock test-cluster test-slurm-dry test-qsub-dry test-dry
 
-.PHONY: run_test
-## run_test: Run tests with sample configuration
-run_test: $(PIPELINE_RUNNER)
-	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv
+## test-local: Run the sample pipeline locally
+test-local: $(PIPELINE_RUNNER)
+	@PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv
 
-.PHONY: test_unlock
-## test_unlock: Unlock the pipeline
-test_unlock:
-	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv --unlock
+## test-unlock: Unlock the sample pipeline run
+test-unlock:
+	@PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv --unlock
 
-.PHONY: run_test_cluster
-## run_test_cluster: Run tests with sample configuration on cluster
-run_test_cluster:
-	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_cluster.yaml tests/sample_sheet_reduced.csv
+## test-cluster: Dry-run the sample pipeline with Slurm cluster settings
+test-cluster: test-slurm-dry
 
-.PHONY: dry
-## dry: Run a dry-run of the pipeline
-dry: $(BUILD_DEPS)
-	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv -n --force --printshellcmds
+## test-slurm-dry: Dry-run the sample pipeline with Slurm cluster settings
+test-slurm-dry: $(PIPELINE_RUNNER)
+	@PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_slurm.yaml tests/sample_sheet.csv -n --force --printshellcmds
 
-.PHONY: tarball
-## tarball: Create a distribution tarball
-tarball:
-	$(MAKE) distcheck
+## test-qsub-dry: Dry-run the sample pipeline with qsub cluster settings
+test-qsub-dry: $(PIPELINE_RUNNER)
+	@PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_qsub.yaml tests/sample_sheet.csv -n --force --printshellcmds
 
-VERSION := $(shell cat VERSION 2>/dev/null || echo "0")
+## test-dry: Run a dry-run of the pipeline
+test-dry: $(PIPELINE_RUNNER)
+	@PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv -n --force --printshellcmds > dry-run.log && echo "Dry-run successful. No errors detected." || (echo "Dry-run failed. Check dry-run.log for details." && exit 1)
 
-TARBALL :=  pigx_$(PIPELINE)-$(VERSION).tar.gz
-SIGNED_TAR :=  pigx_$(PIPELINE)-$(VERSION).tar.gz.sig
+# ---------------------------------------------------------------------------
+# == Release targets ==
+# ---------------------------------------------------------------------------
+
+.PHONY: release-dist sign upload-release release
 
 $(TARBALL):
-	$(MAKE) tarball
+	$(MAKE) distcheck
 
-.PHONY: sign
-## sign: Sign tag and release (requires gpg)
+## release-dist: Create a distribution tarball for release
+release-dist: $(BUILD_DEPS) $(TARBALL)
+	$(MAKE) distcheck
+
+## sign: Sign the release tarball
 sign: $(TARBALL)
 	git tag --sign v$(VERSION)
 	gpg --detach-sign $(TARBALL)
 
-.PHONY: upload-release
-## upload-release: Upload the release to GitHub (requires gh)
-upload-release: $(TARBALL) $(SIGNED_TAR)
+## upload-release: Upload release artifacts to GitHub
+upload-release: $(TARBALL) $(SIGNED_TARBALL)
 	git push --tags
-	gh release create v$(VERSION) $(shell ls $(TARBALL) $(SIGNED_TAR)) --draft
+	gh release create v$(VERSION) $(shell ls $(TARBALL) $(SIGNED_TARBALL)) --draft
 
-.PHONY: release
-## release: Create a release (requires gpg and gh)
-release:
-	$(MAKE) tarball
-	$(MAKE) sign
-	$(MAKE) upload-release
+## release: Create a complete release
+release: release-dist sign upload-release
 
-.PHONY: lint
-## lint: Lint the snakefile using snakemake
+# ---------------------------------------------------------------------------
+# == Lint and formatting helpers ==
+# ---------------------------------------------------------------------------
+
+.PHONY: lint format format-check
+
+## lint: Lint the snakefile using Snakemake
 lint: require-snakemake
 	snakemake -s snakefile.py --configfile config.json --lint
 
-.PHONY: dev
-dev:
-	$(MAKE) $(DEV_ENV_TARGET)
-
-.PHONY: dev	
-## dev_env_guix: Enter the dev environment with all tools available
-dev-guix: require-guix
-	@echo "Entering development environment with Guix..."
-	guix shell -D -f guix.scm
-
-env-conda: $(CONDA_ENV_STAMP) require-micromamba
-
-$(CONDA_ENV_STAMP): requirements.yaml
-	@if micromamba env list 2>/dev/null | awk 'NR>2 {print $$1}' | grep -qx '$(CONDA_PREFIX)'; then \
-		echo "Updating conda environment $(CONDA_PREFIX) from requirements.yaml..."; \
-		micromamba install -y -n $(CONDA_PREFIX) -f requirements.yaml; \
-	else \
-		echo "Creating conda environment $(CONDA_PREFIX) from requirements.yaml..."; \
-		micromamba create -y -n $(CONDA_PREFIX) -f requirements.yaml; \
-	fi
-	@touch $@
-
-
-dev-conda: env-conda require-micromamba
-	@echo "Entering conda environment..."
-	R_LIBS_SITE="/home/agosdsc/.conda/envs/pigx-bsseq/lib/R/library" \
-	R_LIBS_SITE="$${CONDA_PREFIX}/lib/R/library"; \
-	PYTHONPATH="$($$GUIX_PYTHONPATH)" \
-	micromamba shell $(CONDA_PREFIX)
-
-.PHONY: format check-format
-## format: format rules with snakefmt and scripts with air
+## format: Format rules and scripts
 format: require-snakefmt require-air
 	snakefmt snakefile.py rules/*.py
 	air format scripts/
 
-.PHONY: format_check
-## format_check: check formatting of rules with snakefmt and scripts with air
-format_check: require-snakefmt require-air
-	snakefmt --check snakefile.py rules/*.py
+## format-check: Check formatting of rules and scripts
+format-check: require-snakefmt require-air
+	snakefmt --check snakefile.py rules/*.py; \
 	air format --check scripts/
+
+# ---------------------------------------------------------------------------
+# == Development environment helpers ==
+# ---------------------------------------------------------------------------
+
+.PHONY: dev dev-guix dev-conda
+
+## dev: Enter the preferred development environment
+dev:
+	$(MAKE) $(DEV_ENV_TARGET)
+
+## dev-guix: Enter the development environment with all tools available
+dev-guix: require-guix
+	@echo "Entering development environment with Guix..."
+	guix shell -D -f guix.scm
+
+$(CONDA_LOCK): requirements.yaml
+	@echo "Creating/updating conda environment..."
+	@if test -d "$(CONDA_ENV)/conda-meta"; then \
+		micromamba install -y -p $(CONDA_ENV) -f requirements.yaml --offline; \
+	else \
+		micromamba create -y -p $(CONDA_ENV) -f requirements.yaml --offline; \
+	fi
+	@echo "Generating locked requirements from requirements.yaml..."
+	@micromamba env export -p $(CONDA_ENV) --explicit > $(CONDA_LOCK)
+
+## dev-conda: Enter the development environment using micromamba
+dev-conda: require-micromamba $(CONDA_LOCK)
+	@echo "Entering conda environment..."
+	@micromamba run -p $(CONDA_ENV) --clean-env bash -lc '\
+		export R_LIBS_SITE="$${CONDA_PREFIX}/lib/R/library"; \
+		export PYTHONPATH="$$(python -c '\''import sysconfig; print(sysconfig.get_paths()["purelib"])'\'')"; \
+		export HOME="${HOME}"; \
+		bash \
+	'
+
+# ---------------------------------------------------------------------------
+# == Cleanup and fallback rules ==
+# ---------------------------------------------------------------------------
+
+.PHONY: clean
+## clean: Delete almost everything that can be reconstructed with the Makefile.
+clean: Makefile
+	@$(MAKE) -f Makefile clean
 
 require-%:
 	@command -v $* >/dev/null 2>&1 || \
 		{ echo "Error: '$*' not found. Run 'make dev-guix' or 'make dev-conda' to enter the development environment."; exit 1; }
 
-
-# The local Makefile is generated by autoconf.
-Makefile: $(PIGX_RUNNER)
-	./bootstrap.sh
+# The generated Makefile is created by autoconf.
+Makefile: $(CONFIGURE_DEPS)
+	@$(MAKE) config.status
 	./configure
 
 # Source files tracked by version control — give them explicit rules so the
 # catch-all pattern below cannot match them.
-$(CONFIGURE_DEPS) $(PIPELINE_TEMPLATES): ;
+$(CONFIGURE_DEPS) $(PIPELINE_TEMPLATES) $(ENV_FILES): ;
 
 # Delegate any unspecified target to the generated Makefile.
 %: Makefile
