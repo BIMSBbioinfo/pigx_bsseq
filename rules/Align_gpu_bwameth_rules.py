@@ -66,9 +66,9 @@ def bwameth_input(sample):
 def fq2bam_meth_input_param(sample):
     files = list_files_TG(samplesheet(sample, 'files'), sample, '')
     if len(files) == 1:
-        return f"--in-se-fq {files}"
+        return f"--in-se-fq {' '.join(files)}"
     else:
-        return f"--in-fq {files}"
+        return f"--in-fq {' '.join(files)}"
 
 rule fq2bam_meth_align:
     input:
