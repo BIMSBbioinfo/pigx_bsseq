@@ -83,7 +83,11 @@ rule fq2bam_meth_align:
         outdir    = DIR_sorted,
         input_param = lambda wc: fq2bam_meth_input_param(wc.sample)
     resources:
-        nvidia_gpu = config['execution']['rules']['fq2bam_meth_align']['gpus']
+        memory = config['execution']['rules']['fq2bam_meth_align']['memory'],
+        nvidia_gpu = config['execution']['rules']['fq2bam_meth_align']['gpus'],
+        time = config['execution']['rules']['fq2bam_meth_align']['time'],
+        # cpus_per_gpu = config['execution']['rules']['fq2bam_meth_align']['cpus-per-gpu'],
+        gres = config['execution']['rules']['fq2bam_meth_align']['gres']
     threads:
         config['execution']['rules']['fq2bam_meth_align']['threads']
     log:

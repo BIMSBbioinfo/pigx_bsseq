@@ -117,6 +117,10 @@ execution:
       threads: 16
       memory: 50G
       gpus: 1
+      gres: gpu:a40:1              # Request 1 GPUs with A40 type.
+      # gres: gpu_compute_cap:86     # Request GPUs with compute cap 86.
+      cpus-per-gpu: 16               # Request 16 CPUs per GPU
+      time: 12:00:00                 # Set maximum job time to 12 hours
     methyldackel_extract:
       threads: 4
       memory: 6G
@@ -180,3 +184,7 @@ tools:
   grep:
     executable: @GREP@
     args: ""
+  apptainer: # for now this assumes apptainer is globally installed, TODO: needs to be properly configured in ./configure.ac
+    executable: /usr/bin/apptainer
+    args: ""
+
