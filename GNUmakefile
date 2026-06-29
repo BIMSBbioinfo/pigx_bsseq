@@ -143,22 +143,27 @@ build-conda: require-micromamba $(CONDA_LOCK) configure $(PIGX_RUNNER)
 
 ## test-local: Run the sample pipeline locally
 test-local: $(PIPELINE_RUNNER)
-	@PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv
 
 ## test-unlock: Unlock the sample pipeline run
 test-unlock: $(PIPELINE_RUNNER)
-	@PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv --unlock
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv --unlock
 
 ## test-cluster: Dry-run the sample pipeline with Slurm cluster settings
 test-cluster: test-slurm-dry
 
 ## test-slurm-dry: Dry-run the sample pipeline with Slurm cluster settings
 test-slurm-dry: $(PIPELINE_RUNNER)
-	@PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_slurm.yaml tests/sample_sheet.csv -n --force --printshellcmds
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_slurm.yaml tests/sample_sheet.csv -n --force --printshellcmds
 
 ## test-qsub-dry: Dry-run the sample pipeline with qsub cluster settings
 test-qsub-dry: $(PIPELINE_RUNNER)
-	@PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_qsub.yaml tests/sample_sheet.csv -n --force --printshellcmds
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_qsub.yaml tests/sample_sheet.csv -n --force --printshellcmds
+
+## test-gpu: Dry-run the sample pipeline with GPU settings
+test-gpu: $(PIPELINE_RUNNER)
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_gpu.yaml tests/sample_sheet.csv -n --force --printshellcmds
+
 
 ## test-dry: Run a dry-run of the pipeline
 test-dry: $(PIPELINE_RUNNER)
