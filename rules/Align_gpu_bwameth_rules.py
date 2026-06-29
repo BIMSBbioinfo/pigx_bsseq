@@ -80,7 +80,7 @@ rule fq2bam_meth_align:
         index = DIR_sorted + "{sample}.bwameth.sorted.markdup.bam.bai"
     params:
         container = tool('fq2bam_meth'),
-        outdir    = DIR_sorted
+        outdir    = DIR_sorted,
         input_param = lambda wc: fq2bam_meth_input_param(wc.sample)
     resources:
         nvidia_gpu = config['execution']['rules']['fq2bam_meth_align']['gpus']
