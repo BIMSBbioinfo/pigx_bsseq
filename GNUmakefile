@@ -104,7 +104,7 @@ configure: $(CONFIGURE_DEPS) init-submodules
 
 $(PIGX_RUNNER): | init-submodules
 
-$(PIPELINE_RUNNER): configure $(PIGX_RUNNER) $(PIPELINE_TEMPLATES)
+$(PIPELINE_RUNNER): $(PIGX_RUNNER) | configure
 	./configure
 
 # ---------------------------------------------------------------------------
