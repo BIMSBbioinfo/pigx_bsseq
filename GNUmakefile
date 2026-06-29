@@ -91,18 +91,20 @@ help:
 # ---------------------------------------------------------------------------
 
 
-## init-submodules: Initialize the submodules
-init-submodules: 
+pigx-common/common/m4: 
 	@if git submodule status | grep -q -E '^[-+]' ; then \
 		echo "INFO: Need to reinitialize git submodules"; \
 		git submodule update --init; \
 	fi
 
+## init-submodules: Initialize the submodules
+init-submodules: pigx-common/common/m4
+	@echo "INFO: Submodules are initialized."
 
-configure: $(CONFIGURE_DEPS) init-submodules
+configure: $(CONFIGURE_DEPS) pigx-common/common/m4
 	@[ -f build-aux/install-sh ] || ./bootstrap.sh
 
-$(PIGX_RUNNER): | init-submodules
+$(PIGX_RUNNER): | pigx-common/common/m4
 
 $(PIPELINE_RUNNER): $(PIGX_RUNNER) | configure
 	./configure
