@@ -9,7 +9,6 @@ def multiqc_files(branch):
     if branch == "bismark":
        files += files_for_sample(list_files_bismark)
     elif branch == "bwameth":
-        files += files_for_sample(list_files_bwameth)
         files += files_for_sample(list_files_bwamethMappingStats)
     files = list(chain.from_iterable(files))
     return(files)
