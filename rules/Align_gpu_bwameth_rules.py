@@ -63,6 +63,12 @@ def bwameth_input(sample):
     files = list_files_TG(samplesheet(sample, 'files'), sample, '')
     return files
 
+def fq2bam_meth_input_param(sample):
+    files = list_files_TG(samplesheet(sample, 'files'), sample, '')
+    if len(files) == 1:
+        return f"--in-se-fq {files}"
+    else:
+        return f"--in-fq {files}"
 
 rule fq2bam_meth_align:
     input:
@@ -75,6 +81,7 @@ rule fq2bam_meth_align:
     params:
         container = tool('fq2bam_meth'),
         outdir    = DIR_sorted
+        input_param = lambda wc: fq2bam_meth_input_param(wc.sample)
     resources:
         nvidia_gpu = config['execution']['rules']['fq2bam_meth_align']['gpus']
     threads:
@@ -91,7 +98,7 @@ rule fq2bam_meth_align:
           {params.container} \
           pbrun fq2bam_meth \
           --ref {GENOMEFILE} \
-          --in-fq {input.files} \
+          {params.input_param} \
           --out-bam {output.bam} \
           --low-memory \
           --num-gpus {resources.nvidia_gpu} \
