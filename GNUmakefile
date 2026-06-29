@@ -160,8 +160,12 @@ test-slurm-dry: $(PIPELINE_RUNNER)
 test-qsub-dry: $(PIPELINE_RUNNER)
 	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_qsub.yaml tests/sample_sheet.csv -n --force --printshellcmds
 
-## test-gpu: Dry-run the sample pipeline with GPU settings
+## test-gpu: Run the sample pipeline with GPU settings
 test-gpu: $(PIPELINE_RUNNER)
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_gpu.yaml tests/sample_sheet.csv --force --printshellcmds
+
+## test-gpu-dry: Dry-run the sample pipeline with GPU settings
+test-gpu-dry: $(PIPELINE_RUNNER)
 	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_gpu.yaml tests/sample_sheet.csv -n --force --printshellcmds
 
 
