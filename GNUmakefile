@@ -275,7 +275,7 @@ require-%:
 		{ echo "Error: '$*' not found. Run 'make dev-guix' or 'make dev-conda' to enter the development environment."; exit 1; }
 
 # The generated Makefile is created by autoconf.
-Makefile: configure
+Makefile: | configure
 	@echo "Generating Makefile..."
 	@./configure -q
 
