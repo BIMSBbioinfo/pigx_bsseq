@@ -40,4 +40,6 @@ execution:
     contact-email: none
   rules:
     fq2bam_meth_align:
-      gres: gpu_compute_cap:86     # Request GPUs with compute cap 86.
+      # gres: gpu_compute_cap:86     # Request GPUs with compute cap 86.
+      args: "'--gres=gpu:tesla_p40'"
+      # args: "--gres=gpu:1"  # Request 1 GPU of type P40.

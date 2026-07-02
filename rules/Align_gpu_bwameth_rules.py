@@ -86,8 +86,7 @@ rule fq2bam_meth_align:
         memory = config['execution']['rules']['fq2bam_meth_align']['memory'],
         nvidia_gpu = config['execution']['rules']['fq2bam_meth_align']['gpus'],
         time = config['execution']['rules']['fq2bam_meth_align']['time'],
-        # cpus_per_gpu = config['execution']['rules']['fq2bam_meth_align']['cpus-per-gpu'],
-        gres = config['execution']['rules']['fq2bam_meth_align']['gres']
+        slurm_extra = config['execution']['rules']['fq2bam_meth_align']['args'],
     threads:
         config['execution']['rules']['fq2bam_meth_align']['threads']
     log:
