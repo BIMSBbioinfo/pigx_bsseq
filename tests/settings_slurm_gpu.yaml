@@ -38,6 +38,8 @@ execution:
   #   contact-email: none 
     args: '--export=PIGX_UNINSTALLED,RSTUDIO_PANDOC'
     contact-email: none
+    debug: './cluster-logs'
+    log-dir: 'cluster-logs'
   rules:
     fq2bam_meth_align:
       args: "'--gres=gpu:tesla_p40'" # Request 1 GPU of type P40.
