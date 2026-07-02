@@ -83,7 +83,7 @@ rule fq2bam_meth_align:
         outdir    = DIR_sorted,
         input_param = lambda wc: fq2bam_meth_input_param(wc.sample)
     resources:
-        memory = config['execution']['rules']['fq2bam_meth_align']['memory'],
+        mem_mb = config['execution']['rules']['fq2bam_meth_align']['memory'],
         nvidia_gpu = config['execution']['rules']['fq2bam_meth_align']['gpus'],
         time = config['execution']['rules']['fq2bam_meth_align']['time'],
         slurm_extra = config['execution']['rules']['fq2bam_meth_align']['args'],
