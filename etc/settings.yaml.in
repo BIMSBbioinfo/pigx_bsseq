@@ -116,11 +116,14 @@ execution:
     fq2bam_meth_align:
       threads: 16
       memory: 50G
-      gpus: 1
-      gres: gpu:a40:1              # Request 1 GPUs with A40 type.
-      # gres: gpu_compute_cap:86     # Request GPUs with compute cap 86.
-      cpus-per-gpu: 16               # Request 16 CPUs per GPU
+      num_gpus: 1
       time: 12:00:00                 # Set maximum job time to 12 hours
+      args: ""
+      # args: "'--gres=gpu:tesla_p40'" # Request 1 GPU of type P40.
+      # gpus: 1
+      # gres: gpu:a40:1              # Request 1 GPUs with A40 type.
+      # gres: gpu_compute_cap:86     # Request GPUs with compute cap 86.
+      # cpus-per-gpu: 16               # Request 16 CPUs per GPU
     methyldackel_extract:
       threads: 4
       memory: 6G

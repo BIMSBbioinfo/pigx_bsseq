@@ -84,9 +84,8 @@ rule fq2bam_meth_align:
         input_param = lambda wc: fq2bam_meth_input_param(wc.sample)
     resources:
         mem_mb = config['execution']['rules']['fq2bam_meth_align']['memory'],
-        nvidia_gpu = config['execution']['rules']['fq2bam_meth_align']['gpus'],
-        time = config['execution']['rules']['fq2bam_meth_align']['time'],
-        slurm_extra = config['execution']['rules']['fq2bam_meth_align']['args'],
+        nvidia_gpu = config['execution']['rules']['fq2bam_meth_align'].get('num_gpus', 1),
+        slurm_extra = config['execution']['rules']['fq2bam_meth_align'].get('args', ''),
     threads:
         config['execution']['rules']['fq2bam_meth_align']['threads']
     log:
