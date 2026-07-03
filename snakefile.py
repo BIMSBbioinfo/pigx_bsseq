@@ -67,8 +67,10 @@ REFGENES_BEDFILE  = config['locations']['refGenes-bedfile']
 
 
 #--- CHOOSE PIPELINE BRANCH
-USEBWAMETH = TrueOrFalse(config['general']['use_bwameth'])
-USEBISMARK = TrueOrFalse(config['general']['use_bismark'])
+_bwameth_mode  = str(config['general']['use_bwameth']).lower()
+USEBWAMETH     = _bwameth_mode in ("true", "yes", "cpu", "gpu")
+USEGPUBWAMETH  = _bwameth_mode == "gpu"
+USEBISMARK     = TrueOrFalse(config['general']['use_bismark'])
 
 
 #--- LIST THE OUTPUT FILES TO BE PRODUCED: 
@@ -570,12 +572,17 @@ rule bismark_align_and_map_pe:
 # ==========================================================================================
 # Align and map reads to the reference genome using bwa-meth:
 
-include: './rules/Align_bwameth_rules.py'
+if USEGPUBWAMETH:
+    include: './rules/Align_gpu_bwameth_rules.py'
+else:
+    include: './rules/Align_bwameth_rules.py'
 
 # ==========================================================================================
 # Mark duplicate reads from bwa-meth alignment using picard-markduplicates like algo:
+# (skipped for GPU mode: fq2bam_meth handles dedup and sorting internally)
 
-include: './rules/deduplicate_samblaster.py'
+if not USEGPUBWAMETH:
+    include: './rules/deduplicate_samblaster.py'
 
 # ==========================================================================================
 # extract mapping statistics like duplicate numbers and flagstats using samtools:

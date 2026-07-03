@@ -91,20 +91,22 @@ help:
 # ---------------------------------------------------------------------------
 
 
-## init-submodules: Initialize the submodules
-init-submodules: 
+pigx-common/common/m4: 
 	@if git submodule status | grep -q -E '^[-+]' ; then \
 		echo "INFO: Need to reinitialize git submodules"; \
 		git submodule update --init; \
 	fi
 
+## init-submodules: Initialize the submodules
+init-submodules: pigx-common/common/m4
+	@echo "INFO: Submodules are initialized."
 
-configure: $(CONFIGURE_DEPS) init-submodules
+configure: $(CONFIGURE_DEPS) pigx-common/common/m4
 	@[ -f build-aux/install-sh ] || ./bootstrap.sh
 
-$(PIGX_RUNNER): | init-submodules
+$(PIGX_RUNNER): | pigx-common/common/m4
 
-$(PIPELINE_RUNNER): configure $(PIGX_RUNNER) $(PIPELINE_TEMPLATES)
+$(PIPELINE_RUNNER): $(PIGX_RUNNER) | configure
 	./configure
 
 # ---------------------------------------------------------------------------
@@ -141,22 +143,34 @@ build-conda: require-micromamba $(CONDA_LOCK) configure $(PIGX_RUNNER)
 
 ## test-local: Run the sample pipeline locally
 test-local: $(PIPELINE_RUNNER)
-	@PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv
 
 ## test-unlock: Unlock the sample pipeline run
 test-unlock: $(PIPELINE_RUNNER)
-	@PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv --unlock
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv --unlock
 
 ## test-cluster: Dry-run the sample pipeline with Slurm cluster settings
 test-cluster: test-slurm-dry
 
 ## test-slurm-dry: Dry-run the sample pipeline with Slurm cluster settings
 test-slurm-dry: $(PIPELINE_RUNNER)
-	@PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_slurm.yaml tests/sample_sheet.csv -n --force --printshellcmds
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_slurm.yaml tests/sample_sheet.csv -n --force --printshellcmds
 
 ## test-qsub-dry: Dry-run the sample pipeline with qsub cluster settings
 test-qsub-dry: $(PIPELINE_RUNNER)
-	@PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_qsub.yaml tests/sample_sheet.csv -n --force --printshellcmds
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_qsub.yaml tests/sample_sheet.csv -n --force --printshellcmds
+
+## test-gpu: Run the sample pipeline with GPU settings
+test-gpu: $(PIPELINE_RUNNER)
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_gpu.yaml tests/sample_sheet.csv --force --printshellcmds
+
+## test-gpu-dry: Dry-run the sample pipeline with GPU settings
+test-gpu-dry: $(PIPELINE_RUNNER)
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_gpu.yaml tests/sample_sheet.csv -n --force --printshellcmds
+
+## test-slurm-gpu-dry: Dry-run the sample pipeline with Slurm and GPU settings
+test-slurm-gpu-dry: $(PIPELINE_RUNNER)
+	PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings_slurm_gpu.yaml tests/sample_sheet.csv -n --force --printshellcmds
 
 ## test-dry: Run a dry-run of the pipeline
 test-dry: $(PIPELINE_RUNNER)
@@ -268,7 +282,7 @@ require-%:
 		{ echo "Error: '$*' not found. Run 'make dev-guix' or 'make dev-conda' to enter the development environment."; exit 1; }
 
 # The generated Makefile is created by autoconf.
-Makefile: configure
+Makefile: | configure
 	@echo "Generating Makefile..."
 	@./configure -q
 

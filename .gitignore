@@ -9,8 +9,6 @@ pigx-bsseq
 Makefile.in
 Makefile
 autom4te.cache/
-aclocal.m4
-build-aux/*
 etc/settings.yaml
 test*.sh
 test*.log

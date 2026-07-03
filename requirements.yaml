@@ -44,3 +44,4 @@ dependencies:
   - bash
   - sed
   - grep
+  - apptainer

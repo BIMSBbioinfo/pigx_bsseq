@@ -12,6 +12,7 @@ general:
   assembly: ''
   # use one or both bisulfite aligners
   # bwameth is faster and uses less resources
+  # use_bwameth accepts: "cpu" (CPU bwameth), "gpu" (Parabricks fq2bam_meth), or False
   use_bwameth: False
   # bismark is gold standard and uses sensible defaults
   use_bismark: True
@@ -112,6 +113,15 @@ execution:
     bwameth_align_trimmed:
       threads: 12
       memory: 20G
+    fq2bam_meth_align:
+      threads: 16
+      memory: 50G
+      args: ""
+      # args: "'--gres=gpu:tesla_p40'" # Request 1 GPU of type P40.
+      # gpus: 1
+      # gres: gpu:a40:1              # Request 1 GPUs with A40 type.
+      # gres: gpu_compute_cap:86     # Request GPUs with compute cap 86.
+      # cpus-per-gpu: 16               # Request 16 CPUs per GPU
     methyldackel_extract:
       threads: 4
       memory: 6G
@@ -134,6 +144,9 @@ tools:
     args: ""
   bwameth:
     executable: @BWAMETH@
+    args: ""
+  fq2bam_meth:
+    executable: "docker://nvcr.io/nvidia/clara/clara-parabricks:4.7.0-1"
     args: ""
   bowtie2:
     executable: @BOWTIE2@
@@ -172,3 +185,7 @@ tools:
   grep:
     executable: @GREP@
     args: ""
+  apptainer: # for now this assumes apptainer is globally installed, TODO: needs to be properly configured in ./configure.ac
+    executable: /usr/bin/apptainer
+    args: ""
+

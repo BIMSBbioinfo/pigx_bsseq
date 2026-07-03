@@ -1,0 +1,26 @@
+locations:
+  input-dir: in/
+  output-dir: out/
+  genome-fasta: genome/sample.fasta
+  cpgIsland-bedfile: genome/cpgIslandExt.hg19.bed.gz
+  refGenes-bedfile: genome/refGene.hg19.bed.gz
+
+general:
+  assembly: hg19
+  use_bwameth: "gpu"
+  use_bismark: False
+
+execution:
+  submit-to-cluster: yes
+  jobs: 6
+  nice: 19
+  cluster:
+  #   contact-email: none 
+    args: '--export=PIGX_UNINSTALLED,RSTUDIO_PANDOC'
+    contact-email: none
+    debug: './cluster-logs'
+    log-dir: 'cluster-logs'
+  rules:
+    fq2bam_meth_align:
+      args: "'--gres=gpu:tesla_p40'" # Request 1 GPU of type P40.
+      # args: "--gres=gpu:1"  # Request 1 GPU of any type.
