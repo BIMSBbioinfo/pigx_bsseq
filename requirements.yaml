@@ -1,7 +1,7 @@
 name: pigx-bsseq
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
 dependencies:
   # Core Python dependencies
   - python>=3.5
