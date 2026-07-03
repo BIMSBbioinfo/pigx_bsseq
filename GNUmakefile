@@ -277,8 +277,12 @@ Makefile: configure
 $(SRC_FILES): ;
 
 # Delegate any unspecified target to the generated Makefile.
-%: Makefile
-	@$(MAKE) -f Makefile $@
+%:
+	@if [ -f Makefile ]; then \
+		$(MAKE) --no-print-directory -f Makefile $@ || { echo "Error: Target '$@' not found in Makefile. Run 'make help' to see available targets."; exit 1; }; \
+	else \
+		echo "Error: Makefile not found. Run 'make' in a development environment with all dependencies installed to generate the Makefile."; exit 1; \
+	fi
 
 # Execute the specified command
 $(eval $(ARGS) : ; @true)
