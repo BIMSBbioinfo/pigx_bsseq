@@ -9,26 +9,6 @@ general:
   assembly: hg19
   use_bwameth: "gpu"
   use_bismark: False
-  methylation-calling:
-    minimum-coverage: 1
-    minimum-quality: 10
-    keep-Dups: Auto
-  differential-methylation:
-    cores: 1
-    qvalue: 0.05
-
-DManalyses:
-  med1vsh2o:
-    treatment_sample_groups: "MED1"
-    control_sample_groups: "H2O"
-
-  multipleTreat:
-    treatment_sample_groups: "MED2,MED1"
-    control_sample_groups: "H2O"
-
-  withinGroup:
-    treatment_sample_groups: "MED2,MED1,H2O"
-    control_sample_groups: "MED2,MED1,H2O"
 
 execution:
   submit-to-cluster: yes
