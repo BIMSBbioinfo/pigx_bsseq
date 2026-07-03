@@ -171,8 +171,8 @@ $(TEST_CONFIG_FILE): | test-dry
 
 .PHONY: release-dist sign tag upload-release release
 
-$(TARBALL): $(VERSION_FILE)
-	make distcheck
+$(TARBALL): $(VERSION_FILE) Makefile
+	$(MAKE) -f Makefile distcheck
 
 ## release-dist: Create a distribution tarball for release
 release-dist: $(TARBALL)
