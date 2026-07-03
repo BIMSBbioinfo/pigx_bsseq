@@ -127,7 +127,7 @@ build-guix: require-guix guix.scm configure $(PIGX_RUNNER)
 ## build-conda: Build in a conda/micromamba environment
 build-conda: require-micromamba $(CONDA_LOCK) configure $(PIGX_RUNNER)
 	@echo "Building in conda environment: $(CONDA_ENV)"
-	@micromamba run -p $(CONDA_ENV) --clean-env bash -lc '\
+	@micromamba run -p $(CONDA_ENV) --clean-env bash -c '\
 		export R_LIBS_SITE="$${CONDA_PREFIX}/lib/R/library"; \
 		export PYTHONPATH="$$(python -c '\''import sysconfig; print(sysconfig.get_paths()["purelib"])'\'')"; \
 		./configure; \
@@ -247,7 +247,7 @@ $(CONDA_LOCK): requirements.yaml
 ## dev-conda: Enter the development environment using micromamba
 dev-conda: require-micromamba $(CONDA_LOCK)
 	@echo "Entering conda environment..."
-	@micromamba run -p $(CONDA_ENV) --clean-env bash -lc '\
+	@micromamba run -p $(CONDA_ENV) --clean-env bash -c '\
 		export R_LIBS_SITE="$${CONDA_PREFIX}/lib/R/library"; \
 		export PYTHONPATH="$$(python -c '\''import sysconfig; print(sysconfig.get_paths()["purelib"])'\'')"; \
 		export HOME="$${HOME}"; \
