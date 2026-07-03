@@ -80,10 +80,10 @@ all: $(BUILD_TARGET)
 help:
 	@echo "Usage: $(MAKE) [subcommand] [-v]"
 	@echo
-	@echo -e "Available subcommands are:\n"
-	@grep -E '^[ \t]*## [a-zA-Z_-]+:' $(MAKEFILE_LIST) | sed -E 's/^[ \t]*## //' | sed -E 's/: */\t/' | column -s $$'\t' -t
+	@echo "Available subcommands are:\n"
+	@grep -E '^[ \t]*## [a-zA-Z_-]+:' $(MAKEFILE_LIST) | sed -E 's/^[ \t]*## //' | awk -F': ' '{printf "%-24s %s\n", $$1, $$2}'
 	@echo
-	@echo -e "More available via tab-completion. Try 'make <TAB><TAB>' to see all available targets."
+	@echo "More available via tab-completion. Try 'make <TAB><TAB>' to see all available targets."
 	@exit 0
 
 # ---------------------------------------------------------------------------
