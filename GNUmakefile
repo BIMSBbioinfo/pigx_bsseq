@@ -237,9 +237,9 @@ dev-guix: require-guix
 $(CONDA_LOCK): requirements.yaml
 	@echo "Creating/updating conda environment..."
 	@if test -d "$(CONDA_ENV)/conda-meta"; then \
-		micromamba install -y -p $(CONDA_ENV) -f requirements.yaml --offline; \
+		micromamba install -y -p $(CONDA_ENV) -f requirements.yaml; \
 	else \
-		micromamba create -y -p $(CONDA_ENV) -f requirements.yaml --offline; \
+		micromamba create -y -p $(CONDA_ENV) -f requirements.yaml; \
 	fi
 	@echo "Generating locked requirements from requirements.yaml..."
 	@micromamba env export -p $(CONDA_ENV) --explicit > $(CONDA_LOCK)
