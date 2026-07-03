@@ -116,8 +116,6 @@ execution:
     fq2bam_meth_align:
       threads: 16
       memory: 50G
-      num_gpus: 1
-      time: 12:00:00                 # Set maximum job time to 12 hours
       args: ""
       # args: "'--gres=gpu:tesla_p40'" # Request 1 GPU of type P40.
       # gpus: 1
