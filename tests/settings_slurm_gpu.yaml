@@ -15,12 +15,16 @@ execution:
   jobs: 6
   nice: 19
   cluster:
-  #   contact-email: none 
     args: '--export=PIGX_UNINSTALLED,RSTUDIO_PANDOC'
     contact-email: none
     debug: './cluster-logs'
     log-dir: 'cluster-logs'
   rules:
+    __default__:
+      threads: 1
+    memory: 10G
+    queue: 'compute'
     fq2bam_meth_align:
-      args: "'--gres=gpu:tesla_p40'" # Request 1 GPU of type P40.
-      # args: "--gres=gpu:1"  # Request 1 GPU of any type.
+      queue: 'gpu'
+      # args: "'--gres=gpu:tesla_p40'" # Request 1 GPU of type P40.
+      args: "'--gres=gpu:1'" # Request 1 GPU of any type
