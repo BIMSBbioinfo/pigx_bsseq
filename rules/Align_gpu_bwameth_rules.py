@@ -71,8 +71,38 @@ def fq2bam_meth_input_param(sample):
     else:
         return f"--in-fq {' '.join(files)}"
 
+rule cache_parabricks_container:
+    input:
+    output:
+        version = OUTDIR + "pb_fq2bam_meth_version.txt"
+    params:
+        container = tool('parabricks'),
+        fq2bam_meth_exe = tool('fq2bam_meth')
+        outdir    = OUTDIR,
+    resources:
+        mem_mb = config['execution']['rules']['fq2bam_meth_align']['memory'],
+        nvidia_gpu = config['execution']['rules']['fq2bam_meth_align'].get('num_gpus', 1),
+        slurm_extra = config['execution']['rules']['fq2bam_meth_align'].get('args', ''),
+    threads:
+        config['execution']['rules']['fq2bam_meth_align']['threads']
+    log:
+        OUTDIR + "pb_fq2bam_meth_version.log"
+    message: fmt("Fetching Container for Parabricks")
+    shell:
+        """
+        apptainer run --nv \
+          -B {OUTDIR} \
+          --pwd {params.outdir} \
+          {params.container} \
+          pbrun {params.fq2bam_meth_exe} \
+          --version \
+          > {log} 2>&1
+        """
+
+
 rule fq2bam_meth_align:
     input:
+        rules.cache_parabricks_container.output,
         rules.bwameth_touch_index.output,
         index = rules.bwameth_genome_preparation.output,
         files = lambda wc: bwameth_input(wc.sample)
@@ -80,7 +110,8 @@ rule fq2bam_meth_align:
         bam   = DIR_sorted + "{sample}.bwameth.sorted.markdup.bam",
         index = DIR_sorted + "{sample}.bwameth.sorted.markdup.bam.bai"
     params:
-        container = tool('fq2bam_meth'),
+        container = tool('parabricks'),
+        fq2bam_meth_exe = tool('fq2bam_meth')
         outdir    = DIR_sorted,
         input_param = lambda wc: fq2bam_meth_input_param(wc.sample)
     resources:
@@ -99,7 +130,7 @@ rule fq2bam_meth_align:
           -B {OUTDIR} \
           --pwd {params.outdir} \
           {params.container} \
-          pbrun fq2bam_meth \
+          pbrun {params.fq2bam_meth_exe} \
           --ref {GENOMEFILE} \
           {params.input_param} \
           --out-bam {output.bam} \
