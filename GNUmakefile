@@ -127,9 +127,9 @@ build-guix: require-guix guix.scm configure $(PIGX_RUNNER)
 	'
 
 ## build-conda: Build in a conda/micromamba environment
-build-conda: require-micromamba $(CONDA_LOCK) configure $(PIGX_RUNNER)
+build-conda: $(CONDA_LOCK) configure $(PIGX_RUNNER)
 	@echo "Building in conda environment: $(CONDA_ENV)"
-	@micromamba run -p $(CONDA_ENV) --clean-env bash -c '\
+	@$(MAMBA_EXE) run -p $(CONDA_ENV) --clean-env bash -c '\
 		export R_LIBS_SITE="$${CONDA_PREFIX}/lib/R/library"; \
 		export PYTHONPATH="$$(python -c '\''import sysconfig; print(sysconfig.get_paths()["purelib"])'\'')"; \
 		./configure; \
@@ -251,17 +251,17 @@ dev-guix: require-guix
 $(CONDA_LOCK): requirements.yaml
 	@echo "Creating/updating conda environment..."
 	@if test -d "$(CONDA_ENV)/conda-meta"; then \
-		micromamba install -y -p $(CONDA_ENV) -f requirements.yaml; \
+		$(MAMBA_EXE) install -y -p $(CONDA_ENV) -f requirements.yaml; \
 	else \
-		micromamba create -y -p $(CONDA_ENV) -f requirements.yaml; \
+		$(MAMBA_EXE) create -y -p $(CONDA_ENV) -f requirements.yaml; \
 	fi
 	@echo "Generating locked requirements from requirements.yaml..."
-	@micromamba env export -p $(CONDA_ENV) --explicit > $(CONDA_LOCK)
+	@$(MAMBA_EXE) env export -p $(CONDA_ENV) --explicit > $(CONDA_LOCK)
 
 ## dev-conda: Enter the development environment using micromamba
-dev-conda: require-micromamba $(CONDA_LOCK)
+dev-conda: $(CONDA_LOCK)
 	@echo "Entering conda environment..."
-	@micromamba run -p $(CONDA_ENV) bash -c '\
+	@$(MAMBA_EXE) run -p $(CONDA_ENV) bash -c '\
 		export R_LIBS_SITE="$${CONDA_PREFIX}/lib/R/library"; \
 		export PYTHONPATH="$$(python -c '\''import sysconfig; print(sysconfig.get_paths()["purelib"])'\'')"; \
 		export HOME="$${HOME}"; \
