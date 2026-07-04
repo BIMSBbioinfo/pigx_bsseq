@@ -143,8 +143,11 @@ tools:
   bwameth:
     executable: @BWAMETH@
     args: ""
-  fq2bam_meth:
+  parabricks:
     executable: "docker://nvcr.io/nvidia/clara/clara-parabricks:4.7.0-1"
+    args: ""
+  fq2bam_meth:
+    executable: "fq2bam_meth"
     args: ""
   bowtie2:
     executable: @BOWTIE2@
