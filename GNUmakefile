@@ -183,7 +183,21 @@ $(TEST_CONFIG_FILE): | test-dry
 # == Release targets ==
 # ---------------------------------------------------------------------------
 
-.PHONY: release-dist sign tag upload-release release
+.PHONY: release-dist sign tag upload-release release check-version
+
+## check-version: Ensure VERSION file is committed and matches the working tree
+check-version:
+	@git ls-files --error-unmatch $(VERSION_FILE) >/dev/null 2>&1 || \
+		(echo "Error: $(VERSION_FILE) is not tracked by git." >&2; exit 1)
+	@git diff --quiet -- $(VERSION_FILE) || \
+		(echo "Error: $(VERSION_FILE) has uncommitted changes. Commit it before tagging." >&2; exit 1)
+	@git diff --quiet --cached -- $(VERSION_FILE) || \
+		(echo "Error: $(VERSION_FILE) has staged but uncommitted changes. Commit it before tagging." >&2; exit 1)
+	@committed_version=$$(git show HEAD:$(VERSION_FILE) 2>/dev/null); \
+	if [ "$$committed_version" != "$(VERSION_TAG)" ]; then \
+		echo "Error: committed $(VERSION_FILE) ($$committed_version) does not match working copy ($(VERSION_TAG))." >&2; \
+		exit 1; \
+	fi
 
 $(TARBALL): $(VERSION_FILE) Makefile
 	$(MAKE) -f Makefile distcheck
