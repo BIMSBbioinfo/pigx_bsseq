@@ -689,7 +689,6 @@ rule trim_reads_se:
     output:
        DIR_trimmed+"{sample}_trimmed.fq.gz" #---- this ALWAYS outputs .fq.qz format.
     params:
-       extra      = config['tools']['trim-galore']['args'],
        outdir     = "--output_dir "+DIR_trimmed,
        phred      = "--phred33",
        gz         = "--gzip",
@@ -708,7 +707,6 @@ rule trim_reads_pe:
         DIR_trimmed+"{sample}_1_val_1.fq.gz", #---- this ALWAYS outputs .fq.qz format.
         DIR_trimmed+"{sample}_2_val_2.fq.gz",
     params:
-        extra          = config['tools']['trim-galore']['args'],
         outdir         = "--output_dir "+DIR_trimmed,
         phred          = "--phred33",
         gz             = "--gzip",
