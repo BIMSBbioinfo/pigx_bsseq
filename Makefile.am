@@ -12,8 +12,8 @@ dist_pkglibexec_scripts_SCRIPTS =	\
   scripts/generate_report.R			\
   scripts/fetch_procedures.R		\
   scripts/func_defs.py				\
-  scripts/update_pigx_work.py				\
-  scripts/validate_config.py				\
+  scripts/update_pigx_work.py		\
+  scripts/validate_config.py		\
   scripts/ideoDMC.R					\
   scripts/export_tbx2bw.R         	\
   scripts/methCall.R          		\
@@ -26,6 +26,7 @@ dist_pkglibexec_scripts_SCRIPTS =	\
 pkglibexec_rulesdir = $(pkglibexecdir)/rules
 dist_pkglibexec_rules_SCRIPTS =			\
   rules/Align_bwameth_rules.py 			\
+  rules/Align_gpu_bwameth_rules.py		\
   rules/deduplicate_samblaster.py 		\
   rules/preprocessing_methyldackel.py 	\
   rules/mapping_stats.py 				\
