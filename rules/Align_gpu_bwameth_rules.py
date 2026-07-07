@@ -77,7 +77,8 @@ rule cache_parabricks_container:
         version = OUTDIR + "pb_fq2bam_meth_version.txt"
     params:
         container = tool('parabricks'),
-        fq2bam_meth_exe = tool('fq2bam_meth')
+        container_args = toolArgs('parabricks'),
+        fq2bam_meth_exe = tool('fq2bam_meth'),
         outdir    = OUTDIR,
     resources:
         mem_mb = config['execution']['rules']['fq2bam_meth_align']['memory'],
@@ -92,6 +93,7 @@ rule cache_parabricks_container:
         """
         apptainer run --nv \
           -B {OUTDIR} \
+          {params.container_args} \
           --pwd {params.outdir} \
           {params.container} \
           pbrun {params.fq2bam_meth_exe} \
@@ -111,7 +113,9 @@ rule fq2bam_meth_align:
         index = DIR_sorted + "{sample}.bwameth.sorted.markdup.bam.bai"
     params:
         container = tool('parabricks'),
-        fq2bam_meth_exe = tool('fq2bam_meth')
+        container_args = toolArgs('parabricks'),
+        fq2bam_meth_exe = tool('fq2bam_meth'),
+        fq2bam_meth_args = toolArgs('fq2bam_meth'),
         outdir    = DIR_sorted,
         input_param = lambda wc: fq2bam_meth_input_param(wc.sample)
     resources:
@@ -128,13 +132,14 @@ rule fq2bam_meth_align:
         apptainer run --nv \
           -B {GENOMEPATH} \
           -B {OUTDIR} \
+          {params.container_args} \
           --pwd {params.outdir} \
           {params.container} \
           pbrun {params.fq2bam_meth_exe} \
           --ref {GENOMEFILE} \
           {params.input_param} \
           --out-bam {output.bam} \
-          --low-memory \
+          {params.fq2bam_meth_args} \
           --num-gpus {resources.nvidia_gpu} \
           > {log} 2>&1
         """

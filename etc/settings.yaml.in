@@ -148,7 +148,7 @@ tools:
     args: ""
   fq2bam_meth:
     executable: "fq2bam_meth"
-    args: ""
+    args: "--gpusort --gpuwrite --tmp-dir /tmp"
   bowtie2:
     executable: @BOWTIE2@
     args: ""
