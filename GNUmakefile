@@ -136,6 +136,18 @@ build-conda: $(CONDA_LOCK) configure $(PIGX_RUNNER)
 	'
 
 # ---------------------------------------------------------------------------
+# == Install targets ==
+# ---------------------------------------------------------------------------
+
+.PHONY: install-local
+
+## build: Build the executable using the current environment
+install-local:
+	./bootstrap.sh
+	./configure --prefix=$$HOME/.local
+	$(MAKE) install
+
+# ---------------------------------------------------------------------------
 # == Test and pipeline run targets ==
 # ---------------------------------------------------------------------------
 
