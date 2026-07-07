@@ -22,8 +22,8 @@ execution:
   rules:
     __default__:
       threads: 1
-    memory: 10G
-    queue: 'compute'
+      memory: 10G
+      queue: 'compute'
     fq2bam_meth_align:
       queue: 'gpu'
       # args: "'--gres=gpu:tesla_p40'" # Request 1 GPU of type P40.
