@@ -45,4 +45,8 @@ execution:
     samblaster_markdup_sort:
       threads: 6
       memory: 1M
-                      
+
+tools:
+  trim-galore:
+    args: "--clip_R1 10 --clip_R2 10 --cores 4 --nextseq 20" # https://felixkrueger.github.io/Bismark/bismark/library_types/
+
