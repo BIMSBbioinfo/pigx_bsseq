@@ -97,7 +97,7 @@ rule cache_parabricks_container:
           --pwd {params.outdir} \
           {params.container} \
           pbrun {params.fq2bam_meth_exe} \
-          --version \
+          --version | tee {output.version} \
           > {log} 2>&1
         """
 
