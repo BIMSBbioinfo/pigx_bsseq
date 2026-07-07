@@ -80,12 +80,6 @@ rule cache_parabricks_container:
         container_args = toolArgs('parabricks'),
         fq2bam_meth_exe = tool('fq2bam_meth'),
         outdir    = OUTDIR,
-    resources:
-        mem_mb = config['execution']['rules']['fq2bam_meth_align']['memory'],
-        nvidia_gpu = config['execution']['rules']['fq2bam_meth_align'].get('num_gpus', 1),
-        slurm_extra = config['execution']['rules']['fq2bam_meth_align'].get('args', ''),
-    threads:
-        config['execution']['rules']['fq2bam_meth_align']['threads']
     log:
         OUTDIR + "pb_fq2bam_meth_version.log"
     message: fmt("Fetching Container for Parabricks")
