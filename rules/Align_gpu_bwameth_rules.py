@@ -85,14 +85,14 @@ rule cache_parabricks_container:
     message: fmt("Fetching Container for Parabricks")
     shell:
         """
-        apptainer run --nv \
+        apptainer run \
           -B {OUTDIR} \
           {params.container_args} \
           --pwd {params.outdir} \
           {params.container} \
           pbrun {params.fq2bam_meth_exe} \
-          --version | tee {output.version} \
-          > {log} 2>&1
+          --version > {output.version} \
+          2> {log}
         """
 
 
