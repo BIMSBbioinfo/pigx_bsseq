@@ -5,7 +5,8 @@ nodist_bin_SCRIPTS = \
 
 dist_pkglibexec_SCRIPTS =			\
   snakefile.py						\
-  qsub-template.sh
+  qsub-template.sh					\
+  slurm-status.py		
 
 pkglibexec_scriptsdir = $(pkglibexecdir)/scripts
 dist_pkglibexec_scripts_SCRIPTS =	\
