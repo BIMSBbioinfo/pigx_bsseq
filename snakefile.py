@@ -687,7 +687,7 @@ rule trim_reads_se:
     input:
        file = PATHIN+"{sample}.fq.gz"
     output:
-       DIR_trimmed+"{sample}_trimmed.fq.gz" #---- this ALWAYS outputs .fq.qz format.
+       temp(DIR_trimmed+"{sample}_trimmed.fq.gz") #---- this ALWAYS outputs .fq.qz format.
     params:
        outdir     = "--output_dir "+DIR_trimmed,
        phred      = "--phred33",
@@ -704,8 +704,8 @@ rule trim_reads_pe:
         files = [ PATHIN+"{sample}_1.fq.gz",
                   PATHIN+"{sample}_2.fq.gz"]
     output:
-        DIR_trimmed+"{sample}_1_val_1.fq.gz", #---- this ALWAYS outputs .fq.qz format.
-        DIR_trimmed+"{sample}_2_val_2.fq.gz",
+        temp(DIR_trimmed+"{sample}_1_val_1.fq.gz"), #---- this ALWAYS outputs .fq.qz format.
+        temp(DIR_trimmed+"{sample}_2_val_2.fq.gz"),
     params:
         outdir         = "--output_dir "+DIR_trimmed,
         phred          = "--phred33",
