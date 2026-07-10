@@ -1,6 +1,7 @@
 # autoconf generated files
 META
 qsub-template.sh
+slurm-status.py
 configure
 config.status
 config.json
