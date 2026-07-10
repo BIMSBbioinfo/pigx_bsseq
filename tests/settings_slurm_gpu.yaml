@@ -26,5 +26,6 @@ execution:
       queue: 'compute'
     fq2bam_meth_align:
       queue: 'gpu'
+      num_gpus: 2
       # args: "'--gres=gpu:tesla_p40'" # Request 1 GPU of type P40.
       args: "'--gres=gpu:1'" # Request 1 GPU of any type
