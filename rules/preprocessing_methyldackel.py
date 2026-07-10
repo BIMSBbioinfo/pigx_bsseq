@@ -53,7 +53,7 @@ rule methyldackel_extract_methylKit:
         bamfile = DIR_sorted + "{sample}.bwameth.sorted.markdup.bam",
         genome = GENOMEFILE
     output:
-        cpgCallFile = DIR_methcall + "methylDackel/" +"{sample}_methyldackel_CpG.methylKit",
+        cpgCallFile = temp(DIR_methcall + "methylDackel/" +"{sample}_methyldackel_CpG.methylKit"),
         # chgCallFile = DIR_methcall + "methylDackel/" + "{sample}_methyldackel_CHG.methylKit",
         # chhCallFile = DIR_methcall + "methylDackel/" + "{sample}_methyldackel_CHH.methylKit"
     wildcard_constraints:
@@ -84,8 +84,8 @@ rule methyldackel_extract_methylKit_deduped:
         bamfile = DIR_sorted + "{sample}.bwameth.sorted.markdup.bam",
         genome = GENOMEFILE
     output:
-        cpgCallFile = DIR_methcall + "methylDackel/" + \
-            "{sample}.deduped_methyldackel_CpG.methylKit",
+        cpgCallFile = temp(DIR_methcall + "methylDackel/" + \
+            "{sample}.deduped_methyldackel_CpG.methylKit"),
         # chgCallFile = DIR_methcall + "methylDackel/" + \
         #     "{sample}.deduped_methyldackel_CHG.methylKit",
         # chhCallFile = DIR_methcall + "methylDackel/" + \
