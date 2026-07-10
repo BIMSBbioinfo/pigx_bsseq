@@ -54,8 +54,8 @@ rule methyldackel_extract_methylKit:
         genome = GENOMEFILE
     output:
         cpgCallFile = DIR_methcall + "methylDackel/" +"{sample}_methyldackel_CpG.methylKit",
-        chgCallFile = DIR_methcall + "methylDackel/" + "{sample}_methyldackel_CHG.methylKit",
-        chhCallFile = DIR_methcall + "methylDackel/" + "{sample}_methyldackel_CHH.methylKit"
+        # chgCallFile = DIR_methcall + "methylDackel/" + "{sample}_methyldackel_CHG.methylKit",
+        # chhCallFile = DIR_methcall + "methylDackel/" + "{sample}_methyldackel_CHH.methylKit"
     wildcard_constraints:
         sample=".+(?<!deduped)"
     params:
@@ -72,7 +72,9 @@ rule methyldackel_extract_methylKit:
         nice("methyldackel",
              ["extract", "{input.genome}", "{input.bamfile}",
               "-o {params.prefix}", "-@ {params.threads}", "{params.keepDups}",
-              "--methylKit", "--CHH", "--CHG", "-q {params.minqual}"],
+              "--methylKit",
+              # "--CHH", "--CHG",
+              "-q {params.minqual}"],
              ("{log}"))
 
 
@@ -84,10 +86,10 @@ rule methyldackel_extract_methylKit_deduped:
     output:
         cpgCallFile = DIR_methcall + "methylDackel/" + \
             "{sample}.deduped_methyldackel_CpG.methylKit",
-        chgCallFile = DIR_methcall + "methylDackel/" + \
-            "{sample}.deduped_methyldackel_CHG.methylKit",
-        chhCallFile = DIR_methcall + "methylDackel/" + \
-            "{sample}.deduped_methyldackel_CHH.methylKit"
+        # chgCallFile = DIR_methcall + "methylDackel/" + \
+        #     "{sample}.deduped_methyldackel_CHG.methylKit",
+        # chhCallFile = DIR_methcall + "methylDackel/" + \
+        #     "{sample}.deduped_methyldackel_CHH.methylKit"
     params:
         threads = config['execution']['rules']['methyldackel_extract']['threads'],
         prefix = DIR_methcall + "methylDackel/" + "{sample}.deduped_methyldackel",
@@ -102,7 +104,9 @@ rule methyldackel_extract_methylKit_deduped:
         nice("methyldackel",
              ["extract", "{input.genome}", "{input.bamfile}",
               "-o {params.prefix}", "-@ {params.threads}", "{params.keepDups}",
-              "--methylKit", "--CHH", "--CHG", "-q {params.minqual}"],
+              "--methylKit",
+              # "--CHH", "--CHG",
+              "-q {params.minqual}"],
              ("{log}"))
 
 
