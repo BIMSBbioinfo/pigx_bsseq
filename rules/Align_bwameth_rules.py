@@ -87,7 +87,7 @@ rule bwameth_align_trimmed:
         index = rules.bwameth_genome_preparation.output,
         files = lambda wc: bwameth_input(wc.sample)
     output:
-        bam = DIR_mapped+"{sample}.bwameth.bam"
+        bam = temp(DIR_mapped+"{sample}.bwameth.bam")
     params:
       # bwa-meth parameters
         threads = config['execution']['rules']['bwameth_align_trimmed']['threads']
