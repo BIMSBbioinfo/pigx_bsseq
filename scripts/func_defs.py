@@ -280,8 +280,8 @@ def bam_processing(files, sampleID, protocol):
 def list_files_methyldackel_extract(files, sampleID, protocol):
     PATH = DIR_methcall + "methylDackel/"
     return [PATH+sampleID+dedupe_tag(protocol)+"_methyldackel_CpG.methylKit",
-            PATH+sampleID+dedupe_tag(protocol)+"_methyldackel_CHG.methylKit",
-            PATH+sampleID+dedupe_tag(protocol)+"_methyldackel_CHH.methylKit",
+            # PATH+sampleID+dedupe_tag(protocol)+"_methyldackel_CHG.methylKit",
+            # PATH+sampleID+dedupe_tag(protocol)+"_methyldackel_CHH.methylKit",
             # PATH+sampleID+"_mbias_methyldackel.txt",
             # PATH+sampleID+"_mbias_OB.svg",
             # PATH+sampleID+"_mbias_OT.svg",
