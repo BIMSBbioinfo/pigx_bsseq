@@ -251,7 +251,7 @@ lint: require-snakemake $(TEST_CONFIG_FILE)
 
 ## format: Format rules and scripts
 format: require-snakefmt require-air
-	snakefmt snakefile.py rules/*.py;
+	snakefmt snakefile.py rules/*.py;\
 	air format scripts/
 
 ## format-check: Check formatting of rules and scripts
