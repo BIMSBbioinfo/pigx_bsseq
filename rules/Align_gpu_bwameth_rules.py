@@ -43,8 +43,12 @@ rule bwameth_genome_preparation:
         os.path.join(GENOMEPATH,'bwameth_genome_preparation.output_'+ASSEMBLY+'.log')
     message: "Converting {ASSEMBLY} Genome into Bisulfite analogue with bwa-meth"
     shell:
-        "export PATH=$(dirname %s):$PATH; " % tool('samtools') + 
-        nice("bwameth", ["index {input}"],"{log}")
+        nice(
+            "bwameth",
+            ["index {input}"],
+            "{log}",
+            pre="export PATH=$(dirname %s):$PATH; " % tool('samtools'),
+        )
 
 rule bwameth_touch_index:
     input:
