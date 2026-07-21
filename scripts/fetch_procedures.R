@@ -24,7 +24,6 @@
 # Define functions:
 #===================================================================
 
-
 # Prepare Variable -----------------------------------------------------------
 
 # load libraries
@@ -54,15 +53,21 @@ fetchTableFromUCSC <- function(table.name, filename, assembly) {
   mySession = rtracklayer::browserSession("UCSC")
   rtracklayer::genome(mySession) <- assembly
   track.names <- rtracklayer::trackNames(rtracklayer::ucscTableQuery(mySession))
-  
+
   if (table.name %in% track.names) {
-      message(paste("Downloading", table.name, "..."))
-  
-      targetTrack <- rtracklayer::track(mySession, table.name)
-      return(targetTrack)
+    message(paste("Downloading", table.name, "..."))
+
+    targetTrack <- rtracklayer::track(mySession, table.name)
+    return(targetTrack)
   } else {
-      warning(paste("Could not find", table.name, " track for the given assembly <'",assembly,"'>."))
-      return(NULL)
+    warning(paste(
+      "Could not find",
+      table.name,
+      " track for the given assembly <'",
+      assembly,
+      "'>."
+    ))
+    return(NULL)
   }
 }
 
@@ -80,91 +85,103 @@ fetchTableFromUCSC <- function(table.name, filename, assembly) {
 fetchTableFromAnnotationHub <- function(table.name, filename, assembly) {
   require("AnnotationHub")
   hub = AnnotationHub()
-  
+
   ## query track for assembly
   track.q <- query(hub, c(table.name, "genes", assembly))
-  
+
   ## If there is exactly one record: fetch it
-  if(length(track.q) == 1) {
-    message("Found single ", table.name ," track, downloading...\n")
+  if (length(track.q) == 1) {
+    message("Found single ", table.name, " track, downloading...\n")
     track <- hub[[names(track.q)]]
     return(track)
   } else {
-    warning(paste("Could not find single", table.name, "track for the given assembly <'",assembly,"'>.\n"))
+    warning(paste(
+      "Could not find single",
+      table.name,
+      "track for the given assembly <'",
+      assembly,
+      "'>.\n"
+    ))
     return(NULL)
   }
 }
 
 #' Lookup annotation files
-#' 
+#'
 #' Check if annotation file already exist, if not download from UCSC
 #'
-#' @param type 
-#' @param filename 
-#' @param assembly 
-#' @param webfetch 
+#' @param type
+#' @param filename
+#' @param assembly
+#' @param webfetch
 #'
 #' @return
 #' @export
 #'
 #' @examples
 lookupBedFile <- function(type, filename, assembly, webfetch) {
-  
   if (file.exists(filename)) {
     return(filename)
   }
-  
+
   accepted_types <- c("cpgIslandExt", "knownGene", "refGene")
-  if(!(type %in% accepted_types)) {
-    stop(paste0("Type <'",type,"'> not supported. Please use one of the following: ",paste(accepted_types,collapse=", ")))
+  if (!(type %in% accepted_types)) {
+    stop(paste0(
+      "Type <'",
+      type,
+      "'> not supported. Please use one of the following: ",
+      paste(accepted_types, collapse = ", ")
+    ))
   }
 
   message("Trying to fetch from AnnotationHub.\n")
-  
+
   track <- tryCatch(
     expr = {
-      fetchTableFromAnnotationHub(type,filename,assembly)
-      }, 
-    error = function (msg) {
+      fetchTableFromAnnotationHub(type, filename, assembly)
+    },
+    error = function(msg) {
       message(paste0("Error while downloading from AnnotationHub: ", msg))
       return(NULL)
-      })
-  
-  if(is.null(track)) {
-    
+    }
+  )
+
+  if (is.null(track)) {
     message("Trying to fetch from UCSC directly.\n")
-    
+
     track <- tryCatch(
       expr = {
-        fetchTableFromUCSC(type,filename,assembly)
-      }, 
-      error = function (msg) {
+        fetchTableFromUCSC(type, filename, assembly)
+      },
+      error = function(msg) {
         message(paste0("Error while downloading from UCSC browser: ", msg))
         return(NULL)
-      })
-    
-    if(is.null(track)) {
-      
-      warning( "Failed to find annotation file",type," for assembly <'",assembly,"'>.",
-               "Make sure you used a valid UCSC assembly for settings:general:assembly in settings file." )
+      }
+    )
+
+    if (is.null(track)) {
+      warning(
+        "Failed to find annotation file",
+        type,
+        " for assembly <'",
+        assembly,
+        "'>.",
+        "Make sure you used a valid UCSC assembly for settings:general:assembly in settings file."
+      )
       return(NULL)
     }
   }
-  
-  
+
   ## write gzipped file ?
-  if (grepl(".gz$",filename)) {
+  if (grepl(".gz$", filename)) {
     fileCon <- gzfile(filename)
   } else {
     fileCon <- file(filename)
   }
-  
+
   ## else write it to BED file
-  export.bed(object = track,
-             con = fileCon,
-             trackLine = FALSE)
+  export.bed(object = track, con = fileCon, trackLine = FALSE)
   message(paste("Wrote ", table.name, " track to:", filename))
-  
+
   return(filename)
-    
-  }
+}

@@ -20,7 +20,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 # This file was inspired by
 # https://github.com/katwre/makeWGBSnake/blob/master/Scripts/MethDiff.R
 # taken from
@@ -29,7 +28,6 @@
 #
 # Copyright © 2018 Katarzyna Wreczycka katarzyna.wreczycka@mdc-berlin.de
 # This pipeline is heavily based on the PiGx BSseq pipeline github.com/BIMSBbioinfo/pigx_bsseq
-
 
 # methDiff.R - takes a methylKit methylBaseDB tabix file and performs
 # 	differential methylation testing
@@ -45,7 +43,8 @@ if (length(args) < 1) {
 
 ## Help section
 if ("--help" %in% args) {
-  cat("
+  cat(
+    "
       Calculate Differential Methylation
       
       Arguments:
@@ -68,7 +67,8 @@ if ("--help" %in% args) {
       --help              - print this text
       
       Example:
-      ./test.R --arg1=1 --arg2='output.txt' --arg3=TRUE \n\n")
+      ./test.R --arg1=1 --arg2='output.txt' --arg3=TRUE \n\n"
+  )
 
   q(save = "no")
 }
@@ -101,20 +101,50 @@ data.table::setDTthreads(8)
 
 # load variables
 input <- argsL$inputfile
-sampleids <- strsplit(argsL$sampleids, ",", fixed = FALSE, perl = FALSE, useBytes = FALSE)[[1]]
+sampleids <- strsplit(
+  argsL$sampleids,
+  ",",
+  fixed = FALSE,
+  perl = FALSE,
+  useBytes = FALSE
+)[[1]]
 assembly <- argsL$assembly
-destranded <- ifelse(tolower(argsL$destranded) %in% c("true", "yes"), TRUE, FALSE)
+destranded <- ifelse(
+  tolower(argsL$destranded) %in% c("true", "yes"),
+  TRUE,
+  FALSE
+)
 outdir <- argsL$outdir
 resultsFile <- argsL$resultsFile
 
 # split all treatment values, could be numeric or not
-treatmentsStr <- strsplit(argsL$treatments, ",", fixed = FALSE, perl = FALSE, useBytes = FALSE)[[1]]
+treatmentsStr <- strsplit(
+  argsL$treatments,
+  ",",
+  fixed = FALSE,
+  perl = FALSE,
+  useBytes = FALSE
+)[[1]]
 
-treatment_group <- strsplit(argsL$treatment_group, ",", fixed = FALSE, perl = FALSE, useBytes = FALSE)[[1]]
-control_group <- strsplit(argsL$control_group, ",", fixed = FALSE, perl = FALSE, useBytes = FALSE)[[1]]
+treatment_group <- strsplit(
+  argsL$treatment_group,
+  ",",
+  fixed = FALSE,
+  perl = FALSE,
+  useBytes = FALSE
+)[[1]]
+control_group <- strsplit(
+  argsL$control_group,
+  ",",
+  fixed = FALSE,
+  perl = FALSE,
+  useBytes = FALSE
+)[[1]]
 
 if (!setequal(control_group, treatment_group)) {
-  message("Remapping Treatments Descriptions into treatment and control groups.")
+  message(
+    "Remapping Treatments Descriptions into treatment and control groups."
+  )
   # reorganize samples into treatment and control groups
   treatments <- ifelse(treatmentsStr %in% treatment_group, 1, 0)
 
@@ -126,15 +156,18 @@ if (!setequal(control_group, treatment_group)) {
   treatments <- as.numeric(as.factor(treatmentsStr))
   names(treatments) <- treatmentsStr
 
-  message(paste(sort(unique(treatmentsStr)),
+  message(paste(
+    sort(unique(treatmentsStr)),
     sort(unique(treatments)),
-    sep = ": ", collapse = "\n"
+    sep = ": ",
+    collapse = "\n"
   ))
 }
 
 
 # convert variables and perform checks
-context <- switch(tolower(argsL$context),
+context <- switch(
+  tolower(argsL$context),
   cpg = "CpG",
   chh = "CHH",
   chg = "CHG",
@@ -143,7 +176,8 @@ context <- switch(tolower(argsL$context),
 
 if (is.null(context)) {
   stop(
-    "The given context <", argsL$context,
+    "The given context <",
+    argsL$context,
     "> is not among the supported ones ('CpG','CHG','CHH')"
   )
 }
@@ -157,43 +191,45 @@ methylDiff_results_suffix <- argsL$methylDiff_results_suffix
 # Read input files
 message("Reading united samples ...")
 methylBaseDB <- methylKit:::readMethylBaseDB(
-dbpath = input,
-dbtype = "tabix",
-sample.ids = sampleids,
-assembly = assembly,
-context = context,
-resolution = "base",
-treatment = treatments,
-destranded = destranded
+  dbpath = input,
+  dbtype = "tabix",
+  sample.ids = sampleids,
+  assembly = assembly,
+  context = context,
+  resolution = "base",
+  treatment = treatments,
+  destranded = destranded
 )
 
 # remove output file if already exists
-methylDiff_outFile <- gsub("results.tsv",
-						 sprintf("%s.txt.bgz",
-								 methylDiff_results_suffix),
-						 resultsFile)
+methylDiff_outFile <- gsub(
+  "results.tsv",
+  sprintf("%s.txt.bgz", methylDiff_results_suffix),
+  resultsFile
+)
 
-if( file.exists(methylDiff_outFile)) {
-unlink(c(methylDiff_outFile, paste0(methylDiff_outFile, ".tbi")))
+if (file.exists(methylDiff_outFile)) {
+  unlink(c(methylDiff_outFile, paste0(methylDiff_outFile, ".tbi")))
 }
 
 # Find differentially methylated cytosines
 message("Calculating differential methylation ...")
 methylDiffDB <- methylKit::calculateDiffMeth(
-.Object = methylBaseDB,
-overdispersion = "MN",
-test = "Chisq",
-mc.cores = cores,
-save.db = TRUE,
-dbdir = outdir,
-suffix = methylDiff_results_suffix
+  .Object = methylBaseDB,
+  overdispersion = "MN",
+  test = "Chisq",
+  mc.cores = cores,
+  save.db = TRUE,
+  dbdir = outdir,
+  suffix = methylDiff_results_suffix
 )
 
 
 message("Exporting results to tsv...")
-methylKit:::.write.table.noSci(methylKit::getData(methylDiffDB),
-sep = "\t",
-row.names = FALSE,
-quote = FALSE,
-file = resultsFile
+methylKit:::.write.table.noSci(
+  methylKit::getData(methylDiffDB),
+  sep = "\t",
+  row.names = FALSE,
+  quote = FALSE,
+  file = resultsFile
 )

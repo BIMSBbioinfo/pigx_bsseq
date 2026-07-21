@@ -22,13 +22,14 @@
 args <- commandArgs(TRUE)
 
 ## Default setting when no arguments passed
-if(length(args) < 1) {
+if (length(args) < 1) {
   args <- c("--help")
 }
 
 ## Help section
-if("--help" %in% args) {
-  cat("
+if ("--help" %in% args) {
+  cat(
+    "
       Create tabix files from methylDackel .methylKit files
       
       Arguments:
@@ -43,11 +44,10 @@ if("--help" %in% args) {
       --help              - print this text
       
       Example:
-      ./test.R --arg1=1 --arg2='output.txt' --arg3=TRUE \n\n")
+      ./test.R --arg1=1 --arg2='output.txt' --arg3=TRUE \n\n"
+  )
 
-
-  
-  q(save="no")
+  q(save = "no")
 }
 
 ## Parse arguments (we expect the form --arg=value)
@@ -60,39 +60,38 @@ names(argsL) <- argsDF$V1
 
 
 ## catch output and messages into log file
-if(!is.null(argsL$logFile)) {
+if (!is.null(argsL$logFile)) {
   out <- file(argsL$logFile, open = "at")
-  sink(out,type = "output")
+  sink(out, type = "output")
   sink(out, type = "message")
 }
 
 
-
 # Run Functions -----------------------------------------------------------
-
 
 ### Create tabix file from Methylation Calls
 
 ## load methylKit
 # require("methylKit")
 
-location  <- argsL$location 
-sample.id <- argsL$sample.id     
-assembly  <- argsL$assembly    
-treatment <- argsL$treatment   
-context   <- argsL$context
-mincov    <- as.numeric(argsL$mincov)
-dbdir     <- argsL$dbdir   
+location <- argsL$location
+sample.id <- argsL$sample.id
+assembly <- argsL$assembly
+treatment <- argsL$treatment
+context <- argsL$context
+mincov <- as.numeric(argsL$mincov)
+dbdir <- argsL$dbdir
 
-message("read file <",location,"> into methylKit object")
+message("read file <", location, "> into methylKit object")
 
 ## read file into methylKit object
-methRaw = methylKit::methRead(location = location,
-                    sample.id = sample.id,
-                    assembly = assembly,
-                    treatment = treatment,
-                    mincov = mincov,
-                    context = context,
-                    dbtype = 'tabix',
-                    dbdir = dbdir)
-
+methRaw = methylKit::methRead(
+  location = location,
+  sample.id = sample.id,
+  assembly = assembly,
+  treatment = treatment,
+  mincov = mincov,
+  context = context,
+  dbtype = 'tabix',
+  dbdir = dbdir
+)

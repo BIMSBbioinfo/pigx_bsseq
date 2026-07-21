@@ -29,7 +29,8 @@ if (length(args) < 1) {
 
 ## Help section
 if ("--help" %in% args) {
-  cat("
+  cat(
+    "
       Merge methylation samples using methylKit
 
       Arguments:
@@ -46,7 +47,8 @@ if ("--help" %in% args) {
       --help              - print this text
 
       Example:
-      ./test.R --arg1=1 --arg2='output.txt' --arg3=TRUE \n\n")
+      ./test.R --arg1=1 --arg2='output.txt' --arg3=TRUE \n\n"
+  )
 
   q(save = "no")
 }
@@ -73,8 +75,20 @@ suppressPackageStartupMessages(library("methylKit"))
 data.table::setDTthreads(8)
 
 ## Load variables
-inputs <- strsplit(argsL$inputfiles, ",", fixed = FALSE, perl = FALSE, useBytes = FALSE)[[1]]
-sampleids <- strsplit(argsL$sampleids, ",", fixed = FALSE, perl = FALSE, useBytes = FALSE)[[1]]
+inputs <- strsplit(
+  argsL$inputfiles,
+  ",",
+  fixed = FALSE,
+  perl = FALSE,
+  useBytes = FALSE
+)[[1]]
+sampleids <- strsplit(
+  argsL$sampleids,
+  ",",
+  fixed = FALSE,
+  perl = FALSE,
+  useBytes = FALSE
+)[[1]]
 cores <- as.numeric(argsL$cores)
 assembly <- argsL$assembly
 suffix <- argsL$suffix
@@ -83,7 +97,13 @@ destrand <- ifelse(tolower(argsL$destrand) %in% c("true", "yes"), TRUE, FALSE)
 
 message("Remapping Treatment Description to number.")
 # split all treatment values, could be numeric or not
-treatmentsStr <- strsplit(argsL$treatments, ",", fixed = FALSE, perl = FALSE, useBytes = FALSE)[[1]]
+treatmentsStr <- strsplit(
+  argsL$treatments,
+  ",",
+  fixed = FALSE,
+  perl = FALSE,
+  useBytes = FALSE
+)[[1]]
 # convert into named numeric vector
 treatments <- as.numeric(as.factor(treatmentsStr))
 names(treatments) <- treatmentsStr
@@ -91,11 +111,13 @@ names(treatments) <- treatmentsStr
 message(paste(
   sort(unique(treatmentsStr)),
   sort(unique(treatments)),
-  sep = ": ", collapse = "\n"
+  sep = ": ",
+  collapse = "\n"
 ))
 
 # convert variables and perform checks
-context <- switch(tolower(argsL$context),
+context <- switch(
+  tolower(argsL$context),
   cpg = "CpG",
   chh = "CHH",
   chg = "CHG",
@@ -104,7 +126,8 @@ context <- switch(tolower(argsL$context),
 
 if (is.null(context)) {
   stop(
-    "The given context <", argsL$context,
+    "The given context <",
+    argsL$context,
     "> is not among the supported ones ('CpG','CHG','CHH')"
   )
 }
@@ -125,88 +148,101 @@ inputs <- linkedFiles
 
 
 if (length(inputs > 1)) {
-inputs <- as.list(inputs)
-sampleids <- as.list(sampleids)
+  inputs <- as.list(inputs)
+  sampleids <- as.list(sampleids)
 }
 
 ## Read data
 message("Importing Tabix files.")
 methylRawListDB <- methRead(
-location = inputs,
-sample.id = sampleids,
-assembly = assembly,
-dbtype = "tabix",
-context = context,
-treatment = treatments
+  location = inputs,
+  sample.id = sampleids,
+  assembly = assembly,
+  dbtype = "tabix",
+  context = context,
+  treatment = treatments
 )
 
 ## Destrand if needed
 if (destrand) {
-message("Destranding first.")
+  message("Destranding first.")
 
-destrandFun <- function(obj, cores) {
-  print(getSampleID(obj))
+  destrandFun <- function(obj, cores) {
+    print(getSampleID(obj))
 
-  if (obj@resolution == "base") {
-	dir <- dirname(obj@dbpath)
-	filename <- paste(gsub(".txt.bgz", "", obj@dbpath),
-	  "destrand.txt",
-	  sep = "_"
-	)
+    if (obj@resolution == "base") {
+      dir <- dirname(obj@dbpath)
+      filename <- paste(
+        gsub(".txt.bgz", "", obj@dbpath),
+        "destrand.txt",
+        sep = "_"
+      )
 
-	filename <- basename(filename)
+      filename <- basename(filename)
 
-	# need to use .CpG.dinuc.unifyOld because output needs to be ordered
-	newdbpath <- methylKit:::applyTbxByChr(obj@dbpath,
-	  dir = dir, filename = filename,
-	  return.type = "tabix",
-	  FUN = function(x) {
-		options(scipen = 999)
-		methylKit:::.CpG.dinuc.unifyOld(methylKit:::.setMethylDBNames(
-		  x,
-		  "methylRawDB"
-		))
-	  },
-	  mc.cores = cores
-	)
+      # need to use .CpG.dinuc.unifyOld because output needs to be ordered
+      newdbpath <- methylKit:::applyTbxByChr(
+        obj@dbpath,
+        dir = dir,
+        filename = filename,
+        return.type = "tabix",
+        FUN = function(x) {
+          options(scipen = 999)
+          methylKit:::.CpG.dinuc.unifyOld(methylKit:::.setMethylDBNames(
+            x,
+            "methylRawDB"
+          ))
+        },
+        mc.cores = cores
+      )
 
-	obj <- methylKit:::readMethylRawDB(
-	  dbpath = newdbpath, dbtype = "tabix",
-	  sample.id = obj@sample.id,
-	  assembly = obj@assembly, context = obj@context,
-	  resolution = obj@resolution
-	)
+      obj <- methylKit:::readMethylRawDB(
+        dbpath = newdbpath,
+        dbtype = "tabix",
+        sample.id = obj@sample.id,
+        assembly = obj@assembly,
+        context = obj@context,
+        resolution = obj@resolution
+      )
+    }
+    return(obj)
   }
-  return(obj)
-}
 
-new.list <- suppressMessages(lapply(methylRawListDB, destrandFun, cores = cores))
-methylRawListDB <- new("methylRawListDB", new.list, treatment = methylRawListDB@treatment)
-destrandFiles <- getDBPath(methylRawListDB)
+  new.list <- suppressMessages(lapply(
+    methylRawListDB,
+    destrandFun,
+    cores = cores
+  ))
+  methylRawListDB <- new(
+    "methylRawListDB",
+    new.list,
+    treatment = methylRawListDB@treatment
+  )
+  destrandFiles <- getDBPath(methylRawListDB)
 }
 
 # remove output file if already exists
-outFile <- file.path(outdir,sprintf("methylBase_%s.txt.bgz",suffix))
-if( file.exists(outFile)) {
-unlink(c(outFile, paste0(outFile, ".tbi")))
+outFile <- file.path(outdir, sprintf("methylBase_%s.txt.bgz", suffix))
+if (file.exists(outFile)) {
+  unlink(c(outFile, paste0(outFile, ".tbi")))
 }
 
 ## Unite
 message("Merging samples.")
-methylBaseDB <- unite(methylRawListDB,
-destrand = FALSE,
-suffix = suffix,
-dbdir = outdir,
-mc.cores = cores,
-chunk.size = 1e7,
+methylBaseDB <- unite(
+  methylRawListDB,
+  destrand = FALSE,
+  suffix = suffix,
+  dbdir = outdir,
+  mc.cores = cores,
+  chunk.size = 1e7,
 )
 
 ## FIXME: check wether result has more than 1 rows and fail if not
 
 if (destrand) {
-
-## Remove temp destrand files
-unlink(c(destrandFiles, paste0(destrandFiles, ".tbi")))
+  ## Remove temp destrand files
+  unlink(c(destrandFiles, paste0(destrandFiles, ".tbi")))
 }
 
 ## Remove temp hardlinked files

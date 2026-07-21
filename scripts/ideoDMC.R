@@ -31,138 +31,196 @@
 #' library("BSgenome.Hsapiens.UCSC.hg18")
 #' chr.len = seqlengths(Hsapiens)  # get chromosome lengths
 #' # remove X,Y,M and random chromosomes
-#' chr.len = chr.len[grep("_|M|X|Y", names(chr.len), invert = T)] 
-#' 
-#' download.file("http://methylkit.googlecode.com/files/myDiff.rda", 
+#' chr.len = chr.len[grep("_|M|X|Y", names(chr.len), invert = T)]
+#'
+#' download.file("http://methylkit.googlecode.com/files/myDiff.rda",
 #'               destfile = "myDiff.rda")
 #' load("myDiff.rda")
-#' 
-#' ideoDMC(myDiff, chrom.length = chr.len, difference = 25, qvalue = 0.01, 
+#'
+#' ideoDMC(myDiff, chrom.length = chr.len, difference = 25, qvalue = 0.01,
 #'        circos = TRUE, title = "test", hyper.col = "magenta", hypo.col = "green")
-#'        
-ideoDMC <- function(methylDiff.obj, chrom.length, difference = 25, 
-                    qvalue = 0.01, circos = FALSE, title = "test", hyper.col = "magenta", 
-                    hypo.col = "green") {
+#'
+ideoDMC <- function(
+  methylDiff.obj,
+  chrom.length,
+  difference = 25,
+  qvalue = 0.01,
+  circos = FALSE,
+  title = "test",
+  hyper.col = "magenta",
+  hypo.col = "green"
+) {
   require(methylKit)
   require(GenomicRanges)
   require(ggbio)
   # TODO: rewrite the require statement as library::function calls to not pollute the reports environment
 
   # chrom.length
-  myIdeo <- GRanges(seqnames = names(chrom.length), ranges = IRanges(start = 1, 
-                                                                     width = chrom.length))
+  myIdeo <- GRanges(
+    seqnames = names(chrom.length),
+    ranges = IRanges(start = 1, width = chrom.length)
+  )
   seqlevels(myIdeo) = names(chrom.length)
   seqlengths(myIdeo) = (chrom.length)
-  
-  
-  hypo = get.methylDiff(methylDiff.obj, difference = difference, qvalue = qvalue, 
-                        type = "hypo")
-  hyper = get.methylDiff(methylDiff.obj, difference = difference, qvalue = qvalue, 
-                         type = "hyper")
-  
+
+  hypo = get.methylDiff(
+    methylDiff.obj,
+    difference = difference,
+    qvalue = qvalue,
+    type = "hypo"
+  )
+  hyper = get.methylDiff(
+    methylDiff.obj,
+    difference = difference,
+    qvalue = qvalue,
+    type = "hyper"
+  )
+
   g.per = as(hyper, "GRanges")
   seqlevels(g.per) = seqlevels(myIdeo)
-  seqlengths(g.per)=(chrom.length)
-  
+  seqlengths(g.per) = (chrom.length)
+
   g.po = as(hypo, "GRanges")
   seqlevels(g.po) = seqlevels(myIdeo)
-  seqlengths(g.po)=(chrom.length)
-  
+  seqlengths(g.po) = (chrom.length)
+
   values(g.po)$id = "hypo"
   values(g.per)$id = "hyper"
-  
+
   if (circos) {
-    
-    p <- ggplot() + layout_circle(myIdeo, geom = "ideo", fill = "gray70", 
-                                  radius = 39, trackWidth = 2)
-    
-    
-    p <- p + layout_circle(c(g.po, g.per), geom = "point", 
-                           size = 1, aes(x = midpoint, 
-                                         y = meth.diff, color = id), radius = 25, trackWidth = 30) +              
+    p <- ggplot() +
+      layout_circle(
+        myIdeo,
+        geom = "ideo",
+        fill = "gray70",
+        radius = 39,
+        trackWidth = 2
+      )
+
+    p <- p +
+      layout_circle(
+        c(g.po, g.per),
+        geom = "point",
+        size = 1,
+        aes(x = midpoint, y = meth.diff, color = id),
+        radius = 25,
+        trackWidth = 30
+      ) +
       scale_colour_manual(values = c(hyper.col, hypo.col))
-    p + layout_circle(myIdeo, geom = "text", aes(label = seqnames), 
-                      vjust = 0, radius = 55, trackWidth = 7) + labs(title = title)
-    
+    p +
+      layout_circle(
+        myIdeo,
+        geom = "text",
+        aes(label = seqnames),
+        vjust = 0,
+        radius = 55,
+        trackWidth = 7
+      ) +
+      labs(title = title)
   } else {
-    
     p <- ggplot() + layout_karyogram(myIdeo, cytoband = FALSE)
-    p + layout_karyogram(c(g.po, g.per), geom = "point", size = 1, 
-                         aes(x = midpoint, 
-                             y = meth.diff, color = id)) + scale_colour_manual(values = c(hyper.col, 
-                                                                                          hypo.col)) + labs(title = title)
+    p +
+      layout_karyogram(
+        c(g.po, g.per),
+        geom = "point",
+        size = 1,
+        aes(x = midpoint, y = meth.diff, color = id)
+      ) +
+      scale_colour_manual(values = c(hyper.col, hypo.col)) +
+      labs(title = title)
     # new alternative commented out
-    #autoplot(c(g.po, g.per), layout = "karyogram", geom = "point", size = 0.65, 
-    #aes(x = midpoint,y = meth.diff, color = id))  + scale_colour_manual(values = c(hyper.col, 
+    #autoplot(c(g.po, g.per), layout = "karyogram", geom = "point", size = 0.65,
+    #aes(x = midpoint,y = meth.diff, color = id))  + scale_colour_manual(values = c(hyper.col,
     #                                                                                        hypo.col)) + labs(title = title)
-    
   }
 }
 
-ideoDMC_hyper_hypo <- function(hyper, hypo, chrom.length, 
-                               circos = FALSE, 
-                               title = "Differentially methylated cytosines", 
-                               hyper.col = "magenta", 
-                               hypo.col = "green") {
+ideoDMC_hyper_hypo <- function(
+  hyper,
+  hypo,
+  chrom.length,
+  circos = FALSE,
+  title = "Differentially methylated cytosines",
+  hyper.col = "magenta",
+  hypo.col = "green"
+) {
   require(methylKit)
   require(GenomicRanges)
   require(ggbio)
-  
+
   # chrom.length
-  myIdeo <- GRanges(seqnames = names(chrom.length), ranges = IRanges(start = 1, 
-                                                                     width = chrom.length))
+  myIdeo <- GRanges(
+    seqnames = names(chrom.length),
+    ranges = IRanges(start = 1, width = chrom.length)
+  )
   seqlevels(myIdeo) = names(chrom.length)
   seqlengths(myIdeo) = (chrom.length)
-  
-  
-  if(class(hypo) %in% c("methylDiffDB","methylDiff")) {
+
+  if (class(hypo) %in% c("methylDiffDB", "methylDiff")) {
     hypo <- as(hypo, "GRanges")
   }
-  if(class(hyper) %in% c("methylDiffDB","methylDiff")) {
+  if (class(hyper) %in% c("methylDiffDB", "methylDiff")) {
     hyper <- as(hyper, "GRanges")
   }
-  
+
   g.per = hyper
   seqlevels(g.per) = seqlevels(myIdeo)
-  seqlengths(g.per)=(chrom.length)
-  
+  seqlengths(g.per) = (chrom.length)
+
   g.po = hypo
   seqlevels(g.po) = seqlevels(myIdeo)
-  seqlengths(g.po)=(chrom.length)
-  
+  seqlengths(g.po) = (chrom.length)
+
   values(g.po)$id = "hypo"
   values(g.per)$id = "hyper"
-  
+
   if (circos) {
-    
-    p <- ggplot() + layout_circle(myIdeo, geom = "ideo", fill = "gray70", 
-                                  radius = 39, trackWidth = 2)
-    
-    
-    p <- p + layout_circle(c(g.po, g.per), geom = "point", 
-                           size = 1, aes(x = midpoint, 
-                                         y = meth.diff, color = id), radius = 25, trackWidth = 30) +              
-      scale_colour_manual("Regions",values = c(hyper.col, hypo.col))
-    p + layout_circle(myIdeo, geom = "text", aes(label = seqnames), 
-                      vjust = 0, radius = 55, trackWidth = 7) + labs(title = title)
-    
+    p <- ggplot() +
+      layout_circle(
+        myIdeo,
+        geom = "ideo",
+        fill = "gray70",
+        radius = 39,
+        trackWidth = 2
+      )
+
+    p <- p +
+      layout_circle(
+        c(g.po, g.per),
+        geom = "point",
+        size = 1,
+        aes(x = midpoint, y = meth.diff, color = id),
+        radius = 25,
+        trackWidth = 30
+      ) +
+      scale_colour_manual("Regions", values = c(hyper.col, hypo.col))
+    p +
+      layout_circle(
+        myIdeo,
+        geom = "text",
+        aes(label = seqnames),
+        vjust = 0,
+        radius = 55,
+        trackWidth = 7
+      ) +
+      labs(title = title)
   } else {
-    
     # p <- ggplot() + layout_karyogram(myIdeo, cytoband = FALSE)
-    # p + layout_karyogram(c(g.po, g.per), geom = "point", size = 1, 
-    #                      aes(x = midpoint, 
-    #                          y = meth.diff, color = id)) + scale_colour_manual("Regions", values = c(hyper.col, 
+    # p + layout_karyogram(c(g.po, g.per), geom = "point", size = 1,
+    #                      aes(x = midpoint,
+    #                          y = meth.diff, color = id)) + scale_colour_manual("Regions", values = c(hyper.col,
     #                                                                                                  hypo.col)) + labs(title = title)
     # new alternative commented out
     d = c(g.per, g.po)
     p <- ggplot() + layout_karyogram(myIdeo, cytoband = FALSE)
-    p + layout_karyogram(d, geom = "point", size = 0.65,
-                         aes(x = start, y = meth.diff, color = id)) +
+    p +
+      layout_karyogram(
+        d,
+        geom = "point",
+        size = 0.65,
+        aes(x = start, y = meth.diff, color = id)
+      ) +
       scale_colour_manual("", values = c(hyper.col, hypo.col)) +
       labs(title = title)
   }
 }
-
-
-
-

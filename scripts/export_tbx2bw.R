@@ -26,13 +26,14 @@
 args <- commandArgs(TRUE)
 
 ## Default setting when no arguments passed
-if(length(args) < 1) {
+if (length(args) < 1) {
   args <- c("--help")
 }
 
 ## Help section
-if("--help" %in% args) {
-  cat("
+if ("--help" %in% args) {
+  cat(
+    "
       Export tabix files to methylation bigwig
       
       Arguments:
@@ -45,11 +46,10 @@ if("--help" %in% args) {
       --help            help 
       
       Example:
-      ./test.R --arg1=1 --arg2='output.txt' --arg3=TRUE \n\n")
+      ./test.R --arg1=1 --arg2='output.txt' --arg3=TRUE \n\n"
+  )
 
-
-  
-  q(save="no")
+  q(save = "no")
 }
 
 ## Parse arguments (we expect the form --arg=value)
@@ -62,16 +62,15 @@ names(argsL) <- argsDF$V1
 
 
 ## catch output and messages into log file
-if(!is.null(argsL$logFile)) {
+if (!is.null(argsL$logFile)) {
   out <- file(argsL$logFile, open = "at")
-  sink(out,type = "output")
+  sink(out, type = "output")
   sink(out, type = "message")
 } else {
   sink()
 }
 
 # Run Functions -----------------------------------------------------------
-
 
 suppressPackageStartupMessages(expr = {
   library(GenomicRanges)
@@ -89,67 +88,71 @@ data.table::setDTthreads(8)
 # out_path        <-  "/clusterhome/agosdsc/projects/pigx/pigx_bsseq/my.bw"
 # destrand        <-  TRUE
 
-filepath        <- argsL$filepath 
-seqlengths_path <- argsL$seqlengths_path 
-assembly        <- argsL$assembly 
-out_path        <- argsL$out_path 
-destrand        <- argsL$destrand
+filepath <- argsL$filepath
+seqlengths_path <- argsL$seqlengths_path
+assembly <- argsL$assembly
+out_path <- argsL$out_path
+destrand <- argsL$destrand
 
 
-destrand <- ifelse(tolower(destrand) %in% c("true","yes"),TRUE,FALSE)
+destrand <- ifelse(tolower(destrand) %in% c("true", "yes"), TRUE, FALSE)
 
 
 # ---------------------------------------------------
 
 message("Parsing chromosome lengths.")
-# load reference sequence info containing  
-seqdat_temp = read.csv(seqlengths_path, sep="\t", header=FALSE)
-Sinfo <- GenomeInfoDb::Seqinfo(seqnames   = as.character(seqdat_temp[,1]),
-                 seqlengths = seqdat_temp[,2],
-                 genome     = assembly)
+# load reference sequence info containing
+seqdat_temp = read.csv(seqlengths_path, sep = "\t", header = FALSE)
+Sinfo <- GenomeInfoDb::Seqinfo(
+  seqnames = as.character(seqdat_temp[, 1]),
+  seqlengths = seqdat_temp[, 2],
+  genome = assembly
+)
 
 message("Extracting methylation value from Tabix file.")
 
-SinfoList <- split(as(Sinfo,"GRanges"),seqnames(Sinfo))
+SinfoList <- split(as(Sinfo, "GRanges"), seqnames(Sinfo))
 
 
-methList <- lapply(SinfoList, 
-       FUN = function(gr) {
+methList <- lapply(SinfoList, FUN = function(gr) {
+  message("Processing chromosome ", seqnames(gr), "...")
 
-         message("Processing chromosome ",seqnames(gr),"...")
-
-         tryCatch(
-            {
-
-            # read directly from tabix file and process in chunks
-            dt <- methylKit:::applyTbxByOverlap(
-              tbxFile = filepath,
-              ranges = gr, 
-              return.type = "data.table", 
-              chunk.size = 1e9, 
-              FUN = function(dt){
-                options(scipen = 999)
-                methylKit:::.setMethylDBNames(dt)
-                # merge strands if destrand==TRUE
-                if(destrand) dt <- setDT(methylKit:::.CpG.dinuc.unify(dt))
-                dt[,score := numCs/coverage]
-                dt[,c("coverage","numCs","numTs") := NULL] 
-                return(dt)    
-                })
-            return(GenomicRanges::makeGRangesFromDataFrame(
-              dt,seqinfo = Sinfo,  keep.extra.columns=TRUE)
-              )
-
-            },
-            error = function(e) {
-              message("Chromosome ",seqnames(gr)," failed.")
-              return(NULL)
-            })
-        })
+  tryCatch(
+    {
+      # read directly from tabix file and process in chunks
+      dt <- methylKit:::applyTbxByOverlap(
+        tbxFile = filepath,
+        ranges = gr,
+        return.type = "data.table",
+        chunk.size = 1e9,
+        FUN = function(dt) {
+          options(scipen = 999)
+          methylKit:::.setMethylDBNames(dt)
+          # merge strands if destrand==TRUE
+          if (destrand) {
+            dt <- setDT(methylKit:::.CpG.dinuc.unify(dt))
+          }
+          dt[, score := numCs / coverage]
+          dt[, c("coverage", "numCs", "numTs") := NULL]
+          return(dt)
+        }
+      )
+      return(GenomicRanges::makeGRangesFromDataFrame(
+        dt,
+        seqinfo = Sinfo,
+        keep.extra.columns = TRUE
+      ))
+    },
+    error = function(e) {
+      message("Chromosome ", seqnames(gr), " failed.")
+      return(NULL)
+    }
+  )
+})
 
 # remove empty list elements
-methList <- unlist(GRangesList(methList[!sapply(methList,is.null)]))
+methList <- unlist(GRangesList(methList[!sapply(methList, is.null)]))
 
-rtracklayer::export.bw( object = methList, con = out_path )
+rtracklayer::export.bw(object = methList, con = out_path)
 
 # bigwig exported. Program complete.

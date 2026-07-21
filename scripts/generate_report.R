@@ -21,7 +21,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 ## Wrapper function to run a specific Rmd script
 ## which does the computation and generates an HTML report with code included
 #' Title
@@ -46,16 +45,20 @@
 #' @export
 #'
 #' @examples
-render2HTML <- function(reportFile,
-                        outFile,
-                        workdir = getwd(),
-                        report.params,
-                        logo,
-                        bibTexFile,
-                        prefix,
-                        selfContained = TRUE,
-                        quiet = FALSE) {
-  if (is.null(report.params)) report.params <- list()
+render2HTML <- function(
+  reportFile,
+  outFile,
+  workdir = getwd(),
+  report.params,
+  logo,
+  bibTexFile,
+  prefix,
+  selfContained = TRUE,
+  quiet = FALSE
+) {
+  if (is.null(report.params)) {
+    report.params <- list()
+  }
 
   ## render single report
   message("rendering report from template: ", reportFile)
@@ -79,11 +82,7 @@ render2HTML <- function(reportFile,
       bibliography = bibTexFile
     ),
     output_options = list(self_contained = selfContained),
-    params = c(report.params,
-      logo = logo,
-      prefix = prefix,
-      workdir = workdir
-    ),
+    params = c(report.params, logo = logo, prefix = prefix, workdir = workdir),
     quiet = quiet,
     clean = TRUE
   )
@@ -91,8 +90,6 @@ render2HTML <- function(reportFile,
     unlink(file.path(workdir, prefix), recursive = TRUE)
   }
 }
-
-
 
 
 ## Collect arguments
@@ -105,7 +102,8 @@ if (length(args) < 1) {
 
 ## Help section
 if ("--help" %in% args) {
-  cat("
+  cat(
+    "
       Render to report
 
       Arguments:
@@ -121,7 +119,8 @@ if ("--help" %in% args) {
       --help              - print this text
 
       Example:
-      ./test.R --arg1=1 --arg2='output.txt' --arg3=TRUE \n\n")
+      ./test.R --arg1=1 --arg2='output.txt' --arg3=TRUE \n\n"
+  )
 
   q(save = "no")
 }
@@ -148,20 +147,33 @@ if (!is.null(argsL$report.params)) {
 }
 
 # export a copy of the argument list for this rendering attempt
-message("Exporting a copy of the argument list for this rendering attempt.\n", "For debugging, please load arguments via:")
-cat("\n", paste0('params = jsonlite::read_json("', gsub("html", "RenderArgs.json", argsL$outFile), '", simplifyVector=TRUE)'), "\n\n")
+message(
+  "Exporting a copy of the argument list for this rendering attempt.\n",
+  "For debugging, please load arguments via:"
+)
+cat(
+  "\n",
+  paste0(
+    'params = jsonlite::read_json("',
+    gsub("html", "RenderArgs.json", argsL$outFile),
+    '", simplifyVector=TRUE)'
+  ),
+  "\n\n"
+)
 jsonlite::write_json(
-  with(argsL, c(report.params, logo = logo, prefix = prefix, workdir = workdir)),
-  path = gsub("html", "RenderArgs.json", argsL$outFile),  pretty = TRUE
+  with(
+    argsL,
+    c(report.params, logo = logo, prefix = prefix, workdir = workdir)
+  ),
+  path = gsub("html", "RenderArgs.json", argsL$outFile),
+  pretty = TRUE
 )
 
 message("========= Given Parameters ==========")
 print(argsL)
 
 ## check wether all required report params are given
-paramsList <- knitr::knit_params(readLines(argsL$reportFile),
-  evaluate = TRUE
-)
+paramsList <- knitr::knit_params(readLines(argsL$reportFile), evaluate = TRUE)
 
 ## exclude standard report params
 paramsList <- paramsList[!names(paramsList) %in% c("logo", "prefix", "workdir")]
@@ -169,7 +181,8 @@ paramsList <- paramsList[!names(paramsList) %in% c("logo", "prefix", "workdir")]
 givenParams <- names(paramsList) %in% names(argsL$report.params)
 if (!all(givenParams)) {
   warning(
-    "--------- Missing values for parameters: ----------", "\n",
+    "--------- Missing values for parameters: ----------",
+    "\n",
     paste(names(paramsList)[!givenParams], collapse = ", ")
   )
 }
@@ -177,14 +190,24 @@ message("====================================")
 
 
 cat(paste(
-  format(as.POSIXct(if ("" != Sys.getenv("SOURCE_DATE_EPOCH")) {
-    as.numeric(Sys.getenv("SOURCE_DATE_EPOCH"))
-  } else {
-    Sys.time()
-  }, origin = "1970-01-01"), "%Y-%m-%d %H:%M:%S"),
+  format(
+    as.POSIXct(
+      if ("" != Sys.getenv("SOURCE_DATE_EPOCH")) {
+        as.numeric(Sys.getenv("SOURCE_DATE_EPOCH"))
+      } else {
+        Sys.time()
+      },
+      origin = "1970-01-01"
+    ),
+    "%Y-%m-%d %H:%M:%S"
+  ),
   "\n\n",
-  "Rendering report:", basename(argsL$outFile), "\n",
-  "into directory:", argsL$workdir, "\n\n"
+  "Rendering report:",
+  basename(argsL$outFile),
+  "\n",
+  "into directory:",
+  argsL$workdir,
+  "\n\n"
 ))
 
 
