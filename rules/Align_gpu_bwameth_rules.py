@@ -48,7 +48,7 @@ rule bwameth_genome_preparation:
             "bwameth",
             ["index {input}"],
             "{log}",
-            pre="export PATH=$(dirname %s):$PATH; " % tool('samtools'),
+            pre="export PATH=$(dirname %s):$PATH" % tool('samtools'),
         )
 
 
