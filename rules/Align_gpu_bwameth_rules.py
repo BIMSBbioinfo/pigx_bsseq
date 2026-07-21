@@ -31,17 +31,18 @@
 
 rule bwameth_genome_preparation:
     input:
-        ancient(GENOMEFILE)
+        ancient(GENOMEFILE),
     output:
-        GENOMEFILE+".bwameth.c2t.sa",
-        GENOMEFILE+".bwameth.c2t.amb",
-        GENOMEFILE+".bwameth.c2t.ann",
-        GENOMEFILE+".bwameth.c2t.pac",
-        GENOMEFILE+".bwameth.c2t.bwt",
-        GENOMEFILE+".bwameth.c2t"
+        GENOMEFILE + ".bwameth.c2t.sa",
+        GENOMEFILE + ".bwameth.c2t.amb",
+        GENOMEFILE + ".bwameth.c2t.ann",
+        GENOMEFILE + ".bwameth.c2t.pac",
+        GENOMEFILE + ".bwameth.c2t.bwt",
+        GENOMEFILE + ".bwameth.c2t",
     log:
-        os.path.join(GENOMEPATH,'bwameth_genome_preparation.output_'+ASSEMBLY+'.log')
-    message: "Converting {ASSEMBLY} Genome into Bisulfite analogue with bwa-meth"
+        os.path.join(GENOMEPATH, 'bwameth_genome_preparation.output_' + ASSEMBLY + '.log'),
+    message:
+        "Converting {ASSEMBLY} Genome into Bisulfite analogue with bwa-meth"
     shell:
         nice(
             "bwameth",
@@ -50,16 +51,18 @@ rule bwameth_genome_preparation:
             pre="export PATH=$(dirname %s):$PATH; " % tool('samtools'),
         )
 
+
 rule bwameth_touch_index:
     input:
-        GENOMEFILE+".bwameth.c2t.sa",
-        GENOMEFILE+".bwameth.c2t.amb",
-        GENOMEFILE+".bwameth.c2t.ann",
-        GENOMEFILE+".bwameth.c2t.pac",
-        GENOMEFILE+".bwameth.c2t.bwt"
+        GENOMEFILE + ".bwameth.c2t.sa",
+        GENOMEFILE + ".bwameth.c2t.amb",
+        GENOMEFILE + ".bwameth.c2t.ann",
+        GENOMEFILE + ".bwameth.c2t.pac",
+        GENOMEFILE + ".bwameth.c2t.bwt",
     output:
-        GENOMEFILE+".bwameth.c2t_was.touched"
-    message: "Update timestamp for {ASSEMBLY} Genome Index"
+        GENOMEFILE + ".bwameth.c2t_was.touched",
+    message:
+        "Update timestamp for {ASSEMBLY} Genome Index"
     shell:
         "sleep 60; touch {input};touch {output}"
 
@@ -68,6 +71,7 @@ def bwameth_input(sample):
     files = list_files_TG(samplesheet(sample, 'files'), sample, '')
     return files
 
+
 def fq2bam_meth_input_param(sample):
     files = list_files_TG(samplesheet(sample, 'files'), sample, '')
     if len(files) == 1:
@@ -75,18 +79,21 @@ def fq2bam_meth_input_param(sample):
     else:
         return f"--in-fq {' '.join(files)}"
 
+
 rule cache_parabricks_container:
     input:
+        [],
     output:
-        version = OUTDIR + "pb_fq2bam_meth_version.txt"
+        version=OUTDIR + "pb_fq2bam_meth_version.txt",
     params:
-        container = tool('parabricks'),
-        container_args = toolArgs('parabricks'),
-        fq2bam_meth_exe = tool('fq2bam_meth'),
-        outdir    = OUTDIR,
+        container=tool('parabricks'),
+        container_args=toolArgs('parabricks'),
+        fq2bam_meth_exe=tool('fq2bam_meth'),
+        outdir=OUTDIR,
     log:
-        OUTDIR + "pb_fq2bam_meth_version.log"
-    message: fmt("Fetching Container for Parabricks")
+        OUTDIR + "pb_fq2bam_meth_version.log",
+    message:
+        fmt("Fetching Container for Parabricks")
     shell:
         """
         apptainer run \
@@ -104,27 +111,27 @@ rule fq2bam_meth_align:
     input:
         rules.cache_parabricks_container.output,
         rules.bwameth_touch_index.output,
-        index = rules.bwameth_genome_preparation.output,
-        files = lambda wc: bwameth_input(wc.sample)
+        index=rules.bwameth_genome_preparation.output,
+        files=lambda wc: bwameth_input(wc.sample),
     output:
-        bam   = DIR_sorted + "{sample}.bwameth.sorted.markdup.bam",
-        index = DIR_sorted + "{sample}.bwameth.sorted.markdup.bam.bai"
+        bam=DIR_sorted + "{sample}.bwameth.sorted.markdup.bam",
+        index=DIR_sorted + "{sample}.bwameth.sorted.markdup.bam.bai",
     params:
-        container = tool('parabricks'),
-        container_args = toolArgs('parabricks'),
-        fq2bam_meth_exe = tool('fq2bam_meth'),
-        fq2bam_meth_args = toolArgs('fq2bam_meth'),
-        outdir    = DIR_sorted,
-        input_param = lambda wc: fq2bam_meth_input_param(wc.sample)
+        container=tool('parabricks'),
+        container_args=toolArgs('parabricks'),
+        fq2bam_meth_exe=tool('fq2bam_meth'),
+        fq2bam_meth_args=toolArgs('fq2bam_meth'),
+        outdir=DIR_sorted,
+        input_param=lambda wc: fq2bam_meth_input_param(wc.sample),
     resources:
-        mem_mb = config['execution']['rules']['fq2bam_meth_align']['memory'],
-        nvidia_gpu = config['execution']['rules']['fq2bam_meth_align'].get('num_gpus', 1),
-        slurm_extra = config['execution']['rules']['fq2bam_meth_align'].get('args', ''),
-    threads:
-        config['execution']['rules']['fq2bam_meth_align']['threads']
+        mem_mb=config['execution']['rules']['fq2bam_meth_align']['memory'],
+        nvidia_gpu=config['execution']['rules']['fq2bam_meth_align'].get('num_gpus', 1),
+        slurm_extra=config['execution']['rules']['fq2bam_meth_align'].get('args', ''),
+    threads: config['execution']['rules']['fq2bam_meth_align']['threads']
     log:
-        DIR_sorted + "{sample}_fq2bam_meth.log"
-    message: fmt("Aligning bisulfite reads with GPU fq2bam_meth for sample {wildcards.sample}.")
+        DIR_sorted + "{sample}_fq2bam_meth.log",
+    message:
+        fmt("Aligning bisulfite reads with GPU fq2bam_meth for sample {wildcards.sample}.")
     shell:
         """
         apptainer run --nv \

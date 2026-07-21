@@ -18,31 +18,32 @@
 
 # # ==========================================================================================
 # # Alignment stats extracted with samtools
-#  
+#
 # are included into multiqc report
 
+
 rule idxstats_samtools:
-  input:
-    DIR_sorted+"{prefix}.bam",
-  output:
-    DIR_sorted+"{prefix}.idxstats.txt"
-  shell:
-    nice("samtools" ,["idxstats {input} > {output}"])
+    input:
+        DIR_sorted + "{prefix}.bam",
+    output:
+        DIR_sorted + "{prefix}.idxstats.txt",
+    shell:
+        nice("samtools", ["idxstats {input} > {output}"])
 
 
 rule stat_samtools:
-  input:
-    DIR_sorted+"{prefix}.bam",
-  output:
-    DIR_sorted+"{prefix}.stats.txt"
-  shell:
-    nice("samtools", ['stats {input} > {output}'])
+    input:
+        DIR_sorted + "{prefix}.bam",
+    output:
+        DIR_sorted + "{prefix}.stats.txt",
+    shell:
+        nice("samtools", ['stats {input} > {output}'])
 
 
 rule flagstat_samtools:
-  input:
-    DIR_sorted+"{prefix}.bam",
-  output:
-    DIR_sorted+"{prefix}.flagstat.txt"
-  shell:
-    nice("samtools" ,["flagstat {input} > {output}"])
+    input:
+        DIR_sorted + "{prefix}.bam",
+    output:
+        DIR_sorted + "{prefix}.flagstat.txt",
+    shell:
+        nice("samtools", ["flagstat {input} > {output}"])
