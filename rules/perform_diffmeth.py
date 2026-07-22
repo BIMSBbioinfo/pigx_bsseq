@@ -27,6 +27,54 @@
 # ==========================================================================================
 # Merge methylation samples
 
+GLOBAL_TILING = config['general']['differential-methylation'].get('tiling')
+DIR_tiling = os.path.join(OUTDIR, "tileMethylCounts")
+
+
+def tiling_for_analysis(analysis):
+    analysis_tiling = config['DManalyses'][analysis].get('tiling')
+    return analysis_tiling if isinstance(analysis_tiling, dict) else GLOBAL_TILING
+
+
+HAS_TILING = any(
+    tiling_for_analysis(analysis) for analysis in config.get('DManalyses', {})
+)
+
+if HAS_TILING:
+    TILED_TABIX = os.path.join(
+        DIR_tiling,
+        "{analysis}",
+        "samples",
+        "{tool}",
+        "{prefix}_{context}_tiles_win{win_size}bp_step{step_size}bp_covBase{cov_bases}.txt.bgz",
+    )
+
+
+def tiled_tabix_path(analysis, tool, prefix, context):
+    tiling = tiling_for_analysis(analysis)
+    return TILED_TABIX.format(
+        analysis=analysis,
+        tool=tool,
+        prefix=prefix,
+        context=context,
+        win_size=tiling['win-size'],
+        step_size=tiling['step-size'],
+        cov_bases=tiling['cov-bases'],
+    )
+
+
+def tiling_parameter(wildcards, setting, wildcard):
+    tiling = tiling_for_analysis(wildcards.analysis)
+    expected = str(tiling[setting])
+    actual = str(getattr(wildcards, wildcard))
+    if actual != expected:
+        bail(
+            "ERROR: tiled output parameter '{}' for analysis '{}' must be {}".format(
+                wildcard, wildcards.analysis, expected
+            )
+        )
+    return expected
+
 
 def get_unite_tabixfiles(analysis, tool, context):
 
@@ -42,11 +90,64 @@ def get_unite_tabixfiles(analysis, tool, context):
     context = context.replace("_destranded", "")
     files = []
     for sample in prefix:
-        file = os.path.join(
-            DIR_methcall, tool, "tabix_" + context, sample + "_" + context + ".txt.bgz"
-        )
+        if tiling_for_analysis(analysis):
+            file = tiled_tabix_path(analysis, tool, sample, context)
+        else:
+            file = os.path.join(
+                DIR_methcall, tool, "tabix_" + context, sample + "_" + context + ".txt.bgz"
+            )
         files.append(file)
     return files
+
+
+if HAS_TILING:
+    rule meth_tiling:
+        input:
+            tabixfile=os.path.join(
+                DIR_methcall, "{tool}", "tabix_{context}", "{prefix}_{context}.txt.bgz"
+            ),
+            tabixindex=os.path.join(
+                DIR_methcall, "{tool}", "tabix_{context}", "{prefix}_{context}.txt.bgz.tbi"
+            ),
+        output:
+            tabixfile=TILED_TABIX,
+            tabixindex=TILED_TABIX + ".tbi",
+        params:
+            sampleid="{prefix}_{context}",
+            assembly=ASSEMBLY,
+            context="{context}",
+            win_size=lambda wc: tiling_parameter(wc, 'win-size', 'win_size'),
+            step_size=lambda wc: tiling_parameter(wc, 'step-size', 'step_size'),
+            cov_bases=lambda wc: tiling_parameter(wc, 'cov-bases', 'cov_bases'),
+            cores=config['execution']['rules']['meth_tiling']['threads'],
+        log:
+            os.path.join(
+                DIR_tiling,
+                "{analysis}",
+                "samples",
+                "{tool}",
+                "{prefix}_{context}_tiles_win{win_size}bp_step{step_size}bp_covBase{cov_bases}.methTiling.log",
+            ),
+        message:
+            fmt("Tile methylation calls for analysis {wildcards.analysis}, sample {wildcards.prefix}, and context {wildcards.context}"),
+        shell:
+            nice(
+                'Rscript',
+                [
+                    "{DIR_scripts}/methTiling.R",
+                    "--tabix={input.tabixfile}",
+                    "--outTabix={output.tabixfile}",
+                    "--sampleId={params.sampleid}",
+                    "--assembly={params.assembly}",
+                    "--context={params.context}",
+                    "--winSize={params.win_size}",
+                    "--stepSize={params.step_size}",
+                    "--covBases={params.cov_bases}",
+                    "--cores={params.cores}",
+                    "--logFile={log}",
+                ],
+                "{log}",
+            )
 
 
 rule unite_meth_calls:

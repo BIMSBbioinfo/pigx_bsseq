@@ -42,6 +42,11 @@ general:
     cores: 1
     qvalue: 0.01
     difference: 25
+    # Uncomment to tile methylation calls before differential uniting.
+    # tiling:
+    #   win-size: 500
+    #   step-size: 250
+    #   cov-bases: 1
       
 # DManalyses:
 #   # The names of analyses can be anything but they have to be unique
@@ -50,6 +55,11 @@ general:
 #   analysis1:
 #     treatment_sample_groups: "MED1"
 #     control_sample_groups: "H2O"
+#     # Optional: override general.differential-methylation.tiling for this analysis.
+#     # tiling:
+#     #   win-size: 500
+#     #   step-size: 250
+#     #   cov-bases: 1
 
 
 #  multipleTreat:
@@ -90,6 +100,9 @@ execution:
     diffmeth:
       threads: 1
       memory: 30G
+    meth_tiling:
+      threads: 1
+      memory: 10G
     final_report:
       threads: 1
       memory: 40G
@@ -189,4 +202,3 @@ tools:
   apptainer: # for now this assumes apptainer is globally installed, TODO: needs to be properly configured in ./configure.ac
     executable: /usr/bin/apptainer
     args: ""
-

@@ -1,0 +1,50 @@
+#!@GNUBASH@
+
+set -e
+set -u
+
+export SOURCE_DATE_EPOCH=1
+export PIGX_UGLY=1
+export PIGX_UNINSTALLED=1
+
+# We do not use "readlink -f" here, because macos does not support it.
+export srcdir=$(@PYTHON@ -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' ${srcdir:-.})
+
+chmod -R +w "${srcdir}/tests"
+
+./pigx-bsseq -s "${srcdir}/tests/settings_tiling.yaml" "${srcdir}/tests/sample_sheet.csv" \
+    --printshellcmds --target={unite,unite-bwameth}
+
+for prefix in \
+    PEsample_wgbs_1_val_1_bt2.sorted.deduped \
+    PEsample_rrbs_1_val_1_bt2.sorted \
+    SEsample_se_bt2.sorted.deduped \
+    SEsample_v2_se_bt2.sorted.deduped; do
+    test -f "${srcdir}/tests/out/tileMethylCounts/med1vsh2o/samples/methylKit/${prefix}_cpg_tiles_win500bp_step250bp_covBase1.txt.bgz"
+    test -f "${srcdir}/tests/out/tileMethylCounts/med1vsh2o/samples/methylKit/${prefix}_cpg_tiles_win500bp_step250bp_covBase1.txt.bgz.tbi"
+done
+
+for prefix in PEsample_wgbs.deduped PEsample_rrbs SEsample.deduped SEsample_v2.deduped; do
+    test -f "${srcdir}/tests/out/tileMethylCounts/med1vsh2o/samples/methylDackel/${prefix}_CpG_tiles_win500bp_step250bp_covBase1.txt.bgz"
+    test -f "${srcdir}/tests/out/tileMethylCounts/med1vsh2o/samples/methylDackel/${prefix}_CpG_tiles_win500bp_step250bp_covBase1.txt.bgz.tbi"
+done
+
+for prefix in \
+    PEsample_wgbs_1_val_1_bt2.sorted.deduped \
+    PEsample_rrbs_1_val_1_bt2.sorted \
+    SEsample_se_bt2.sorted.deduped \
+    SEsample_v2_se_bt2.sorted.deduped \
+    SEsample_v2copy_se_bt2.sorted.deduped; do
+    test -f "${srcdir}/tests/out/tileMethylCounts/multipleTreat/samples/methylKit/${prefix}_cpg_tiles_win1000bp_step500bp_covBase2.txt.bgz"
+    test -f "${srcdir}/tests/out/tileMethylCounts/multipleTreat/samples/methylKit/${prefix}_cpg_tiles_win1000bp_step500bp_covBase2.txt.bgz.tbi"
+done
+
+for prefix in PEsample_wgbs.deduped PEsample_rrbs SEsample.deduped SEsample_v2.deduped SEsample_v2copy.deduped; do
+    test -f "${srcdir}/tests/out/tileMethylCounts/multipleTreat/samples/methylDackel/${prefix}_CpG_tiles_win1000bp_step500bp_covBase2.txt.bgz"
+    test -f "${srcdir}/tests/out/tileMethylCounts/multipleTreat/samples/methylDackel/${prefix}_CpG_tiles_win1000bp_step500bp_covBase2.txt.bgz.tbi"
+done
+
+test -f "${srcdir}/tests/out/09_differential_methylation/med1vsh2o/methylBase_med1vsh2o_cpg_destranded_methylKit.txt.bgz"
+test -f "${srcdir}/tests/out/09_differential_methylation/med1vsh2o/methylBase_med1vsh2o_CpG_destranded_methylDackel.txt.bgz"
+test -f "${srcdir}/tests/out/09_differential_methylation/multipleTreat/methylBase_multipleTreat_cpg_destranded_methylKit.txt.bgz"
+test -f "${srcdir}/tests/out/09_differential_methylation/multipleTreat/methylBase_multipleTreat_CpG_destranded_methylDackel.txt.bgz"

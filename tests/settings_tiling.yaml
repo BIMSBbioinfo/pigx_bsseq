@@ -1,0 +1,52 @@
+locations:
+  input-dir: in/
+  output-dir: out/
+  genome-fasta: genome/sample.fasta
+  cpgIsland-bedfile: genome/cpgIslandExt.hg19.bed.gz
+  refGenes-bedfile: genome/refGene.hg19.bed.gz
+
+general:
+  assembly: hg19
+  use_bwameth: True
+  use_bismark: True
+  methylation-calling:
+    minimum-coverage: 1
+    minimum-quality: 10
+    keep-Dups: Auto
+  differential-methylation:
+    cores: 1
+    qvalue: 0.05
+    tiling:
+      win-size: 500
+      step-size: 250
+      cov-bases: 1
+
+DManalyses:
+  med1vsh2o:
+    treatment_sample_groups: "MED1"
+    control_sample_groups: "H2O"
+  multipleTreat:
+    treatment_sample_groups: "MED2,MED1"
+    control_sample_groups: "H2O"
+    tiling:
+      win-size: 1000
+      step-size: 500
+      cov-bases: 2
+
+execution:
+  submit-to-cluster: no
+  jobs: 6
+  nice: 19
+  cluster:
+    contact-email: none
+  rules:
+    samblaster_markdup_sort:
+      threads: 6
+      memory: 1M
+    meth_tiling:
+      threads: 1
+      memory: 1M
+
+tools:
+  trim-galore:
+    args: "--clip_R1 10 --cores 4 --nextseq 20"

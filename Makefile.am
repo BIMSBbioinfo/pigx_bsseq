@@ -18,6 +18,7 @@ dist_pkglibexec_scripts_SCRIPTS =	\
   scripts/ideoDMC.R					\
   scripts/export_tbx2bw.R         	\
   scripts/methCall.R          		\
+  scripts/methTiling.R        		\
   scripts/makeTabix.R          		\
   scripts/methSeg.R           		\
   scripts/methUnite.R          		\
@@ -60,12 +61,14 @@ EXTRA_DIST =										\
   tests/in/SE_techrep1.fq.gz							\
   tests/in/SE_techrep2.fq.gz							\
   tests/sample_sheet.csv								\
-  tests/settings.yaml
+  tests/settings.yaml \
+  tests/settings_tiling.yaml
 
 AM_TESTS_ENVIRONMENT = srcdir="$(abs_top_srcdir)" builddir="$(abs_top_builddir)"
 
 TESTS = \
   test.sh											\
+  tests/tiling.sh \
   tests/test-check-sample_sheet-header.sh			\
   tests/test-write-access-to-out.sh
 
