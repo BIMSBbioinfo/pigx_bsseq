@@ -68,6 +68,7 @@ rule unite_meth_calls:
         context=lambda wc: wc.context.replace("_destranded", ""),
         destrand=lambda wc: True if "destranded" in wc.context else False,
         cores=int(config['general']['differential-methylation']['cores']),
+        min_per_group=config['general']['differential-methylation'].get('minPerGroup', 0),
         outdir=DIR_diffmeth + "{analysis}/",
         suffix="{analysis}_{context}_{tool}",
     log:
@@ -86,6 +87,7 @@ rule unite_meth_calls:
                 "--context={params.context}",
                 "--destrand={params.destrand}",
                 "--cores={params.cores}",
+                "--minPerGroup={params.min_per_group}",
                 "--outdir={params.outdir}",
                 "--suffix={params.suffix}",
                 "--logFile={log}",
