@@ -234,6 +234,7 @@ methylBaseDB <- unite(
   destrand = FALSE,
   suffix = suffix,
   dbdir = outdir,
+  min.per.group = 1L,
   mc.cores = cores,
   chunk.size = 1e7,
 )
