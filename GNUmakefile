@@ -186,8 +186,7 @@ test-slurm-gpu-dry: $(PIPELINE_RUNNER)
 
 ## test-dry: Run a dry-run of the pipeline
 test-dry: $(PIPELINE_RUNNER)
-	@PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv -n --force --printshellcmds > dry-run.log && echo "Dry-run successful. No errors detected." || (echo "Dry-run failed. Check dry-run.log for details." && exit 1)
-
+	@PIGX_UNINSTALLED=1 ./$(PIPELINE_RUNNER) -s tests/settings.yaml tests/sample_sheet.csv -n --force --printshellcmds 
 TEST_CONFIG_FILE := config.json
 $(TEST_CONFIG_FILE): | test-dry
 
