@@ -40,6 +40,7 @@ general:
     TSS_plotlength: 5000
   differential-methylation:
     cores: 1
+    minPerGroup: 0
     qvalue: 0.01
     difference: 25
       

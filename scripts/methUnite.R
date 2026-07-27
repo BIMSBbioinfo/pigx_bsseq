@@ -41,6 +41,7 @@ if ("--help" %in% args) {
       --context methylation context
       --destrand wether to merge strands
       --cores number of processing cores
+      --minPerGroup minimum number of samples per group
       --outdir output directory
       --suffix suffix for merged file
       --logFile file to print the logs to
@@ -93,6 +94,19 @@ cores <- as.numeric(argsL$cores)
 assembly <- argsL$assembly
 suffix <- argsL$suffix
 outdir <- argsL$outdir
+minPerGroup <- if (!is.null(argsL$minPerGroup) && nzchar(argsL$minPerGroup)) {
+  parsed <- as.integer(argsL$minPerGroup)
+  if (is.na(parsed) || parsed < 0L) {
+    stop("The given minPerGroup <", argsL$minPerGroup, "> must be 0 or a positive integer")
+  }
+  if (parsed == 0L) {
+    NULL
+  } else {
+    parsed
+  }
+} else {
+  NULL
+}
 destrand <- ifelse(tolower(argsL$destrand) %in% c("true", "yes"), TRUE, FALSE)
 
 message("Remapping Treatment Description to number.")
@@ -234,7 +248,7 @@ methylBaseDB <- unite(
   destrand = FALSE,
   suffix = suffix,
   dbdir = outdir,
-  min.per.group = 1L,
+  min.per.group = minPerGroup,
   mc.cores = cores,
   chunk.size = 1e7,
 )
