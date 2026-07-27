@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_maketabix-methyldackel" "maketabix-methyldackel" "06_methyl_calls" "06_methyl_calls/methylDackel/tabix_CpG/PEsample_wgbs.deduped_CpG.txt.bgz"

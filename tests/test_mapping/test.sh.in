@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_mapping" "mapping" "02_trimming 03_posttrimming_QC genome" "04_mapping/PEsample_wgbs_1_val_1_bismark_bt2_pe.bam"

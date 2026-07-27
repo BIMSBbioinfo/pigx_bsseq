@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_unite" "unite" "06_methyl_calls" "09_differential_methylation/med1vsh2o/methylBase_med1vsh2o_cpg_destranded_methylKit.txt.bgz"

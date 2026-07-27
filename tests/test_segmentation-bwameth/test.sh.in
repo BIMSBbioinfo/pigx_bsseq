@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_segmentation-bwameth" "segmentation-bwameth" "06_methyl_calls" "08_segmentation/PEsample_wgbs.deduped_CpG_methylDackel.meth_segments.bed"

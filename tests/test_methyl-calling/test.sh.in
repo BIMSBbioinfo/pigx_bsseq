@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_methyl-calling" "methyl-calling" "05_sorting_deduplication" "06_methyl_calls/methylKit/tabix_cpg/PEsample_wgbs_1_val_1_bt2.sorted.deduped_cpg.txt.bgz"

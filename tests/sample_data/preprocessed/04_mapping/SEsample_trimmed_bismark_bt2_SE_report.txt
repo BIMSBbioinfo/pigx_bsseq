@@ -1,0 +1,42 @@
+Bismark report for: /home/agosdsc/projects/pigx/pigx_bsseq/tests/out/02_trimming/SEsample_trimmed.fq.gz (version: v0.20.1)
+Option '--directional' specified (default mode): alignments to complementary strands (CTOT, CTOB) were ignored (i.e. not performed)
+Bismark was run with Bowtie 2 against the bisulfite genome of /home/agosdsc/projects/pigx/pigx_bsseq/tests/genome/ with the specified options: -q -N 0 -L 20 --score-min L,0,-0.2 --ignore-quals
+
+Final Alignment report
+======================
+Sequences analysed in total:	2014
+Number of alignments with a unique best hit from the different alignments:	1947
+Mapping efficiency:	96.7%
+Sequences with no alignments under any condition:	67
+Sequences did not map uniquely:	0
+Sequences which were discarded because genomic sequence could not be extracted:	0
+
+Number of sequences with unique best (first) alignment came from the bowtie output:
+CT/CT:	892	((converted) top strand)
+CT/GA:	1055	((converted) bottom strand)
+GA/CT:	0	(complementary to (converted) top strand)
+GA/GA:	0	(complementary to (converted) bottom strand)
+
+Number of alignments to (merely theoretical) complementary strands being rejected in total:	0
+
+Final Cytosine Methylation Report
+=================================
+Total number of C's analysed:	42355
+
+Total methylated C's in CpG context:	1584
+Total methylated C's in CHG context:	146
+Total methylated C's in CHH context:	365
+Total methylated C's in Unknown context:	0
+
+Total unmethylated C's in CpG context:	617
+Total unmethylated C's in CHG context:	10491
+Total unmethylated C's in CHH context:	29152
+Total unmethylated C's in Unknown context:	0
+
+C methylated in CpG context:	72.0%
+C methylated in CHG context:	1.4%
+C methylated in CHH context:	1.2%
+Can't determine percentage of methylated Cs in Unknown context (CN or CHN) if value was 0
+
+
+Bismark completed in 0d 0h 0m 4s

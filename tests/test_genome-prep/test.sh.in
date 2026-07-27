@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_genome-prep" "genome-prep" "" "genome/Bisulfite_Genome/CT_conversion/genome_mfa.CT_conversion.fa"

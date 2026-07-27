@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_raw-qc" "raw-qc" "" "01_raw_QC/PEsample_wgbs_1_fastqc.zip"

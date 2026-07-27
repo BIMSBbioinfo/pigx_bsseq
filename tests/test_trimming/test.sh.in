@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_trimming" "trimming" "" "02_trimming/PEsample_wgbs_1_val_1.fq.gz"

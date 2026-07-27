@@ -1,0 +1,76 @@
+{
+  "tool": "Trim Galore",
+  "schema_version": 1,
+  "trim_galore_version": "2.2.0",
+  "input_filenames": ["SEsample.fq.gz"],
+  "mode": "single-end",
+  "read_number": 1,
+  "command_line": "/home/agosdsc/projects/pigx/pigx_bsseq/.conda/bin/trim_galore --clip_R1 10 --clip_R2 10 --cores 4 --nextseq 20 --output_dir /home/agosdsc/projects/pigx/pigx_bsseq/tests/out/02_trimming/ --phred33 --gzip --path_to_cutadapt /home/agosdsc/projects/pigx/pigx_bsseq/.conda/bin/cutadapt /home/agosdsc/projects/pigx/pigx_bsseq/tests/out/pigx_work/input/SEsample.fq.gz",
+  "parameters": {
+    "quality_cutoff": 20,
+    "adapters": [{"name": "Illumina", "sequence": "AGATCGGAAGAGC"}],
+    "adapters_r2": [],
+    "times": 1,
+    "error_rate": 0.1,
+    "stringency": 1,
+    "length_cutoff": 20,
+    "max_length": null,
+    "phred_encoding": 33,
+    "trim_n": false,
+    "nextseq": true,
+    "rrbs": false,
+    "non_directional": false,
+    "poly_a": false,
+    "poly_g": false,
+    "clip_r1": 10,
+    "clip_r2": 10,
+    "three_prime_clip_r1": null,
+    "three_prime_clip_r2": null,
+    "max_n": null,
+    "discard_untrimmed": false,
+    "consider_already_trimmed": null
+  },
+  "read_processing": {
+    "total_reads": 2014,
+    "reads_with_adapter": 670,
+    "reads_written": 2013,
+    "reads_too_short": 1,
+    "reads_too_long": 0,
+    "reads_too_many_n": 0,
+    "reads_discarded_untrimmed": 0
+  },
+  "basepair_processing": {
+    "total_bp_processed": 194746,
+    "quality_trimmed_bp": 774,
+    "total_bp_written": 173005
+  },
+  "adapter_trimming": [
+    {
+      "name": "Illumina",
+      "sequence": "AGATCGGAAGAGC",
+      "type": "regular 3'",
+      "length": 13,
+      "times_trimmed": 670,
+      "length_distribution": {
+        "1": 605,
+        "3": 51,
+        "4": 13,
+        "5": 1
+      }
+    }
+  ],
+  "poly_a_trimming": {
+    "reads_trimmed": 0,
+    "bases_removed": 0
+  },
+  "poly_g_trimming": {
+    "reads_trimmed": 0,
+    "bases_removed": 0
+  },
+  "rrbs": {
+    "trimmed_3prime": 0,
+    "trimmed_5prime": 0,
+    "r2_clipped_5prime": 0
+  },
+  "pair_validation": null
+}

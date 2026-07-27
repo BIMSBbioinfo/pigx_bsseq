@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_mapping-bwameth" "mapping-bwameth" "02_trimming genome" "04_mapping/PEsample_wgbs.bwameth.bam"

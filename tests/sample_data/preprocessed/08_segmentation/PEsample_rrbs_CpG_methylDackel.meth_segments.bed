@@ -1,0 +1,4 @@
+track name="meth segments " description="meth segments of PEsample_rrbs mapped to hg19" itemRgb=on
+chr1	1	7295	1	74.8270881845574	.	1	7295	0,100,0
+chr1	7528	10016	1	12.3932036554586	.	7528	10016	190,190,190
+chr1	10168	10779	1	47.3001700680272	.	10168	10779	0,236,0

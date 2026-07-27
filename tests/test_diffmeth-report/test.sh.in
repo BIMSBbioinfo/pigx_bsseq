@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_diffmeth-report" "diffmeth-report" "04_mapping 09_differential_methylation" "Reports/med1vsh2o/med1vsh2o_cpg_destranded_methylKit.diffmeth-report.html"

@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_diffmeth" "diffmeth" "09_differential_methylation" "09_differential_methylation/med1vsh2o/methylDiff_med1vsh2o_cpg_destranded_methylKit_results.tsv"

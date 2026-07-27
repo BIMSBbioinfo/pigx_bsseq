@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_posttrim-qc" "posttrim-qc" "02_trimming" "03_posttrimming_QC/PEsample_wgbs_1_val_1_fastqc.zip"

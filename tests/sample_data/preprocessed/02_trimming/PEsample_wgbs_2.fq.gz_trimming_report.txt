@@ -1,0 +1,64 @@
+
+SUMMARISING RUN PARAMETERS
+==========================
+Input filename: /home/agosdsc/projects/pigx/pigx_bsseq/tests/out/pigx_work/input/PEsample_wgbs_2.fq.gz
+Trimming mode: paired-end
+Trim Galore version: 0.6.6
+Cutadapt version: 4.0
+Python version: could not detect
+Number of cores used for trimming: 4
+Quality encoding type selected: ASCII+33
+Unable to auto-detect most prominent adapter from the first specified file (count Nextera: 0, count smallRNA: 0, count Illumina: 0)
+Defaulting to Illumina universal adapter ( AGATCGGAAGAGC ). Specify -a SEQUENCE to avoid this behavior).
+Adapter sequence: 'AGATCGGAAGAGC' (Illumina TruSeq, Sanger iPCR; default (inconclusive auto-detection))
+2-colour high quality G-trimming enabled, with quality cutoff: --nextseq-trim=20
+Maximum trimming error rate: 0.1 (default)
+Minimum required adapter overlap (stringency): 1 bp
+Minimum required sequence length for both reads before a sequence pair gets removed: 20 bp
+All Read 1 sequences will be trimmed by 10 bp from their 5' end to avoid poor qualities or biases
+All Read 2 sequences will be trimmed by 10 bp from their 5' end to avoid poor qualities or biases (e.g. M-bias for BS-Seq applications)
+Output file will be GZIP compressed
+
+
+This is cutadapt 4.0 with Python 3.11.14
+Command line parameters: -j 4 -e 0.1 --nextseq-trim=20 -O 1 -a AGATCGGAAGAGC /home/agosdsc/projects/pigx/pigx_bsseq/tests/out/pigx_work/input/PEsample_wgbs_2.fq.gz
+Processing single-end reads on 4 cores ...
+Finished in 0.04 s (27 µs/read; 2.23 M reads/minute).
+
+=== Summary ===
+
+Total reads processed:                   1,413
+Reads with adapters:                       511 (36.2%)
+Reads written (passing filters):         1,413 (100.0%)
+
+Total basepairs processed:       189,345 bp
+Quality-trimmed:                     295 bp (0.2%)
+Total written (filtered):        188,535 bp (99.6%)
+
+=== Adapter 1 ===
+
+Sequence: AGATCGGAAGAGC; Type: regular 3'; Length: 13; Trimmed: 511 times
+
+Minimum overlap: 1
+No. of allowed errors:
+1-9 bp: 0; 10-13 bp: 1
+
+Bases preceding removed adapters:
+  A: 54.8%
+  C: 15.7%
+  G: 1.2%
+  T: 28.4%
+  none/other: 0.0%
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+1	509	353.2	0	509
+3	2	22.1	0	2
+
+RUN STATISTICS FOR INPUT FILE: /home/agosdsc/projects/pigx/pigx_bsseq/tests/out/pigx_work/input/PEsample_wgbs_2.fq.gz
+=============================================
+1413 sequences processed in total
+
+Total number of sequences analysed for the sequence pair length validation: 1413
+
+Number of sequence pairs removed because at least one read was shorter than the length cutoff (20 bp): 2 (0.14%)

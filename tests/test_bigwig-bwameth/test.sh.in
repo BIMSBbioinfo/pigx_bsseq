@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_bigwig-bwameth" "bigwig-bwameth" "06_methyl_calls" "07_bigwig_files/PEsample_wgbs.deduped.CpG_destranded_methylDackel.bw"

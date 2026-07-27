@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_markduplicates" "markduplicates" "04_mapping" "05_sorting_deduplication/PEsample_wgbs.bwameth.sorted.markdup.bam"

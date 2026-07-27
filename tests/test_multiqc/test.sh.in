@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_multiqc" "multiqc" "01_raw_QC 02_trimming 03_posttrimming_QC 04_mapping" "Reports/multiqc/bismark_multiqc_report.html"

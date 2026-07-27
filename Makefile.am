@@ -60,23 +60,48 @@ EXTRA_DIST =										\
   tests/in/SE_techrep1.fq.gz							\
   tests/in/SE_techrep2.fq.gz							\
   tests/sample_sheet.csv								\
-  tests/settings.yaml
+  tests/settings.yaml \
+  tests/sample_data/preprocessed
 
-AM_TESTS_ENVIRONMENT = srcdir="$(abs_top_srcdir)" builddir="$(abs_top_builddir)"
+AM_TESTS_ENVIRONMENT = srcdir="$(abs_top_srcdir)" builddir="$(abs_top_builddir)" PIGX_UGLY=1 PIGX_UNINSTALLED=1
 
 TESTS = \
   test.sh											\
+  tests/test_genome-prep/test.sh \
+  tests/test_raw-qc/test.sh \
+  tests/test_trimming/test.sh \
+  tests/test_posttrim-qc/test.sh \
+  tests/test_multiqc/test.sh \
+  tests/test_multiqc-bwameth/test.sh \
+  tests/test_mapping/test.sh \
+  tests/test_deduplication/test.sh \
+  tests/test_methyl-calling/test.sh \
+  tests/test_bigwig/test.sh \
+  tests/test_segmentation/test.sh \
+  tests/test_unite/test.sh \
+  tests/test_diffmeth/test.sh \
+  tests/test_diffmeth-report/test.sh \
+  tests/test_final-report/test.sh \
+  tests/test_mapping-bwameth/test.sh \
+  tests/test_markduplicates/test.sh \
+  tests/test_bwameth-mapping-stats/test.sh \
+  tests/test_methyl-extraction/test.sh \
+  tests/test_maketabix-methyldackel/test.sh \
+  tests/test_bigwig-bwameth/test.sh \
+  tests/test_segmentation-bwameth/test.sh \
+  tests/test_unite-bwameth/test.sh \
+  tests/test_diffmeth-bwameth/test.sh \
+  tests/test_diffmeth-report-bwameth/test.sh \
+  tests/test_final-report-bwameth/test.sh \
   tests/test-check-sample_sheet-header.sh			\
   tests/test-write-access-to-out.sh
 
-EXTRA_DIST += $(TESTS)
+EXTRA_DIST += $(TESTS) tests/test-driver.sh.in
 
 EXTRA_DIST += META.in VERSION
 
 clean-local:
 	-rm -rf .snakemake
-	-rm -rf tests/out
-	-rm -rf tests/out/.snakemake
 
 CLEANFILES = $(nodist_bin_SCRIPTS) config.json
 

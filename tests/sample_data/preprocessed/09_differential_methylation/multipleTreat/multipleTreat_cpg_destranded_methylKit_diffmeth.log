@@ -1,0 +1,69 @@
+---------- [2026-07-27 10:55:39] Starting Now ----------
+========= Given Arguments ==========
+$inputfile
+[1] "/home/agosdsc/projects/pigx/pigx_bsseq/tests/out/09_differential_methylation/multipleTreat/methylBase_multipleTreat_cpg_destranded_methylKit.txt.bgz"
+
+$sampleids
+[1] "PEsample_wgbs,PEsample_rrbs,SEsample_v2copy,SEsample,SEsample_v2"
+
+$treatments
+[1] "H2O,H2O,MED2,MED1,MED1"
+
+$assembly
+[1] "hg19"
+
+$context
+[1] "cpg"
+
+$destranded
+[1] "True"
+
+$treatment_group
+[1] "MED2,MED1"
+
+$control_group
+[1] "H2O"
+
+$cores
+[1] "1"
+
+$methylDiff_results_suffix
+[1] "full"
+
+$resultsFile
+[1] "/home/agosdsc/projects/pigx/pigx_bsseq/tests/out/09_differential_methylation/multipleTreat/methylDiff_multipleTreat_cpg_destranded_methylKit_results.tsv"
+
+$outdir
+[1] "/home/agosdsc/projects/pigx/pigx_bsseq/tests/out/09_differential_methylation/multipleTreat/"
+
+$logFile
+[1] "/home/agosdsc/projects/pigx/pigx_bsseq/tests/out/09_differential_methylation/multipleTreat/multipleTreat_cpg_destranded_methylKit_diffmeth.log"
+
+====================================
+Remapping Treatments Descriptions into treatment and control groups.
+Control group (0): H2O
+Treatment group (1): MED2, MED1
+Reading united samples ...
+Calculating differential methylation ...
+more than two groups detected:
+ will calculate methylation difference as the difference of max(x) - min(x),
+ where x is vector of mean methylation per group per region,but 
+ the statistical test will remain the same.
+
+checking wether tabix file already exists:
+/home/agosdsc/projects/pigx/pigx_bsseq/tests/out/09_differential_methylation/multipleTreat/methylDiff_multipleTreat_cpg_destranded_methylKit_full.txt.bgz
+tabix file is new.
+continuing now ...
+
+compressing the file with bgzip...
+making tabix index...
+flatfile located at: /home/agosdsc/projects/pigx/pigx_bsseq/tests/out/09_differential_methylation/multipleTreat/methylDiff_multipleTreat_cpg_destranded_methylKit_full.txt.bgz
+Warning messages:
+1: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+2: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+3: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+4: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+5: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+6: glm.fit: fitted probabilities numerically 0 or 1 occurred 
+Exporting results to tsv...
+---------- [2026-07-27 10:55:57] Done ----------

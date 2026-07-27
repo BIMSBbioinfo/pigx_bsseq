@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_final-report-bwameth" "final-report-bwameth" "06_methyl_calls 07_bigwig_files 08_segmentation" "Reports/sample_reports/PEsample_wgbs.deduped_CpG_methylDackel_hg19_final.html"

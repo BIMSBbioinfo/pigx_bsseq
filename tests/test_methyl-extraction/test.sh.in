@@ -1,0 +1,3 @@
+#!@GNUBASH@
+
+exec "${builddir}/tests/test-driver.sh" "test_methyl-extraction" "methyl-extraction" "05_sorting_deduplication" "06_methyl_calls/methylDackel/PEsample_wgbs.deduped_methyldackel_CpG.methylKit"

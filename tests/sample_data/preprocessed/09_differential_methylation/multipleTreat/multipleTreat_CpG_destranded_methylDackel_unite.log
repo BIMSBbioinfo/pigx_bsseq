@@ -1,0 +1,63 @@
+---------- [2026-07-27 10:55:11] Starting Now ----------
+========= Given Arguments ==========
+$inputfiles
+[1] "/home/agosdsc/projects/pigx/pigx_bsseq/tests/out/06_methyl_calls/methylDackel/tabix_CpG/PEsample_wgbs.deduped_CpG.txt.bgz,/home/agosdsc/projects/pigx/pigx_bsseq/tests/out/06_methyl_calls/methylDackel/tabix_CpG/PEsample_rrbs_CpG.txt.bgz,/home/agosdsc/projects/pigx/pigx_bsseq/tests/out/06_methyl_calls/methylDackel/tabix_CpG/SEsample_v2copy.deduped_CpG.txt.bgz,/home/agosdsc/projects/pigx/pigx_bsseq/tests/out/06_methyl_calls/methylDackel/tabix_CpG/SEsample.deduped_CpG.txt.bgz,/home/agosdsc/projects/pigx/pigx_bsseq/tests/out/06_methyl_calls/methylDackel/tabix_CpG/SEsample_v2.deduped_CpG.txt.bgz"
+
+$sampleids
+[1] "PEsample_wgbs,PEsample_rrbs,SEsample_v2copy,SEsample,SEsample_v2"
+
+$treatments
+[1] "H2O,H2O,MED2,MED1,MED1"
+
+$assembly
+[1] "hg19"
+
+$context
+[1] "CpG"
+
+$destrand
+[1] "True"
+
+$cores
+[1] "1"
+
+$minPerGroup
+[1] "0"
+
+$outdir
+[1] "/home/agosdsc/projects/pigx/pigx_bsseq/tests/out/09_differential_methylation/multipleTreat/"
+
+$suffix
+[1] "multipleTreat_CpG_destranded_methylDackel"
+
+$logFile
+[1] "/home/agosdsc/projects/pigx/pigx_bsseq/tests/out/09_differential_methylation/multipleTreat/multipleTreat_CpG_destranded_methylDackel_unite.log"
+
+====================================
+Remapping Treatment Description to number.
+H2O: 1
+MED1: 2
+MED2: 3
+[1] TRUE TRUE TRUE TRUE TRUE
+[1] TRUE TRUE TRUE TRUE TRUE
+Importing Tabix files.
+Received list of locations.
+Destranding first.
+[1] "PEsample_wgbs.deduped_CpG"
+[1] "PEsample_rrbs_CpG"
+[1] "SEsample_v2copy.deduped_CpG"
+[1] "SEsample.deduped_CpG"
+[1] "SEsample_v2.deduped_CpG"
+Merging samples.
+uniting...
+
+checking wether tabix file already exists:
+/home/agosdsc/projects/pigx/pigx_bsseq/tests/out/09_differential_methylation/multipleTreat//methylBase_multipleTreat_CpG_destranded_methylDackel.txt.bgz
+tabix file is new.
+continuing now ...
+
+merging tabix files ...
+compressing the file with bgzip...
+making tabix index...
+flatfile located at: /home/agosdsc/projects/pigx/pigx_bsseq/tests/out/09_differential_methylation/multipleTreat/methylBase_multipleTreat_CpG_destranded_methylDackel.txt.bgz
+---------- [2026-07-27 10:55:29] Done ----------

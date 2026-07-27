@@ -1,0 +1,8 @@
+read file </home/agosdsc/projects/pigx/pigx_bsseq/tests/out/06_methyl_calls/methylDackel/SEsample_v2.deduped_methyldackel_CpG.methylKit> into methylKit object
+compressing the file with bgzip...
+making tabix index...
+Done.
+Process finished in (seconds): 
+
+   user  system elapsed 
+  7.905   0.440   7.378 
