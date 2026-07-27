@@ -810,7 +810,12 @@ rule trim_reads_se:
     message:
         fmt("Trimming raw single-end read data from sample {wildcards.sample}")
     shell:
-        nice('trim-galore', ["{params}", "{input.file}"], "{log}")
+        nice(
+            'trim-galore',
+            ["{params}", "{input.file}"],
+            "{log}",
+            tool_args_override=filter_tool_args(toolArgs('trim-galore'), r"R2"),
+        )
 
 
 rule trim_reads_pe:

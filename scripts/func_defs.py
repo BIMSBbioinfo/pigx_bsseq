@@ -21,6 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import re
 import sys
 from datetime import datetime
 from glob import glob
@@ -44,6 +45,32 @@ def fmt(message):
 def tool(name):
     return config['tools'][name]['executable']
 
+
+def filter_tool_args(args, pattern):
+    """Remove CLI arguments whose token matches the provided regex."""
+    if not isinstance(args, str):
+        return ""
+
+    if not args:
+        return ""
+
+    tokens = args.split()
+    filtered_tokens = []
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if re.search(pattern, token, re.IGNORECASE):
+            if index + 1 < len(tokens) and not tokens[index + 1].startswith("-"):
+                index += 2
+            else:
+                index += 1
+            continue
+        filtered_tokens.append(token)
+        index += 1
+
+    return " ".join(filtered_tokens)
+
+
 def toolArgs(name):
     if 'args' in config['tools'][name]:
         return config['tools'][name]['args']
@@ -66,10 +93,11 @@ def log_time(text):
 
 # Generate a command line string that can be passed to snakemake's
 # "shell".  The string is prefixed with an invocation of "nice".
-def nice(cmd, args, log=None, fallback=None,pre=None):
+def nice(cmd, args, log=None, fallback=None,pre=None, tool_args_override=None):
     executable = tool(cmd)
+    tool_args = tool_args_override if tool_args_override is not None else toolArgs(cmd)
     line = ["nice -" + str(config['execution']['nice']),
-            executable] + [toolArgs(cmd)] + args
+            executable] + [tool_args] + args
     if pre:
         line.insert(0, "{};".format(pre))
     if log:
