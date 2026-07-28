@@ -3,90 +3,14 @@
 set -e
 set -u
 
+# Exercise the bwameth-mapping-stats target in a clean, isolated work directory.
+# The prerequisite fixtures are: 05_sorting_deduplication.
+# The shared runner stages those artifacts, writes temporary settings, runs only
+# this target, and verifies the expected representative output.
 test_name="test_bwameth-mapping-stats"
 target="bwameth-mapping-stats"
 fixtures="05_sorting_deduplication"
 expected="05_sorting_deduplication/PEsample_wgbs.bwameth.sorted.markdup.flagstat.txt"
 
-root=$(mktemp --tmpdir -d "pigx.${test_name}.XXXXXX")
-testfolder="${root}/${test_name}"
-trap 'rm -rf "${root}"' EXIT
-mkdir -p "${testfolder}"
-
-echo "TEST FOLDER: ${testfolder}"
-
-# Stage prerequisite pipeline artifacts beneath the temporary output directory.
-for fixture in ${fixtures}
-do
-    cp -R "${srcdir}/tests/sample_data/preprocessed/${fixture}" "${testfolder}/"
-done
-
-# genome-prep writes beside the FASTA, so it alone needs a private reference.
-if test "${target}" = genome-prep
-then
-    mkdir -p "${testfolder}/genome"
-    cp "${srcdir}/tests/genome/sample.fasta" "${testfolder}/genome/"
-    genome_fasta="${testfolder}/genome/sample.fasta"
-elif test -d "${testfolder}/genome"
-then
-    ln -s "${srcdir}/tests/genome/sample.fasta" \
-        "${testfolder}/genome/sample.fasta"
-    genome_fasta="${testfolder}/genome/sample.fasta"
-else
-    genome_fasta="${srcdir}/tests/genome/sample.fasta"
-fi
-
-# BWA-Meth requires its copied index files to be newer than the FASTA.
-if test -f "${testfolder}/genome/sample.fasta.bwameth.c2t"
-then
-    touch "${testfolder}/genome/sample.fasta.bwameth.c2t"*
-fi
-
-# Most target tests exercise a single paired-end sample.  Differential
-# methylation targets require the complete sample sheet and its treatment groups.
-case "${target}" in
-    unite|diffmeth|diffmeth-report|unite-bwameth|diffmeth-bwameth|diffmeth-report-bwameth)
-        sample_mode=full
-        ;;
-    *)
-        sample_mode=single
-        ;;
-esac
-
-# Only reduced sample sheets are generated locally; full tests use the fixture.
-if test "${sample_mode}" = single
-then
-    tmp_samplesheet="${testfolder}/sample_sheet.csv"
-    sed -n '1p;2p' "${srcdir}/tests/sample_sheet.csv" > "${tmp_samplesheet}"
-else
-    tmp_samplesheet="${srcdir}/tests/sample_sheet.csv"
-fi
-
-# Keep output paths private while reading inputs and reference metadata in place.
-settings="${testfolder}/settings.yaml"
-sed -e "s|input-dir: .*|input-dir: ${srcdir}/tests/in/|" \
-    -e "s|output-dir: .*|output-dir: ${testfolder}/|" \
-    -e "s|genome-fasta: .*|genome-fasta: ${genome_fasta}|" \
-    -e "s|cpgIsland-bedfile: .*|cpgIsland-bedfile: ${srcdir}/tests/genome/cpgIslandExt.hg19.bed.gz|" \
-    -e "s|refGenes-bedfile: .*|refGenes-bedfile: ${srcdir}/tests/genome/refGene.hg19.bed.gz|" \
-    "${srcdir}/tests/settings.yaml" > "${settings}"
-
-if test "${sample_mode}" = single
-then
-    sed -i '/^DManalyses:/,/^execution:/ { /^execution:/!d }' "${settings}"
-fi
-
-export SOURCE_DATE_EPOCH=1
-export PIGX_UGLY=1
-export PIGX_UNINSTALLED=1
-export XDG_CACHE_HOME="${testfolder}/cache"
-
-# Run one pipeline target and retain temporary outputs for the assertion below.
-"${builddir}/pigx-bsseq" -c "${testfolder}/config.json" -s "${settings}" \
-    "${tmp_samplesheet}" --target "${target}" --snakemake=--notemp
-
-if ! test -f "${testfolder}/${expected}"
-then
-    echo "ERROR: ${target} did not produce ${expected}" >&2
-    exit 1
-fi
+exec "@abs_top_builddir@/tests/test-driver.sh" \
+    "${test_name}" "${target}" "${fixtures}" "${expected}"
