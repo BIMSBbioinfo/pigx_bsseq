@@ -1,24 +1,81 @@
 #!@GNUBASH@
-set -euo pipefail
+
+set -e
+set -u
+
 test_name="test_mapping"
 target="mapping"
 fixtures="02_trimming 03_posttrimming_QC genome"
 expected="04_mapping/PEsample_wgbs_1_val_1_bismark_bt2_pe.bam"
-case "${target}" in unite|diffmeth|diffmeth-report|unite-bwameth|diffmeth-bwameth|diffmeth-report-bwameth) sample_mode=full ;; *) sample_mode=single ;; esac
+
 root=$(mktemp --tmpdir -d "pigx.${test_name}.XXXXXX")
-testdir="${root}/${test_name}"
+testfolder="${root}/${test_name}"
 trap 'rm -rf "${root}"' EXIT
-mkdir -p "${testdir}/genome"
-cp -R "${srcdir}/tests/in" "${testdir}/"
-cp "${srcdir}/tests/sample_sheet.csv" "${testdir}/"
-cp "${srcdir}/tests/genome/sample.fasta" "${srcdir}/tests/genome/cpgIslandExt.hg19.bed.gz" "${srcdir}/tests/genome/refGene.hg19.bed.gz" "${testdir}/genome/"
-for fixture in ${fixtures}; do cp -R "${srcdir}/tests/sample_data/preprocessed/${fixture}" "${testdir}/"; done
-if test -f "${testdir}/genome/sample.fasta.bwameth.c2t"; then touch "${testdir}/genome/sample.fasta.bwameth.c2t"*; fi
-chmod -R u+w "${testdir}"
-if test "${sample_mode}" = single; then sed -n '1p;2p' "${testdir}/sample_sheet.csv" > "${testdir}/sample_sheet.csv.tmp"; mv "${testdir}/sample_sheet.csv.tmp" "${testdir}/sample_sheet.csv"; fi
-settings="${testdir}/settings.yaml"
-sed -e "s|input-dir: .*|input-dir: ${testdir}/in/|" -e "s|output-dir: .*|output-dir: ${testdir}/|" -e "s|genome-fasta: .*|genome-fasta: ${testdir}/genome/sample.fasta|" -e "s|cpgIsland-bedfile: .*|cpgIsland-bedfile: ${testdir}/genome/cpgIslandExt.hg19.bed.gz|" -e "s|refGenes-bedfile: .*|refGenes-bedfile: ${testdir}/genome/refGene.hg19.bed.gz|" "${srcdir}/tests/settings.yaml" > "${settings}"
-if test "${sample_mode}" = single; then sed -i '/^DManalyses:/,/^execution:/ { /^execution:/!d }' "${settings}"; fi
-export SOURCE_DATE_EPOCH=1 PIGX_UGLY=1 PIGX_UNINSTALLED=1 XDG_CACHE_HOME="${testdir}/cache"
-"${builddir}/pigx-bsseq" -c "${testdir}/config.json" -s "${settings}" "${testdir}/sample_sheet.csv" --target "${target}" --snakemake=--notemp
-test -f "${testdir}/${expected}"
+mkdir -p "${testfolder}/genome"
+
+echo "TEST FOLDER: ${testfolder}"
+
+# Copy only the inputs and prerequisite fixtures needed by this target.
+cp -R "${srcdir}/tests/in" "${testfolder}/"
+cp "${srcdir}/tests/sample_sheet.csv" "${testfolder}/"
+cp "${srcdir}/tests/genome/sample.fasta" \
+   "${srcdir}/tests/genome/cpgIslandExt.hg19.bed.gz" \
+   "${srcdir}/tests/genome/refGene.hg19.bed.gz" "${testfolder}/genome/"
+for fixture in ${fixtures}
+do
+    cp -R "${srcdir}/tests/sample_data/preprocessed/${fixture}" "${testfolder}/"
+done
+
+# BWA-Meth requires its index files to be newer than the reference fasta.
+if test -f "${testfolder}/genome/sample.fasta.bwameth.c2t"
+then
+    touch "${testfolder}/genome/sample.fasta.bwameth.c2t"*
+fi
+chmod +w -R "${testfolder}"
+
+# Most target tests exercise a single paired-end sample.  Differential
+# methylation targets require the complete sample sheet and its treatment groups.
+case "${target}" in
+    unite|diffmeth|diffmeth-report|unite-bwameth|diffmeth-bwameth|diffmeth-report-bwameth)
+        sample_mode=full
+        ;;
+    *)
+        sample_mode=single
+        ;;
+esac
+
+tmp_samplesheet="${testfolder}/sample_sheet.csv"
+if test "${sample_mode}" = single
+then
+    sed -n '1p;2p' "${tmp_samplesheet}" > "${tmp_samplesheet}.tmp"
+    mv "${tmp_samplesheet}.tmp" "${tmp_samplesheet}"
+fi
+
+# Prepare a settings file whose mutable paths point to this test directory.
+settings="${testfolder}/settings.yaml"
+sed -e "s|input-dir: .*|input-dir: ${testfolder}/in/|" \
+    -e "s|output-dir: .*|output-dir: ${testfolder}/|" \
+    -e "s|genome-fasta: .*|genome-fasta: ${testfolder}/genome/sample.fasta|" \
+    -e "s|cpgIsland-bedfile: .*|cpgIsland-bedfile: ${testfolder}/genome/cpgIslandExt.hg19.bed.gz|" \
+    -e "s|refGenes-bedfile: .*|refGenes-bedfile: ${testfolder}/genome/refGene.hg19.bed.gz|" \
+    "${srcdir}/tests/settings.yaml" > "${settings}"
+
+if test "${sample_mode}" = single
+then
+    sed -i '/^DManalyses:/,/^execution:/ { /^execution:/!d }' "${settings}"
+fi
+
+export SOURCE_DATE_EPOCH=1
+export PIGX_UGLY=1
+export PIGX_UNINSTALLED=1
+export XDG_CACHE_HOME="${testfolder}/cache"
+
+# Run one pipeline target and retain temporary outputs for the assertion below.
+"${builddir}/pigx-bsseq" -c "${testfolder}/config.json" -s "${settings}" \
+    "${tmp_samplesheet}" --target "${target}" --snakemake=--notemp
+
+if ! test -f "${testfolder}/${expected}"
+then
+    echo "ERROR: ${target} did not produce ${expected}" >&2
+    exit 1
+fi
