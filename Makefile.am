@@ -63,7 +63,7 @@ EXTRA_DIST =										\
   tests/settings.yaml \
   tests/sample_data/preprocessed
 
-AM_TESTS_ENVIRONMENT = srcdir="$(abs_top_srcdir)" builddir="$(abs_top_builddir)" PIGX_UGLY=1 PIGX_UNINSTALLED=1
+AM_TESTS_ENVIRONMENT = srcdir="$(abs_top_srcdir)" builddir="$(abs_top_builddir)" PIGX_UGLY=1 PIGX_UNINSTALLED=1 XDG_CACHE_HOME="$(abs_top_builddir)/.test-cache"
 
 TESTS = \
   test.sh											\
@@ -102,6 +102,7 @@ EXTRA_DIST += META.in VERSION
 
 clean-local:
 	-rm -rf .snakemake
+	-rm -rf .test-cache
 
 CLEANFILES = $(nodist_bin_SCRIPTS) config.json
 
