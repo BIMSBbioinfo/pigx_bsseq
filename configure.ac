@@ -104,7 +104,6 @@ AC_CONFIG_FILES([etc/settings.yaml
                  report_templates/diffmeth.Rmd
                  Makefile])
 AC_CONFIG_FILES([test.sh], [chmod +x test.sh])
-AC_CONFIG_FILES([tests/test-driver.sh], [chmod +x tests/test-driver.sh])
 AC_CONFIG_FILES([tests/test_genome-prep/test.sh], [chmod +x tests/test_genome-prep/test.sh])
 AC_CONFIG_FILES([tests/test_raw-qc/test.sh], [chmod +x tests/test_raw-qc/test.sh])
 AC_CONFIG_FILES([tests/test_trimming/test.sh], [chmod +x tests/test_trimming/test.sh])

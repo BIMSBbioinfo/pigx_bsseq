@@ -96,7 +96,7 @@ TESTS = \
   tests/test-check-sample_sheet-header.sh			\
   tests/test-write-access-to-out.sh
 
-EXTRA_DIST += $(TESTS) tests/test-driver.sh.in
+EXTRA_DIST += $(TESTS)
 
 EXTRA_DIST += META.in VERSION
 
