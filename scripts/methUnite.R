@@ -150,6 +150,8 @@ if (length(inputs) <= 1) {
   stop("At least two samples required to perform merging")
 }
 
+## default chunksize
+chunkSize_default <- 1e7
 
 # ---------------------------------------------------
 
@@ -241,6 +243,45 @@ if (file.exists(outFile)) {
   unlink(c(outFile, paste0(outFile, ".tbi")))
 }
 
+## check if chunksize would cause overflow
+# https://gist.github.com/alexg9010/a71269078b6613edaeab138db2b62945
+
+test_overflow <- function(n_samples, chunk_size) {
+  # simulate 10 samples
+  res <- methylKit::dataSim(replicates = 10,
+                 sites = 1e3,
+                 treatment = rep(1, 10)) |>
+    methylKit::makeMethylDB(dbdir = tempdir()) |> # convert to tabix
+    suppressMessages() |> 
+    methylKit::getDBPath() |>
+    Rsamtools::TabixFile(yieldSize = 100) |>
+    open() |>
+    Rsamtools::scanTabix() |>
+    paste(collapse = "\n") |>
+    paste0(collapse = "\n") |>
+    object.size() * (n_samples / 10) * (chunk_size / 100)
+
+  if(res < 2^31 - 1) {
+    message("chunk size is fine")
+    return(invisible(TRUE))
+  }
+  message(
+    sprintf(
+      "chunk would exceed 2^31-1 bytes by factor %2.f",
+      as.numeric(res)/(2^31-1)
+      )
+    )
+  message(
+    sprintf(
+      "Consider reducing chunk size to > %0.f",
+      chunk_size / (as.numeric(res)/(2^31-1)) |> round()
+    )
+  )
+  return(invisible(chunk_size / (as.numeric(res)/(2^31-1)) |> round()))
+}
+
+chunkSize_corrected <- test_overflow(n_samples =  length(sampleids), chunk_size = chunkSize_default)
+
 ## Unite
 message("Merging samples.")
 methylBaseDB <- unite(
@@ -250,7 +291,7 @@ methylBaseDB <- unite(
   dbdir = outdir,
   min.per.group = minPerGroup,
   mc.cores = cores,
-  chunk.size = 1e7,
+  chunk.size = chunkSize_corrected,
 )
 
 ## FIXME: check wether result has more than 1 rows and fail if not
