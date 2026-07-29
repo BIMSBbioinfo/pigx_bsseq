@@ -15,7 +15,16 @@ builddir=${builddir:-@abs_top_builddir@}
 
 root=$(mktemp --tmpdir -d "pigx.${test_name}.XXXXXX")
 testfolder="${root}/${test_name}"
-trap 'rm -rf "${root}"' EXIT
+# Set PIGX_TEST_KEEP=1 to retain this directory for failure inspection.
+cleanup() {
+    if test -n "${PIGX_TEST_KEEP:-}"
+    then
+        echo "Keeping test folder: ${testfolder}"
+    else
+        rm -rf "${root}"
+    fi
+}
+trap cleanup EXIT
 mkdir -p "${testfolder}"
 
 echo "TEST FOLDER: ${testfolder}"
@@ -90,9 +99,12 @@ export PIGX_UGLY=1
 export PIGX_UNINSTALLED=1
 export XDG_CACHE_HOME="${testfolder}/cache"
 
-# Run one pipeline target and retain temporary outputs for the assertion below.
+# Keep the runner in the project directory, where uninstalled mode finds its
+# defaults.  Direct Snakemake's lock and metadata into the isolated test folder
+# so they do not conflict with another test or a developer pipeline run.
 "${builddir}/pigx-bsseq" -c "${testfolder}/config.json" -s "${settings}" \
-    "${tmp_samplesheet}" --target "${target}" --snakemake=--notemp
+    "${tmp_samplesheet}" --target "${target}" --snakemake=--notemp \
+    "--snakemake=--directory=${testfolder}"
 
 if ! test -f "${testfolder}/${expected}"
 then
