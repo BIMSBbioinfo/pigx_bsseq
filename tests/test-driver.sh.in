@@ -26,6 +26,10 @@ do
     cp -R "${srcdir}/tests/sample_data/preprocessed/${fixture}" "${testfolder}/"
 done
 
+# Distribution archives preserve read-only fixture permissions.  The copies are
+# private test inputs, so make them writable before Snakemake replaces outputs.
+chmod -R u+w "${testfolder}"
+
 # genome-prep writes beside the FASTA, so it alone needs a private reference.
 if test "${target}" = genome-prep
 then
