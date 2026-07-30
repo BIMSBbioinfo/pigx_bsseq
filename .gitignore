@@ -13,6 +13,7 @@ autom4te.cache/
 etc/settings.yaml
 test*.sh
 test*.log
+tests/tiling.sh
 report_templates/*.Rmd
 report_templates/*.html
 
@@ -35,6 +36,7 @@ dev/guix/init_env.sh
 
 # test generated files
 test*.trs
+tests/*.trs
 tests/output/
 *.log
 *.log
