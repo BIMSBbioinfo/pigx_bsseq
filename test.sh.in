@@ -51,6 +51,12 @@ then
     exit 1
 fi
 
+if ! test -f "${srcdir}/tests/out/Reports/withinGroup/withinGroup_CpG_destranded_methylDackel.diffmeth-report.html"
+then
+    echo "ERROR: could not find withinGroup differential methylation report"
+    exit 1
+fi
+
 for base in PEsample_wgbs_1_val_1_bt2 SEsample_se_bt2 SEsample_v2_se_bt2; do
     if ! test -f "${srcdir}/tests/out/Reports/sample_reports/${base}.sorted.deduped_cpg_methylKit_hg19_final.html"
     then

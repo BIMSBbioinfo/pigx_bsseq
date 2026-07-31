@@ -224,6 +224,8 @@ getMostVariableCpGs = function(.object=NULL, file=NULL, nTop=5000, chunk.size = 
     } else if ( !is.null(file) & file.exists(file) )  {
         meth.mat.dt <- data.table::fread(file)
     }
+
+    meth.mat.dt <- meth.mat.dt[apply(is.finite(as.matrix(meth.mat.dt)), 1, all)]
     
     meth.mat.dt[, variance := rowVars(as.matrix(.SD))]
     ## fastest ordering method
@@ -1431,4 +1433,3 @@ if( (fetch_refgen_success) & length(GRanges.dmr)!=0)
 ```{r SessionInfo}
 sessionInfo()
 ```
-
