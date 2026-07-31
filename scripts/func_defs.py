@@ -427,7 +427,7 @@ def get_sampleids_from_treatment(treatment):
 def get_sampleids_from_analysis(analysis):
     """Get SampleIDs for each Analysis group."""
     sampleids_list = []
-    for group in config['DManalyses'][analysis]:
+    for group in ('treatment_sample_groups', 'control_sample_groups'):
         for treatment in config['DManalyses'][analysis][group].split(","):
             sampleids_list += get_sampleids_from_treatment(treatment)
             

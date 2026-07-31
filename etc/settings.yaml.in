@@ -40,6 +40,9 @@ general:
     TSS_plotlength: 5000
   differential-methylation:
     cores: 1
+    # Minimum samples per group. Use 0 for methylKit's default, a positive
+    # integer, or a fraction in (0, 1), which is rounded up from the smallest
+    # analysis group. DManalyses.<analysis>.minPerGroup overrides this value.
     minPerGroup: 0
     qvalue: 0.01
     difference: 25
@@ -51,6 +54,9 @@ general:
 #   analysis1:
 #     treatment_sample_groups: "MED1"
 #     control_sample_groups: "H2O"
+#     # Optional override of general.differential-methylation.minPerGroup.
+#     # Fractions in (0, 1) are rounded up from the smallest analysis group.
+#     minPerGroup: 0.5
 
 
 #  multipleTreat:
@@ -190,4 +196,3 @@ tools:
   apptainer: # for now this assumes apptainer is globally installed, TODO: needs to be properly configured in ./configure.ac
     executable: /usr/bin/apptainer
     args: ""
-

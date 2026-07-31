@@ -16,6 +16,8 @@ general:
     keep-Dups: Auto                 
   differential-methylation:
     cores: 1
+    # Fractions require this proportion of samples from the smallest group.
+    minPerGroup: 0.5
     qvalue: 0.05
 
 DManalyses:
@@ -26,6 +28,8 @@ DManalyses:
     # If multiple sample names are provided, they must be separated by comma.
     treatment_sample_groups: "MED1"
     control_sample_groups: "H2O"
+    # This overrides general.differential-methylation.minPerGroup for this analysis.
+    minPerGroup: 0.75
 
   multipleTreat:
     treatment_sample_groups: "MED2,MED1"
@@ -49,4 +53,3 @@ execution:
 tools:
   trim-galore:
     args: "--clip_R1 10 --clip_R2 10 --cores 4 --nextseq 20" # https://felixkrueger.github.io/Bismark/bismark/library_types/
-

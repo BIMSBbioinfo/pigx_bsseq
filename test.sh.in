@@ -13,7 +13,43 @@ export srcdir=$(@PYTHON@ -c 'import os,sys; print(os.path.realpath(sys.argv[1]))
 chmod -R +w ${srcdir}/tests
 
 ./pigx-bsseq -s ${srcdir}/tests/settings.yaml ${srcdir}/tests/sample_sheet.csv \
-    --printshellcmds --target={final-report-bwameth,final-report}
+    --printshellcmds \
+    --target=final-report-bwameth \
+    --target=final-report \
+    --target=diffmeth-report-bwameth \
+    --target=diffmeth-report
+
+for log in \
+    "${srcdir}/tests/out/09_differential_methylation/multipleTreat/multipleTreat_cpg_destranded_methylKit_unite.log" \
+    "${srcdir}/tests/out/09_differential_methylation/med1vsh2o/med1vsh2o_cpg_destranded_methylKit_unite.log"
+do
+    if ! test -f "${log}"
+    then
+        echo "ERROR: could not find unite log ${log}"
+        exit 1
+    fi
+done
+
+if ! grep -F "minPerGroup configured as 0.5; resolved to 1." \
+    "${srcdir}/tests/out/09_differential_methylation/multipleTreat/multipleTreat_cpg_destranded_methylKit_unite.log"
+then
+    echo "ERROR: multipleTreat did not use the global fractional minPerGroup"
+    exit 1
+fi
+
+if ! grep -F "minPerGroup configured as 0.75; resolved to 2." \
+    "${srcdir}/tests/out/09_differential_methylation/med1vsh2o/med1vsh2o_cpg_destranded_methylKit_unite.log"
+then
+    echo "ERROR: med1vsh2o did not use its fractional minPerGroup override"
+    exit 1
+fi
+
+if grep -F "0.75: " \
+    "${srcdir}/tests/out/09_differential_methylation/med1vsh2o/med1vsh2o_cpg_destranded_methylKit_unite.log"
+then
+    echo "ERROR: analysis metadata was interpreted as a treatment group"
+    exit 1
+fi
 
 for base in PEsample_wgbs_1_val_1_bt2 SEsample_se_bt2 SEsample_v2_se_bt2; do
     if ! test -f "${srcdir}/tests/out/Reports/sample_reports/${base}.sorted.deduped_cpg_methylKit_hg19_final.html"
