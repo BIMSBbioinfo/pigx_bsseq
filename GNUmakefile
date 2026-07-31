@@ -55,8 +55,9 @@ CONFIGURE_DEPS := \
 
 ENV_FILES := guix.scm requirements.yaml
 
-CONDA_ENV := $(CURDIR)/.conda
-CONDA_LOCK := $(CONDA_ENV)/requirements.lock
+CONDA_ENV ?= $(shell awk -F ': *' '/^name:/{print $$2; exit}' requirements.yaml)
+$(if $(strip $(CONDA_ENV)),,$(error CONDA_ENV is empty; set it or add a name to requirements.yaml))
+CONDA_LOCK := $(CURDIR)/requirements.lock
 
 VERSION_FILE := VERSION
 VERSION_TAG := $(shell cat $(VERSION_FILE) 2>/dev/null || echo "0")
@@ -129,7 +130,7 @@ build-guix: require-guix | guix.scm configure $(PIGX_RUNNER)
 ## build-conda: Build in a conda/micromamba environment
 build-conda: $(CONDA_LOCK) | configure $(PIGX_RUNNER)
 	@echo "Building in conda environment: $(CONDA_ENV)"
-	@$(MAMBA_EXE) run -p $(CONDA_ENV) --clean-env bash -c '\
+	@$(MAMBA_EXE) run -n $(CONDA_ENV) --clean-env bash -c '\
 		unset GUIX_PYTHONPATH; \
 		export R_LIBS_SITE="$${CONDA_PREFIX}/lib/R/library"; \
 		export PYTHONPATH="$$(python -c '\''import sysconfig; print(sysconfig.get_paths()["purelib"])'\'')"; \
@@ -263,7 +264,7 @@ format-check: require-snakefmt require-air
 # == Development environment helpers ==
 # ---------------------------------------------------------------------------
 
-.PHONY: dev dev-guix dev-conda
+.PHONY: dev dev-guix dev-conda conda-env
 
 ## dev: Enter the preferred development environment
 dev:
@@ -274,20 +275,30 @@ dev-guix: require-guix
 	@echo "Entering development environment with Guix..."
 	guix shell -D -f guix.scm
 
+## conda-env: Ensure the named micromamba environment has been checked
+conda-env: $(CONDA_LOCK)
+
 $(CONDA_LOCK): requirements.yaml
-	@echo "Creating/updating conda environment..."
-	@if test -d "$(CONDA_ENV)/conda-meta"; then \
-		$(MAMBA_EXE) install -y -p $(CONDA_ENV) -f requirements.yaml; \
+	@set -e; \
+	if $(MAMBA_EXE) env list | awk -v env="$(CONDA_ENV)" '$$1 == env { found = 1 } END { exit !found }'; then \
+		echo "Comparing existing conda environment: $(CONDA_ENV)"; \
+		tmpfile=$$(mktemp); \
+		trap 'rm -f "$$tmpfile"' EXIT HUP INT TERM; \
+		$(MAMBA_EXE) env export -n $(CONDA_ENV) --from-history > "$$tmpfile"; \
+		if ! diff -u requirements.yaml "$$tmpfile"; then \
+			echo "WARNING: $(CONDA_ENV) differs from requirements.yaml."; \
+			echo "Run '$(MAMBA_EXE) install -y -n $(CONDA_ENV) -f requirements.yaml' to update it."; \
+		fi; \
 	else \
-		$(MAMBA_EXE) create -y -p $(CONDA_ENV) -f requirements.yaml; \
-	fi
-	@echo "Generating locked requirements from requirements.yaml..."
-	@$(MAMBA_EXE) env export -p $(CONDA_ENV) --explicit > $(CONDA_LOCK)
+		echo "Creating conda environment: $(CONDA_ENV)"; \
+		$(MAMBA_EXE) create -y -n $(CONDA_ENV) -f requirements.yaml; \
+	fi; \
+	touch $(CONDA_LOCK)
 
 ## dev-conda: Enter the development environment using micromamba
 dev-conda: $(CONDA_LOCK)
 	@echo "Entering conda environment..."
-	@$(MAMBA_EXE) run -p $(CONDA_ENV) bash -c '\
+	@$(MAMBA_EXE) run -n $(CONDA_ENV) bash -c '\
 		unset GUIX_PYTHONPATH; \
 		export R_LIBS_SITE="$${CONDA_PREFIX}/lib/R/library"; \
 		export PYTHONPATH="$$(python -c '\''import sysconfig; print(sysconfig.get_paths()["purelib"])'\'')"; \
