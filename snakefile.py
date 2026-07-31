@@ -608,7 +608,7 @@ rule bismark_align_and_map_se:
         genomeFolder="--genome_folder " + GENOMEPATH,
         outdir="--output_dir  " + DIR_mapped,
         nucCov="--nucleotide_coverage",
-        pathToBowtie="--path_to_bowtie " + os.path.dirname(tool('bowtie2')),
+        pathToBowtie="--path_to_bowtie2 " + os.path.dirname(tool('bowtie2')),
         useBowtie2="--bowtie2 ",
         samtools="--samtools_path " + os.path.dirname(tool('samtools')),
         tempdir="--temp_dir " + DIR_mapped,
