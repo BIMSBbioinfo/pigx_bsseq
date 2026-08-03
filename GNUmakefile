@@ -130,6 +130,7 @@ build-guix: require-guix guix.scm configure $(PIGX_RUNNER)
 build-conda: $(CONDA_LOCK) configure $(PIGX_RUNNER)
 	@echo "Building in conda environment: $(CONDA_ENV)"
 	@$(MAMBA_EXE) run -p $(CONDA_ENV) --clean-env bash -c '\
+		unset GUIX_PYTHONPATH; \
 		export R_LIBS_SITE="$${CONDA_PREFIX}/lib/R/library"; \
 		export PYTHONPATH="$$(python -c '\''import sysconfig; print(sysconfig.get_paths()["purelib"])'\'')"; \
 		./configure; \
@@ -287,6 +288,7 @@ $(CONDA_LOCK): requirements.yaml
 dev-conda: $(CONDA_LOCK)
 	@echo "Entering conda environment..."
 	@$(MAMBA_EXE) run -p $(CONDA_ENV) bash -c '\
+		unset GUIX_PYTHONPATH; \
 		export R_LIBS_SITE="$${CONDA_PREFIX}/lib/R/library"; \
 		export PYTHONPATH="$$(python -c '\''import sysconfig; print(sysconfig.get_paths()["purelib"])'\'')"; \
 		export HOME="$${HOME}"; \
