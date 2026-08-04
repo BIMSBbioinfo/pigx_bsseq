@@ -102,7 +102,7 @@ init-submodules: pigx-common/common/m4
 	@echo "INFO: Submodules are initialized."
 
 configure: $(CONFIGURE_DEPS) pigx-common/common/m4
-	@[ -f build-aux/install-sh ] || ./bootstrap.sh
+	./bootstrap.sh
 
 $(PIGX_RUNNER): | pigx-common/common/m4
 
@@ -119,7 +119,7 @@ $(PIPELINE_RUNNER): $(PIGX_RUNNER) | configure
 build: $(PIPELINE_RUNNER)
 
 ## build-guix: Build in a pure Guix environment
-build-guix: require-guix guix.scm configure $(PIGX_RUNNER)
+build-guix: require-guix | guix.scm configure $(PIGX_RUNNER)
 	@echo "Building in guix environment: $(GUIX_PYTHONPATH)"
 	@guix shell --pure -D -f guix.scm -- sh -c '\
 		export PYTHONPATH="$$GUIX_PYTHONPATH"; \
@@ -127,7 +127,7 @@ build-guix: require-guix guix.scm configure $(PIGX_RUNNER)
 	'
 
 ## build-conda: Build in a conda/micromamba environment
-build-conda: $(CONDA_LOCK) configure $(PIGX_RUNNER)
+build-conda: $(CONDA_LOCK) | configure $(PIGX_RUNNER)
 	@echo "Building in conda environment: $(CONDA_ENV)"
 	@$(MAMBA_EXE) run -p $(CONDA_ENV) --clean-env bash -c '\
 		unset GUIX_PYTHONPATH; \
