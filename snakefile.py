@@ -605,7 +605,6 @@ rule bismark_align_and_map_se:
         DIR_mapped + "{sample}_trimmed_bismark_bt2.bam",
         DIR_mapped + "{sample}_trimmed_bismark_bt2_SE_report.txt",
     params:
-        bismark_args=config['tools']['bismark']['args'],
         genomeFolder="--genome_folder " + GENOMEPATH,
         outdir="--output_dir  " + DIR_mapped,
         nucCov="--nucleotide_coverage",
@@ -636,7 +635,6 @@ rule bismark_align_and_map_pe:
         DIR_mapped + "{sample}_1_val_1_bismark_bt2_pe.bam",
         DIR_mapped + "{sample}_1_val_1_bismark_bt2_PE_report.txt",
     params:
-        bismark_args=config['tools']['bismark']['args'],
         genomeFolder="--genome_folder " + GENOMEPATH,
         outdir="--output_dir  " + DIR_mapped,
         nucCov="--nucleotide_coverage",
