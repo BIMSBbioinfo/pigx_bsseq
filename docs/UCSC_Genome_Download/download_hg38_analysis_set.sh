@@ -7,8 +7,7 @@
 # ALT/patch/random contigs with no bwa .alt companion file, which causes
 # MAPQ0 coverage dropout when a read is equally consistent with a primary
 # chromosome and its own ALT-haplotype contig. See README.md in this
-# directory, and a project's scripts/fix_multimapping/NOTES.md for the full
-# investigation.
+# directory.
 #
 # Usage: ./download_hg38_analysis_set.sh <OUT_DIR> [SPIKEIN_FASTA]
 #   OUT_DIR        directory to download/build the reference in

@@ -14,9 +14,7 @@ ambiguity can't arise. It also hard-masks centromeric-array/WGS-duplicate
 regions and the chrY PAR regions, and adds an EBV decoy sequence to absorb
 contamination. See
 [UCSC's analysis set docs](http://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/analysisSet/)
-for details, and a project's `scripts/fix_multimapping/NOTES.md` (e.g.
-`ULandmesser_OPTICO_ACS2/scripts/fix_multimapping/NOTES.md`) for the full
-investigation that motivated this.
+for details.
 
 You may use the download script to fetch the reference and (optionally)
 build + index the bisulfite hybrid reference (genome + methylation
